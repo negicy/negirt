@@ -3,14 +3,11 @@ import pandas as pd
 from girth.synthetic import create_synthetic_irt_dichotomous
 from girth import twopl_mml, onepl_mml, ability_mle
 
-
-
 df = pd.read_csv('input.csv')
 df = df.set_index('qid')
 # print(df)
 task_list = list(df.index)
 worker_list = list(df.columns)
-
 
 data = df.values
 print(data)

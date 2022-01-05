@@ -13,7 +13,7 @@ label_df = pd.read_csv("label_df.csv", sep = ",")
 input_df = pd.read_csv("input.csv", sep = ",")
 
 batch_df = pd.read_csv("batch_100.csv", sep = ",")
-label_df = label_df.rename(columns={'Unnamed: 0': 'id'})
+#label_df = label_df.rename(columns={'Unnamed: 0': 'id'})
 label_df = label_df.set_index('id')
 
 # origin_id: max(prob_dic)のdict作成

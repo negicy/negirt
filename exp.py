@@ -79,7 +79,7 @@ df = df.set_index('qid')
 # print(df)
 #task_list = list(df.index)
 #worker_list = list(df.columns)
-threshold = list([i / 100 for i in range(50, 85)])
+threshold = list([i / 100 for i in range(50, 80)])
 # data: 0/1 のndarray (2d)  
 data = df.values
 
@@ -137,8 +137,8 @@ for iteration in range(0, iteration_time):
 
     # 割り当て結果の精度を求める
     single_acc = accuracy(single_assign_dic, input_df)
-    # mul_acc = weighted_majority_vote(mul_assign_dic, input_df, user_param)
-    mul_acc = simple_vote(mul_assign_dic, input_df)
+    mul_acc = weighted_majority_vote(mul_assign_dic, input_df, user_param)
+    # mul_acc = simple_vote(mul_assign_dic, input_df)
     # v = task_variance(assign_dic, test_worker_set)
 
     overall_acc = (single_acc + mul_acc) / 2

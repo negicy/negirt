@@ -3,6 +3,7 @@ import girth
 import pandas as pd
 import numpy as np
 from girth import twopl_mml, onepl_mml, ability_mle
+from estimation_method import *
 import random
 
 
@@ -104,20 +105,24 @@ def make_candidate(threshold, input_df, label_df, worker_list, task_list):
   user_param = params[1]
 
   worker_list = elim_spam(item_param, user_param, input_df, worker_list)
-  t_worker = random.sample(worker_list, 20)
+  test_worker = random.sample(worker_list, 20)
 
-  category_dic = {'Businness':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Economy':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 
-                    'Technology&Science':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Health':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}}
-  for i in qualify_task:
-    category = label_df['estimate_label'][i]
-    # category_dic[category]['a'].append(item_param[i]['alpha'])
-    category_dic[category]['b'].append(item_param[i])
-    category_dic[category]['num'] += 1
-
-  for c in category_dic:
-    category_dic[c]['ma'] = np.sum(category_dic[c]['a']) / category_dic[c]['num']
-    category_dic[c]['mb'] = np.sum(category_dic[c]['b']) / category_dic[c]['num']
-
+  # 難易度推定
+  # タスクの難易度カラムをlabel_dfに追加
+  label_df['difficulty'] = 0
+  # trainタスクの難しさをdifficultyカラムに代入
+  for task in qualify_task:
+    if item_param[task] >= 1:
+      label_df['difficulty'] = 3
+    elif item_param[task] >= 0 and item_param[task] <= 1:
+      label_df['difficulty'] = 2
+    elif item_param[task] >= -1 and item_param[task] <= 0:
+      label_df['difficulty'] = 1
+    else:
+      label_df['difficulty'] = 0
+ 
+  difficulty_map = [-1, 0, 1, 2]
+  difficulty_dic = naivebayes(label_df, qualify_task, test_task)
   # 各テストタスクについてワーカー候補を作成する
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成
@@ -127,12 +132,13 @@ def make_candidate(threshold, input_df, label_df, worker_list, task_list):
     for task in test_task:
       worker_c[task] = []
       # test_taskのカテゴリ推定
-      est_label = label_df['estimate_label'][task]
+      # est_label = label_df['estimate_label'][task]
       # user_paramのワーカー能力がcategory_dicのタスク難易度より大きければ候補に入れる.
       # a = item_param[task]['alpha']
-      beta = category_dic[est_label]['mb']
+      level = difficulty_dic[task]
+      beta = difficulty_map[level]
 
-      for worker in t_worker:
+      for worker in test_worker:
         # workerの正答確率prob
         theta = user_param[worker]
         # prob = irt_fnc(theta, b, a)
@@ -146,7 +152,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, task_list):
   
     worker_c_th[th] = worker_c
 
-  return worker_c_th, t_worker, test_task
+  return worker_c_th, test_worker, test_task
 
 def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
   worker_c_th = {}
@@ -222,6 +228,11 @@ def estimate_candidate(threshold, input_df, label_df, worker_list, task_list):
   params = run_girth(q_data, qualify_task, worker_list)
   item_param = params[0]
   user_param = params[1]
+  
+
+
+
+  '''
   category_dic = {'Businness':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Economy':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 
                     'Technology&Science':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Health':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}}
   for i in qualify_task:
@@ -233,6 +244,7 @@ def estimate_candidate(threshold, input_df, label_df, worker_list, task_list):
   for c in category_dic:
     category_dic[c]['ma'] = np.sum(category_dic[c]['a']) / category_dic[c]['num']
     category_dic[c]['mb'] = np.sum(category_dic[c]['b']) / category_dic[c]['num']
+  '''
   # 各テストタスクについてワーカー候補を作成する
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成

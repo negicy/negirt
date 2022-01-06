@@ -44,7 +44,7 @@ input_df = input_df.set_index('task_id')
 worker_list = list(input_df.columns)
 # ワーカーリスト作成~割り当て　実行
 
-
+'''
 diffs = compare_difficulty(input_df, label_df, worker_list, task_list)
 # print(diffs)
 category_dic = diffs[0]
@@ -56,7 +56,7 @@ test_task = diffs[2]
 # fig = plt.figure() 
 
 # 各カテゴリの推定難易度
-'''
+
 businness_diff = category_dic['Businness']['mb']
 economy_diff = category_dic['Economy']['mb']
 tech_diff = category_dic['Technology&Science']['mb']
@@ -100,8 +100,8 @@ plt.show()
 # ax.plot(left, var_height)
 # plt.savefig("irt-all-e1.png")
 # plt.show()
-
 '''
+
 acc_all_th = []
 var_all_th = []
 
@@ -114,9 +114,8 @@ for iteration in range(0, iteration_time):
   acc_per_th = []
   var_per_th = []
 
-  results = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)
+  results = make_candidate(threshold, input_df, label_df, worker_list, task_list)
   # results = estimate_candidate(threshold, input_df, label_df, worker_list, task_list)
-
 
   worker_c_th = results[0]
   test_worker_set = results[1]

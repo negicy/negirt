@@ -102,7 +102,7 @@ for iteration in range(0, iteration_time):
     # print(candidate_dic)
     # 1回目は普通に割り当てる
     single_assign_dic = assignment(candidate_dic, test_worker_set)
-    redundancy = 5
+    redundancy = 3
 
 
     # 候補が複数いるタスクを3人に割り当てる
@@ -137,8 +137,8 @@ for iteration in range(0, iteration_time):
 
     # 割り当て結果の精度を求める
     single_acc = accuracy(single_assign_dic, input_df)
-    mul_acc = weighted_majority_vote(mul_assign_dic, input_df, user_param)
-    # mul_acc = simple_vote(mul_assign_dic, input_df)
+    # mul_acc = weighted_majority_vote(mul_assign_dic, input_df, user_param)
+    mul_acc = simple_vote(mul_assign_dic, input_df)
     # v = task_variance(assign_dic, test_worker_set)
 
     overall_acc = (single_acc + mul_acc) / 2

@@ -84,7 +84,7 @@ threshold = list([i / 100 for i in range(50, 85)])
 data = df.values
 
 # Solve for parameters
-iteration_time = 10
+iteration_time = 5
 for iteration in range(0, iteration_time):
   
   acc_per_th = []

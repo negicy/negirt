@@ -91,8 +91,8 @@ def make_candidate(threshold, input_df, label_df, worker_list, task_list):
   worker_c_th = {}
   # 承認タスクとテストタスクを分離
   random.shuffle(task_list)
-  qualify_task = task_list[:60]
-  test_task = task_list[60:]
+  qualify_task = task_list[:50]
+  test_task = task_list[50:]
  
   t_worker = random.sample(worker_list, 20)
   # t_worker = worker_list
@@ -109,6 +109,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, task_list):
   item_param = params[0]
   user_param = params[1]
 
+<<<<<<< Updated upstream
   category_dic = {'Businness':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Economy':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 
                     'Technology&Science':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Health':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}}
   for i in qualify_task:
@@ -120,6 +121,28 @@ def make_candidate(threshold, input_df, label_df, worker_list, task_list):
   for c in category_dic:
     category_dic[c]['ma'] = np.sum(category_dic[c]['a']) / category_dic[c]['num']
     category_dic[c]['mb'] = np.sum(category_dic[c]['b']) / category_dic[c]['num']
+=======
+  # worker_list = elim_spam(item_param, user_param, input_df, worker_list)
+  test_worker = random.sample(worker_list, 30)
+
+  # 難易度推定
+  # タスクの難易度カラムをlabel_dfに追加
+  label_df['difficulty'] = 0
+  # trainタスクの難しさをdifficultyカラムに代入
+  for task in qualify_task:
+    if item_param[task] >= 0:
+      label_df['difficulty'] = 1
+    # elif item_param[task] >= 0 and item_param[task] <= 1:
+      # label_df['difficulty'] = 2
+    # elif item_param[task] >= -1 and item_param[task] <= 0:
+      # label_df['difficulty'] = 1
+    else:
+      label_df['difficulty'] = 0
+ 
+  difficulty_map = [-1, 0]
+  difficulty_dic = naivebayes(label_df, qualify_task, test_task)
+
+
 
   # 各テストタスクについてワーカー候補を作成する
   # output: worker_c = {task: []}

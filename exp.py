@@ -79,12 +79,12 @@ df = df.set_index('qid')
 # print(df)
 #task_list = list(df.index)
 #worker_list = list(df.columns)
-threshold = list([i / 100 for i in range(50, 80)])
+threshold = list([i / 100 for i in range(50, 85)])
 # data: 0/1 のndarray (2d)  
 data = df.values
 
 # Solve for parameters
-iteration_time = 7
+iteration_time = 10
 for iteration in range(0, iteration_time):
   
   acc_per_th = []
@@ -102,13 +102,14 @@ for iteration in range(0, iteration_time):
     # print(candidate_dic)
     # 1回目は普通に割り当てる
     single_assign_dic = assignment(candidate_dic, test_worker_set)
+    redundancy = 5
 
 
     # 候補が複数いるタスクを3人に割り当てる
     # 候補人数が3以上のワーカ候補リストのみ残す
     mul_candidate_dic = {}
     for task in candidate_dic:
-      if len(candidate_dic[task]) >= 3:
+      if len(candidate_dic[task]) >= redundancy:
         mul_candidate_dic[task] = candidate_dic[task]
 
     # 複数人割当用の辞書
@@ -122,7 +123,7 @@ for iteration in range(0, iteration_time):
       mul_candidate_dic[task].remove(assigned_worker)
     
     
-    for i in range(2):
+    for i in range(redundancy):
       # assign_dicを初期化
       assign_dic = {}
       assign_dic = assignment(mul_candidate_dic, test_worker_set)

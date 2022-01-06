@@ -91,8 +91,8 @@ def make_candidate(threshold, input_df, label_df, worker_list, task_list):
   worker_c_th = {}
   # 承認タスクとテストタスクを分離
   random.shuffle(task_list)
-  qualify_task = task_list[:50]
-  test_task = task_list[50:]
+  qualify_task = task_list[:60]
+  test_task = task_list[60:]
  
   t_worker = random.sample(worker_list, 20)
   # t_worker = worker_list

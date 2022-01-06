@@ -79,69 +79,107 @@ df = df.set_index('qid')
 # print(df)
 #task_list = list(df.index)
 #worker_list = list(df.columns)
-threshold = list([i / 100 for i in range(50, 81)])
+threshold = list([i / 100 for i in range(50, 80)])
 # data: 0/1 のndarray (2d)  
 data = df.values
 
 # Solve for parameters
-iteration_time = 5
+iteration_time = 7
 for iteration in range(0, iteration_time):
   
   acc_per_th = []
   var_per_th = []
 
-  results = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)
-  # results = estimate_candidate(threshold, input_df, label_df, worker_list, task_list)
-  # print(results)
+  results = make_candidate(threshold, input_df, label_df, worker_list, task_list)
+ 
   # results : return worker_c_th, t_worker, test_task, random_quality, random_variance, top_worker_quality, top_worker_variance
   worker_c_th = results[0]
   test_worker_set = results[1]
+  user_param = results[3]
 
   # worker_c_th = {th: {task: [workers]}}
   for candidate_dic in worker_c_th.values():
     # print(candidate_dic)
-    assign_dic = assignment(candidate_dic, test_worker_set)
-    # 割り当て結果の精度を求める
-    acc = accuracy(assign_dic, input_df)
-    v = task_variance(assign_dic, test_worker_set)
+    # 1回目は普通に割り当てる
+    single_assign_dic = assignment(candidate_dic, test_worker_set)
+
+
+    # 候補が複数いるタスクを3人に割り当てる
+    # 候補人数が3以上のワーカ候補リストのみ残す
+    mul_candidate_dic = {}
+    for task in candidate_dic:
+      if len(candidate_dic[task]) >= 3:
+        mul_candidate_dic[task] = candidate_dic[task]
+
+    # 複数人割当用の辞書
+    mul_assign_dic = {}
+    # 複数人割り当てるタスクについて, すでに割り当てられたタスク:ワーカの組を除く
+    # print(mul_candidate_dic)
+    for task in mul_candidate_dic:
+      assigned_worker = single_assign_dic[task]
+      mul_assign_dic[task] = []
+      mul_assign_dic[task].append(assigned_worker)
+      mul_candidate_dic[task].remove(assigned_worker)
+    
+    
+    for i in range(2):
+      # assign_dicを初期化
+      assign_dic = {}
+      assign_dic = assignment(mul_candidate_dic, test_worker_set)
+      for task in assign_dic:
+        assigned_worker = assign_dic[task]
+        mul_assign_dic[task].append(assigned_worker)
+        mul_candidate_dic[task].remove(assigned_worker)
   
-    acc_per_th.append(acc)
-    var_per_th.append(v)
+    print(mul_assign_dic)
+
+
+    # 割り当て結果の精度を求める
+    single_acc = accuracy(single_assign_dic, input_df)
+    mul_acc = weighted_majority_vote(mul_assign_dic, input_df, user_param)
+    # mul_acc = simple_vote(mul_assign_dic, input_df)
+    # v = task_variance(assign_dic, test_worker_set)
+
+    overall_acc = (single_acc + mul_acc) / 2
+  
+    acc_per_th.append(overall_acc)
+    # var_per_th.append(v)
 
   acc_all_th.append(acc_per_th)
-  var_all_th.append(var_per_th)
+  # var_all_th.append(var_per_th)
 
 mean_acc = [0] * len(threshold)
-mean_var = [0] * len(threshold)
+# mean_var = [0] * len(threshold)
 for acc_list in acc_all_th:
   # acc_sum = 0
   for i in range(0, len(threshold)):
     mean_acc[i] += acc_list[i]
-
+'''
 for var_list in var_all_th:
   # var_sum = 0
   for i in range(0, len(threshold)):
     mean_var[i] += var_list[i]
-
+'''
 
 for i in range(0, len(threshold)):
   mean_acc[i] = mean_acc[i] / iteration_time
-  mean_var[i] = mean_var[i] / iteration_time
+  # mean_var[i] = mean_var[i] / iteration_time
 print(mean_acc)
-print(mean_var)
+# print(mean_var)
 
 # 推移をプロット
 fig = plt.figure() #親グラフと子グラフを同時に定義
 ax1 = fig.add_subplot(1, 1, 1)
 ax1.set_xlabel('threshold')
 #ax1 = fig.add_subplot(2, 2, 1)
-ax2 = ax1.twinx()
+# ax2 = ax1.twinx()
 clrs = ['b', 'orange'] 
 x = np.array(threshold)
 acc_height = np.array(mean_acc)
-var_height = np.array(mean_var)
-ax1.plot(x, var_height, color='blue')
-ax2.plot(x, acc_height, color='red')
+# var_height = np.array(mean_var)
+ax1.plot(x, acc_height, color='red')
+# ax2.plot(x, var_height, color='blue')
+
 #ax.plot(left, var_height)
 # plt.savefig("irt-all-e1.png")
 plt.show()

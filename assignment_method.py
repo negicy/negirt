@@ -2,16 +2,19 @@
 # A: 各ワーカーの候補リスト中の登場回数
 import copy
 import numpy as np
-def task_average(org_dic, c_dic):
+
+
+def task_average(org_dic, score_dic):
   task_avg = {}
   for t in org_dic:
-    s = 0
+    sum = 0
     for w in org_dic[t]:
-      s += c_dic[w]
+      sum += score_dic[w]
       # division by 0
-      task_avg[t] = s / len(org_dic[t])
+      task_avg[t] = sum / len(org_dic[t])
   task_avg = sorted(task_avg.items(), key=lambda x: x[1], reverse=False)
   # t_dic = dict(t_dic)
+  # ソートされた辞書を返す
   return task_avg
 
 #task_avg = task_avg(org_dic, c_dic)
@@ -26,14 +29,14 @@ def assignment(worker_c, test_worker):
   org_dic = copy.deepcopy(worker_c)
   # workerリストの各ワーカーの候補リストの登場回数(A)の合計と平均を求める
   # c_dic: 各ワーカー: Aの合計の辞書
-  c_dic = {}
-  for w in test_worker:
+  score_dic = {}
+  for worker in test_worker:
     count = 0
-    for l in org_dic.values():
-      if w in l:
+    for candidate_list in org_dic.values():
+      if worker in candidate_list:
         count += 1
-    c_dic[w] = count
-  task_avg = task_average(org_dic, c_dic)
+    score_dic[worker] = count
+  task_avg = task_average(org_dic, score_dic)
   # 割り当て処理用のタスク:ワーカー候補辞書
   mid_dic = copy.deepcopy(org_dic)
   # 割り当て処理
@@ -61,12 +64,13 @@ def assignment(worker_c, test_worker):
     # このタスクの候補ワーカーについてforループ
     else:
       for w in candidate_list:
-        candidate_dic[w] = c_dic[w]
+        candidate_dic[w] = score_dic[w]
       print(candidate_dic)
       # 候補登場回数(A = c_dic[w])が最小のワーカーを見つけ, 割当先のワーカーとする
       assign_worker = min(candidate_dic.items(), key=lambda x: x[1])[0]
+
     assign_dic[id] = assign_worker
-    # mid_dicからタスクを削除
+    # mid_dicから割り当ての完了したタスクを削除
     mid_dic.pop(id)
     
     # 候補リストを更新(タスクを割り当てられたワーカーは一旦候補から除く)
@@ -74,7 +78,7 @@ def assignment(worker_c, test_worker):
       if assign_worker in c_list:
         c_list.remove(assign_worker)
     # print(mid_dic)
-    #mid_dicが空ならリセット -- big sus
+    # mid_dicが空ならリセット
       empty_count = 0
       for dic in mid_dic.values():
         empty_count += len(dic)
@@ -99,7 +103,45 @@ def accuracy(assign_dic, input_df):
   acc = score/task_num
   return acc
 
+# 各テストタスクの正解率平均求める
+def simple_vote(mul_assign_dic, input_df):
+  overall_score = 0
+  task_num = 0
+  for task in mul_assign_dic:
+    score = 0
+    worker_list = mul_assign_dic[task]
+    task_num += 1
+    #print(task, worker)
+    for worker in worker_list:
+      if input_df[worker][task] == 1:
+        score += 1
+    if score >= 2:
+      overall_score += 1
+    
+  # print(score/task_num)
+  acc = overall_score/task_num
+  return acc
+
+def weighted_majority_vote(mul_assign_dic, input_df, user_param):
+  task_num = 0
+  overall_score = 0
+  for task in mul_assign_dic:
+    worker_list = mul_assign_dic[task]
+    task_num += 1
+    vote_correct = 0
+    vote_wrong = 0
+    for worker in worker_list:
+      if input_df[worker][task] == 1:
+        vote_correct += user_param[worker]
+      elif input_df[worker][task] == 0:
+        vote_wrong += user_param[worker]
+    if vote_correct > vote_wrong:
+      overall_score += 1
+  acc = overall_score / task_num
+  return acc
+
 # 各ワーカーの割り当てタスク数数える
+
 def task_variance(assign_dic, test_workers):
   count_dic = {}
   for tw in test_workers:

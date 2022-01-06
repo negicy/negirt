@@ -90,7 +90,7 @@ for iteration in range(0, iteration_time):
   acc_per_th = []
   var_per_th = []
 
-  results = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)
+  results = make_candidate(threshold, input_df, label_df, worker_list, task_list)
   # results = estimate_candidate(threshold, input_df, label_df, worker_list, task_list)
   # print(results)
   # results : return worker_c_th, t_worker, test_task, random_quality, random_variance, top_worker_quality, top_worker_variance

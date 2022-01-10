@@ -2,6 +2,7 @@ import math
 import girth
 import pandas as pd
 import numpy as np
+import statistics
 from girth import twopl_mml, onepl_mml, ability_mle
 import random
 
@@ -170,11 +171,10 @@ def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
   # t_worker = worker_list
   # q_data = np.array(list(qualify_dic.values()))
 
-
-  params = run_girth_twopl(q_data, qualify_task, worker_list)
+  params = run_girth_onepl(q_data, qualify_task, worker_list)
   item_param = params[0]
   user_param = params[1]
-  print(item_param)
+  # print(item_param)
 
 
   # 各テストタスクについてワーカー候補を作成する
@@ -186,17 +186,18 @@ def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
     for task in test_task:
       worker_c[task] = []
       # user_paramのワーカー能力がcategory_dicのタスク難易度より大きければ候補に入れる.
-      alpha = item_param[task]['a']
-      beta = item_param[task]['b']
+      # alpha = item_param[task]['a']
+      # beta = item_param[task]['b']
+      beta = item_param[task]
     
       for worker in t_worker:
         # workerの正答確率prob
         
         theta = user_param[worker]
         # prob = irt_fnc(theta, b, a)
-        # prob = OnePLM(beta, theta)
+        prob = OnePLM(beta, theta)
         # print(prob)
-        prob = TwoPLM(alpha, beta, theta, d=1.7)
+        # prob = TwoPLM(alpha, beta, theta, d=1.7)
 
         # workerの正解率がthresholdより大きければ
         if prob >= th:
@@ -258,3 +259,84 @@ def estimate_candidate(threshold, input_df, label_df, worker_list, task_list):
     worker_c_th[th] = worker_c
 
   return worker_c_th, t_worker, test_task
+
+
+def entire_top_workers(test_task, t_worker, q_task, thres, imput_df):
+  # test_workerについて正解率を計算する from input_df
+  assign_dic = {}
+  # ワーカーのqualifivation taskの正解率を格納する辞書
+  worker_rate = {}
+  top_worker_list = []
+  # test worker のtestタスクのqualification 正解率を調べる
+  for worker in t_worker:
+    q_score = 0
+    # q_taskにおける平均正解率の計算
+    for task in q_task:
+      if input_df[worker][task] == 1:
+        q_score += 1
+    q_avg = q_score / len(q_task)
+    worker_rate[worker] = q_avg
+    
+  # タスク数カウント辞書の準備
+  # assign_dic[worker] = []
+  # Q平均正解率 > th のワーカーのみ
+  for worker in worker_rate:
+    if worker_rate[worker] >= thres:
+      top_worker_list.append(worker)
+
+# ワーカ人数の比較用ヒストグラム
+def just_candidate(threshold, label_df, worker_list, task_list):
+  worker_c_th = {}
+  # 承認タスクとテストタスクを分離
+  import random
+  random.shuffle(task_list)
+  qualify_task = task_list[:60]
+  test_task = task_list[60:]
+  t_worker = random.sample(worker_list, 20)
+ 
+  # top-worker-approach による仕事のあるワーカー一覧: 各スレッショルドごと
+  top_worker_th = {}
+  # top worker assignment
+  for th in threshold:
+    top_results = entire_top_workers(test_task, t_worker, qualify_task, th)
+    # top_worker_quality = top_results[0]
+    # top_worker_variance = top_results[1]
+    top_worker_th[th] = top_results
+  
+  # IRT
+  params = irt_devide(worker_list, qualify_task)
+  item_param = params[0]
+  user_param = params[1]
+
+  category_dic = {'Businness':{'b': [], 'num':0, 'm': 0}, 'Economy':{'b': [], 'num':0, 'm': 0}, 
+                  'Technology&Science':{'b': [], 'num':0, 'm': 0}, 'Health':{'b': [], 'num':0, 'm': 0}}
+  for i in qualify_task:
+    category = label_df['true_label'][i]
+    category_dic[category]['b'].append(item_param[i]['beta'])
+    category_dic[category]['num'] += 1
+
+  for c in category_dic:
+    category_dic[c]['m'] = np.sum(category_dic[c]['b']) / category_dic[c]['num']
+  # 各テストタスクについてワーカー候補を作成する
+  # output: worker_c = {task: []}
+  # すべてのスレッショルドについてワーカー候補作成
+  for th in threshold:
+    worker_c = {}
+    for task in test_task:
+      worker_c[task] = []
+      # test_taskのカテゴリ推定
+      est_label = label_df['estimate_label'][task]
+      # user_paramのワーカー能力がcategory_dicのタスク難易度より大きければ候補に入れる.
+      for worker in t_worker:
+        # workerの正答確率prob
+       
+        b = category_dic[est_label]['m']
+        theta = user_param[worker]
+        # prob = OnePLM(b, theta, d=1.7)
+        # workerの正解率がthresholdより大きければ
+        prob = OnePLM(b, theta) 
+        if prob >= th:
+          worker_c[task].append(worker)
+    worker_c_th[th] = worker_c
+
+  return worker_c_th, top_worker_th

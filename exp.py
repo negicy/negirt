@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import girth
+import sys
 # from survey import *
 
 label_df = pd.read_csv("label_df.csv", sep = ",")
@@ -25,16 +26,14 @@ for k in range(0, 100):
   origin_id = batch_df[origin_index][0]
   task_dic["q"+str(k+1)] = origin_id
 
-print(task_dic)
 input_df = input_df.set_index('qid')
 input_df['task_id'] = 0
 
 q_list = list(input_df.index)
-print(q_list)
+
 
 # Task IDリストの作成
 task_list = list(task_dic.values())
-print(task_list)
 
 # input_dfのインデックスを置き換え
 for q in q_list:
@@ -54,7 +53,7 @@ for i in task_list:
     if input_df[w][i] == 1:
       correct += 1
   correct_rate_dic[i] = (correct / worker_num)
-print(correct_rate_dic)
+# print(correct_rate_dic)
 
 # 各ワーカーの全体正解率
 skill_rate_dic = {}
@@ -154,19 +153,28 @@ fig.legend(bbox_to_anchor=(0.150, 0.880), loc='upper left')
 plt.show()
 '''
 
-threshold = list([i / 100 for i in range(60, 81, 10)])
+threshold = list([i / 100 for i in range(50, 81, 10)])
 
-
+'''
 # ワーカー候補だけ作成する
 # ワーカーリスト作成~割り当て　実行
 ours_all_iter = []
 baseline_all_iter = []
-iteration_time = 1
+iteration_time = 5
 for iteration in range(0, iteration_time):
   # results = just_candidate(threshold, label_df, worker_list)
-  ours_candidate = make_candidate(threshold, input_df, label_df, worker_list, task_list)[0]
+  output =  make_candidate(threshold, input_df, label_df, worker_list, task_list)
+
+  ours_candidate = output[0]
+  test_worker = output[1]
+  q_task = output[2]
+  test_task = output[3]
   baseline_candidate = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)[0]
+  # baseline_candidate = entire_top_workers(threshold, input_df, test_worker, q_task, test_task)
   # print(results)
+
+  # top-worker 
+  # baseline_candidate = entire_top_workers
 
   ours_all_iter.append(ours_candidate)
   baseline_all_iter.append(baseline_candidate)
@@ -184,21 +192,22 @@ for iter in range(0, iteration):
     # thにおける各タスクのワーカ候補リスト巡回
     ours_worker_list = []
     baseline_worker_list = []
+
     for worker_list in ours_all_iter[iter][th].values():
       for worker in worker_list:
         if worker not in ours_worker_list:
           ours_worker_list.append(worker)
-          
+    print(ours_worker_list)   
     for worker_list in baseline_all_iter[iter][th].values():
-      print(worker_list)
       for worker in worker_list:
         if worker not in baseline_worker_list:
           baseline_worker_list.append(worker)  
 
     baseline_num_dic[th] += len(baseline_worker_list)
     ours_num_dic[th] += len(ours_worker_list)
-    
-print(baseline_worker_list)
+print(ours_num_dic)
+print(baseline_num_dic) 
+# print(baseline_worker_list)
 # 割り当て数の平均を求める
 for th in threshold:
   baseline_num = baseline_num_dic[th]
@@ -229,5 +238,49 @@ plt.bar(location, ours, width=0.4, align='edge', label='ours')
 
 fig.tight_layout()
 plt.legend(loc='lower right')
+plt.yticks(np.arange(0, 15, 2))
 # plt.savefig("histgram-i5-s2.pdf", bbox_inches='tight')
+plt.show()
+'''
+
+
+# 難易度分布の取得
+# ヒストグラムを手に入れる
+# これはスレッショルド関係ない
+iteration_time = 1
+for iteration in range(0, iteration_time):
+  # results = just_candidate(threshold, label_df, worker_list)
+  output =  make_candidate(threshold, input_df, label_df, worker_list, task_list)
+  ours_candidate = output[0]
+  test_worker = output[1]
+  q_task = output[2]
+  test_task = output[3]
+  ours_itempl = np.array(output[4])
+
+  baseline_output = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)
+  baseline_itempl = np.array(list((baseline_output[3].values())))
+
+
+print(type(baseline_itempl))
+print(type(ours_itempl))
+lim = [-4, 4.5]
+ours_map = Frequency_Distribution(ours_itempl, lim, class_width=0.5)
+baseline_map = Frequency_Distribution(baseline_itempl, lim, class_width=0.5)
+
+print(baseline_map)
+print(ours_map)
+'''
+fig1 = plt.figure()
+ours_map.plot.bar(x='階級値', y='度数', label='item', xlabel='difficulty')
+plt.show()
+
+fig2 = plt.figure()
+baseline_map.plot.bar(x='階級値', y='度数', label='item', xlabel='difficulty')
+plt.show()
+'''
+bins=np.linspace(-2, 2, 20)
+# fig3 = plt.figure()
+plt.hist([baseline_itempl, ours_itempl], bins, label=['IRT', 'ours'])
+plt.legend(loc='upper left')
+# baseline_map.plot.bar(x='階級値', y='度数', label='item', xlabel='difficulty')
 plt.show()

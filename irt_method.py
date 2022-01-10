@@ -49,7 +49,7 @@ def run_girth_onepl(data, task_list, worker_list):
         user_param[worker_id] = abilitiy_estimates[j] 
 
     # print(item_param)
-    print(len(user_param))
+    # print(len(user_param))
     return item_param, user_param
 
 # input: 01の2D-ndarray, 対象タスクのリスト, 対象ワーカーのリスト
@@ -82,7 +82,7 @@ def run_girth_twopl(data, task_list, worker_list):
         user_param[worker_id] = abilitiy_estimates[j] 
 
     # print(item_param)
-    print(len(user_param))
+    # print(len(user_param))
     return item_param, user_param
 
 # qualification task, test taskに分けてシミュレーション
@@ -92,7 +92,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, task_list):
   worker_c_th = {}
   # 承認タスクとテストタスクを分離
   random.shuffle(task_list)
-  qualify_task = task_list[:60]
+  qualify_task = task_list[:100]
   test_task = task_list[60:]
  
   t_worker = random.sample(worker_list, 20)
@@ -117,10 +117,17 @@ def make_candidate(threshold, input_df, label_df, worker_list, task_list):
     # category_dic[category]['a'].append(item_param[i]['alpha'])
     category_dic[category]['b'].append(item_param[i])
     category_dic[category]['num'] += 1
-
+  mb_list = []
   for c in category_dic:
     category_dic[c]['ma'] = np.sum(category_dic[c]['a']) / category_dic[c]['num']
     category_dic[c]['mb'] = np.sum(category_dic[c]['b']) / category_dic[c]['num']
+    for num in range(0, category_dic[c]['num']):
+      mb_list.append(category_dic[c]['mb'])
+
+  # 難易度の最小値, 最大値
+  theta_range = []
+  theta_range.append(np.min(mb_list))
+  theta_range.append(np.max(mb_list))
 
   # 各テストタスクについてワーカー候補を作成する
   # output: worker_c = {task: []}
@@ -151,7 +158,8 @@ def make_candidate(threshold, input_df, label_df, worker_list, task_list):
   
     worker_c_th[th] = worker_c
 
-  return worker_c_th, t_worker, test_task
+
+  return worker_c_th, t_worker, qualify_task, test_task, mb_list
 
 def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
   worker_c_th = {}
@@ -175,6 +183,10 @@ def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
   item_param = params[0]
   user_param = params[1]
   # print(item_param)
+  # 難易度の最小値, 最大値
+  theta_range = []
+  theta_range.append(np.min(list(item_param.values())))
+  theta_range.append(np.max(list(item_param.values())))
 
 
   # 各テストタスクについてワーカー候補を作成する
@@ -206,7 +218,7 @@ def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
   
     worker_c_th[th] = worker_c
 
-  return worker_c_th, t_worker, test_task
+  return worker_c_th, t_worker, test_task, item_param
 
 def estimate_candidate(threshold, input_df, label_df, worker_list, task_list):
   worker_c_th = {}
@@ -258,31 +270,38 @@ def estimate_candidate(threshold, input_df, label_df, worker_list, task_list):
           worker_c[task].append(worker)
     worker_c_th[th] = worker_c
 
-  return worker_c_th, t_worker, test_task
+  return worker_c_th, t_worker, qualify_task, test_task
 
 
-def entire_top_workers(test_task, t_worker, q_task, thres, imput_df):
+def entire_top_workers(threshold, input_df, test_worker, q_task, test_task):
   # test_workerについて正解率を計算する from input_df
-  assign_dic = {}
   # ワーカーのqualifivation taskの正解率を格納する辞書
   worker_rate = {}
-  top_worker_list = []
+  top_worker_dic = {}
   # test worker のtestタスクのqualification 正解率を調べる
-  for worker in t_worker:
+  for worker in test_worker:
     q_score = 0
     # q_taskにおける平均正解率の計算
     for task in q_task:
       if input_df[worker][task] == 1:
         q_score += 1
+    # 平均正解率の計算
     q_avg = q_score / len(q_task)
     worker_rate[worker] = q_avg
     
   # タスク数カウント辞書の準備
   # assign_dic[worker] = []
   # Q平均正解率 > th のワーカーのみ
-  for worker in worker_rate:
-    if worker_rate[worker] >= thres:
-      top_worker_list.append(worker)
+  for th in threshold:
+    top_worker_dic[th] = {}
+  for th in threshold:
+    for task in test_task:
+      top_worker_dic[th][task] = []
+      for worker in worker_rate:
+        if worker_rate[worker] >= th:
+          top_worker_dic[th][task].append(worker)
+  
+  return top_worker_dic
 
 # ワーカ人数の比較用ヒストグラム
 def just_candidate(threshold, label_df, worker_list, task_list):
@@ -340,3 +359,24 @@ def just_candidate(threshold, label_df, worker_list, task_list):
     worker_c_th[th] = worker_c
 
   return worker_c_th, top_worker_th
+
+def Frequency_Distribution(data, lim, class_width=None):
+    data = np.asarray(data)
+    if class_width is None:
+        class_size = int(np.log2(data.size).round()) + 1
+        class_width = round((data.max() - data.min()) / class_size)
+
+    bins = np.arange(lim[0], lim[1], class_width)
+    # print(bins)
+    hist = np.histogram(data, bins)[0]
+    cumsum = hist.cumsum()
+
+    return pd.DataFrame({'階級値': (bins[1:] + bins[:-1]) / 2,
+                         '度数': hist,
+                         '累積度数': cumsum,
+                         '相対度数': hist / cumsum[-1],
+                         '累積相対度数': cumsum / cumsum[-1]},
+                        index=pd.Index([f'{bins[i]}以上{bins[i+1]}未満'
+                                        for i in range(hist.size)],
+                                       name='階級'))
+

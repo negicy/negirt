@@ -88,15 +88,32 @@ def run_girth_twopl(data, task_list, worker_list):
 # qualification task, test taskに分けてシミュレーション
 # IRT: girthを使用
 # 
-def make_candidate(threshold, input_df, label_df, worker_list, task_list):
-  worker_c_th = {}
-  # 承認タスクとテストタスクを分離
+
+# ワーカとタスクを分離
+def devide_sample(task_list, worker_list):
+  output = {}
   random.shuffle(task_list)
-  qualify_task = task_list[:100]
+  
+  qualify_task = task_list[:60]
   test_task = task_list[60:]
  
-  t_worker = random.sample(worker_list, 20)
-  # t_worker = worker_list
+  output['qualify_task'] = qualify_task
+  output['test_task'] = test_task
+  output['test_worker'] = random.sample(worker_list, 20)
+
+  return output
+  
+
+def make_candidate(threshold, input_df, label_df, test_worker, qualify_task, test_task):
+  worker_c_th = {}
+  # 承認タスクとテストタスクを分離
+  sample = devide_sample(task_list, worker_list)
+
+  qualify_task = sample['qualify_task']
+  test_task = sample['test_task']
+  
+  test_worker = sample['test_worker'] 
+
 
   qualify_dic = {}
   for qt in qualify_task:
@@ -161,6 +178,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, task_list):
 
   return worker_c_th, t_worker, qualify_task, test_task, mb_list
 
+
 def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
   worker_c_th = {}
   # 承認タスクとテストタスクを分離
@@ -220,57 +238,6 @@ def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
 
   return worker_c_th, t_worker, test_task, item_param
 
-def estimate_candidate(threshold, input_df, label_df, worker_list, task_list):
-  worker_c_th = {}
-  # 承認タスクとテストタスクを分離
-  
-  # random.shuffle(task_list)
-  qualify_task = task_list[:60]
-  test_task = task_list[60:]
-  t_worker = random.sample(worker_list, 30)
- 
-  # IRT
-  data = input_df.values
-  q_data = data[:60]
-  t_data = data[60:]
-  params = run_girth(q_data, qualify_task, worker_list)
-  item_param = params[0]
-  user_param = params[1]
-  category_dic = {'Businness':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Economy':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 
-                    'Technology&Science':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Health':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}}
-  for i in qualify_task:
-    category = label_df['estimate_label'][i]
-    # category_dic[category]['a'].append(item_param[i]['alpha'])
-    category_dic[category]['b'].append(item_param[i])
-    category_dic[category]['num'] += 1
-
-  for c in category_dic:
-    category_dic[c]['ma'] = np.sum(category_dic[c]['a']) / category_dic[c]['num']
-    category_dic[c]['mb'] = np.sum(category_dic[c]['b']) / category_dic[c]['num']
-  # 各テストタスクについてワーカー候補を作成する
-  # output: worker_c = {task: []}
-  # すべてのスレッショルドについてワーカー候補作成
-  for th in threshold:
-    worker_c = {}
-    for task in test_task:
-      worker_c[task] = []
-      # test_taskのカテゴリ推定
-      est_label = label_df['estimate_label'][task]
-      # user_paramのワーカー能力がcategory_dicのタスク難易度より大きければ候補に入れる.
-      for worker in t_worker:
-        # workerの正答確率prob
-        a = category_dic[est_label]['ma']
-        b = category_dic[est_label]['mb']
-        theta = user_param[worker]
-        prob = OnePLM(b, theta)
-        # th = th - 0.5
-        print(theta - b)
-        # workerの正解率がthresholdより大きければ
-        if prob >= th:
-          worker_c[task].append(worker)
-    worker_c_th[th] = worker_c
-
-  return worker_c_th, t_worker, qualify_task, test_task
 
 
 def entire_top_workers(threshold, input_df, test_worker, q_task, test_task):
@@ -302,6 +269,9 @@ def entire_top_workers(threshold, input_df, test_worker, q_task, test_task):
           top_worker_dic[th][task].append(worker)
   
   return top_worker_dic
+
+# random assignment
+# def random_assignment(task_list, worker_list):
 
 # ワーカ人数の比較用ヒストグラム
 def just_candidate(threshold, label_df, worker_list, task_list):

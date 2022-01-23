@@ -69,8 +69,10 @@ for w in worker_list:
   skill_rate_dic[w] = (correct / task_num)
 
 
-acc_all_th = []
-var_all_th = []
+ours_acc_allth = []
+ours_var_allth = []
+top_acc_allth = []
+top_var_allth = []
 
 df = pd.read_csv('input.csv')
 df = df.set_index('qid')
@@ -83,13 +85,78 @@ data = df.values
 
 
 # Solve for parameters
+# 割当て結果の比較(random, top, ours)
+iteration_time = 10
+for iteration in range(0, iteration_time):
+  
+  ours_acc_perth = []
+  ours_var_perth = []
+  top_acc_perth = []
+  top_var_perth = []
+
+  output =  make_candidate(threshold, input_df, label_df, worker_list, task_list)
+  ours_candidate = output[0]
+
+  sample = devide_sample(task_list, worker_list)
+  qualify_task = sample['qualify_task']
+  test_task = sample['test_task']
+  test_worker = sample['test_worker'] 
+
+  top_candidate = entire_top_workers(threshold, input_df, test_worker, qualify_task, test_task)
+
+
+  # worker_c_th = {th: {task: [workers]}}
+  for candidate_dic in ours_candidate.values():
+    # print(candidate_dic)
+    assign_dic = assignment(candidate_dic, test_worker_set)
+    # 割り当て結果の精度を求める
+    acc = accuracy(assign_dic, input_df)
+    var = task_variance(assign_dic, test_worker_set)
+  
+    ours_acc_perth.append(acc)
+    ours_var_perth.append(var)
+
+  ours_acc_allth.append(ours_acc_perth)
+  ours_var_allth.append(ours_var_perth)
+
+  for candidate_dic in top_candidate.values():
+    # print(candidate_dic)
+    assign_dic = assignment(candidate_dic, test_worker_set)
+    # 割り当て結果の精度を求める
+    acc = accuracy(assign_dic, input_df)
+    var = task_variance(assign_dic, test_worker_set)
+  
+    ours_acc_perth.append(acc)
+    ours_var_perth.append(var)
+
+  ours_acc_allth.append(ours_acc_perth)
+  ours_var_allth.append(ours_var_perth)
+
+ours_acc = [0] * len(threshold)
+ours_var = [0] * len(threshold)
+for acc_list in acc_all_th:
+  # acc_sum = 0
+  for i in range(0, len(threshold)):
+    ours_acc[i] += acc_list[i]
+
+for var_list in var_all_th:
+  # var_sum = 0
+  for i in range(0, len(threshold)):
+    ours_var[i] += var_list[i]
+
+for i in range(0, len(threshold)):
+  ours_acc[i] = ours_acc[i] / iteration_time
+  ours_var[i] = ours_var[i] / iteration_time
+
+
+# top
 iteration_time = 10
 for iteration in range(0, iteration_time):
   
   acc_per_th = []
   var_per_th = []
 
-  results = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)
+  results = make_candidate(threshold, input_df, test_worker, q_task, test_task)
 
   # print(results)
   # results : return worker_c_th, t_worker, test_task, random_quality, random_variance, top_worker_quality, top_worker_variance
@@ -110,24 +177,23 @@ for iteration in range(0, iteration_time):
   acc_all_th.append(acc_per_th)
   var_all_th.append(var_per_th)
 
-mean_acc = [0] * len(threshold)
-mean_var = [0] * len(threshold)
+ours_acc = [0] * len(threshold)
+ours_var = [0] * len(threshold)
 for acc_list in acc_all_th:
   # acc_sum = 0
   for i in range(0, len(threshold)):
-    mean_acc[i] += acc_list[i]
+    ours_acc[i] += acc_list[i]
 
 for var_list in var_all_th:
   # var_sum = 0
   for i in range(0, len(threshold)):
-    mean_var[i] += var_list[i]
+    ours_var[i] += var_list[i]
 
 
 for i in range(0, len(threshold)):
-  mean_acc[i] = mean_acc[i] / iteration_time
-  mean_var[i] = mean_var[i] / iteration_time
-print(mean_acc)
-print(mean_var)
+  ours_acc[i] = ours_acc[i] / iteration_time
+  ours_var[i] = ours_var[i] / iteration_time
+
 
 # 推移をプロット
 fig = plt.figure() #親グラフと子グラフを同時に定義
@@ -150,7 +216,7 @@ ax2.plot(x, var_height, color='blue', label='variance')
 fig.legend(bbox_to_anchor=(0.150, 0.880), loc='upper left')
 # plt.savefig("irt-all-pl1.png")
 plt.show()
-'''
+
 
 threshold = list([i / 100 for i in range(60, 81, 10)])
 
@@ -163,13 +229,15 @@ iteration_time = 5
 for iteration in range(0, iteration_time):
   # results = just_candidate(threshold, label_df, worker_list)
   output =  make_candidate(threshold, input_df, label_df, worker_list, task_list)
-
   ours_candidate = output[0]
-  test_worker = output[1]
-  q_task = output[2]
-  test_task = output[3]
+
+  sample = devide_sample(task_list, worker_list)
+  qualify_task = sample['qualify_task']
+  test_task = sample['test_task']
+  test_worker = sample['test_worker'] 
+
   # baseline_candidate = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)[0]
-  baseline_candidate = entire_top_workers(threshold, input_df, test_worker, q_task, test_task)
+  baseline_candidate = entire_top_workers(threshold, input_df, test_worker, qualify_task, test_task)
   # print(results)
 
   # top-worker 
@@ -177,8 +245,8 @@ for iteration in range(0, iteration_time):
 
   ours_all_iter.append(ours_candidate)
   baseline_all_iter.append(baseline_candidate)
-# print(ours_all_iter)
-# ワーカ人数をカウントする辞書
+  # print(ours_all_iter)
+  # ワーカ人数をカウントする辞書
 baseline_num_dic = {}
 ours_num_dic = {}
 
@@ -226,63 +294,9 @@ plt.figure(figsize=[6,4])
 plt.rcParams['font.family'] = 'Times New Roman' #全体のフォントを設定
 plt.rcParams['font.size'] = 20
 
-location = ['0.6', '0.7', '0.8']
-baseline = baseline_num_dic.values()
-ours = ours_num_dic.values()
-plt.xlabel("threshold")
-plt.ylabel("number of workers with tasks")
-plt.bar(location, baseline, width=-0.4, align='edge', label='baseline')
-plt.bar(location, ours, width=0.4, align='edge', label='ours')
 
 
-fig.tight_layout()
-plt.legend(loc='lower right')
-plt.yticks(np.arange(0, 12, 2))
-# plt.savefig("histgram-i5-s2.pdf", bbox_inches='tight')
-plt.show()
-'''
 
 
-# 難易度分布の取得
-# ヒストグラムを手に入れる
-# これはスレッショルド関係ない
-iteration_time = 1
-for iteration in range(0, iteration_time):
-  # results = just_candidate(threshold, label_df, worker_list)
-  output =  make_candidate(threshold, input_df, label_df, worker_list, task_list)
-  ours_candidate = output[0]
-  test_worker = output[1]
-  q_task = output[2]
-  test_task = output[3]
-  ours_itempl = np.array(output[4])
-
-  baseline_output = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)
-  baseline_itempl = np.array(list((baseline_output[3].values())))
 
 
-print(type(baseline_itempl))
-print(type(ours_itempl))
-lim = [-4, 4.5]
-ours_map = Frequency_Distribution(ours_itempl, lim, class_width=0.5)
-baseline_map = Frequency_Distribution(baseline_itempl, lim, class_width=0.5)
-
-print(baseline_map)
-print(ours_map)
-
-
-fig1 = plt.figure()
-ours_map.plot.bar(x='階級値', y='度数', label='item', xlabel='difficulty')
-plt.show()
-
-fig2 = plt.figure()
-baseline_map.plot.bar(x='階級値', y='度数', label='item', xlabel='difficulty')
-plt.show()
-
-bins=np.linspace(-2, 2, 20)
-# fig3 = plt.figure()
-plt.hist([baseline_itempl, ours_itempl], bins, label=['IRT', 'ours'])
-plt.legend(loc='upper left')
-plt.xlabel("IRT difficulty")
-plt.ylabel("Number of tasks")
-# baseline_map.plot.bar(x='階級値', y='度数', label='item', xlabel='difficulty')
-plt.show()

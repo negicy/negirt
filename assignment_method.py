@@ -62,7 +62,7 @@ def assignment(worker_c, test_worker):
     else:
       for w in candidate_list:
         candidate_dic[w] = c_dic[w]
-      print(candidate_dic)
+    
       # 候補登場回数(A = c_dic[w])が最小のワーカーを見つけ, 割当先のワーカーとする
       assign_worker = min(candidate_dic.items(), key=lambda x: x[1])[0]
     assign_dic[id] = assign_worker
@@ -96,7 +96,10 @@ def accuracy(assign_dic, input_df):
     if input_df[worker][task] == 1:
       score += 1
   # print(score/task_num)
-  acc = score/task_num
+  if task_num > 0:
+    acc = score/task_num
+  else:
+    acc = "null"
   return acc
 
 # 各ワーカーの割り当てタスク数数える
@@ -109,8 +112,7 @@ def task_variance(assign_dic, test_workers):
 
   # 担当タスク数の分散を数える
   count_list = list(count_dic.values())
-  print(count_dic)
-  print('========')
+
   v = np.var(count_list)
   return v
 

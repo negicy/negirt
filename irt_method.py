@@ -104,17 +104,9 @@ def devide_sample(task_list, worker_list):
   return output
   
 
-def make_candidate(threshold, input_df, label_df, test_worker, qualify_task, test_task):
+def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):
   worker_c_th = {}
-  # 承認タスクとテストタスクを分離
-  sample = devide_sample(task_list, worker_list)
-
-  qualify_task = sample['qualify_task']
-  test_task = sample['test_task']
   
-  test_worker = sample['test_worker'] 
-
-
   qualify_dic = {}
   for qt in qualify_task:
     qualify_dic[qt] = list(input_df.T[qt])
@@ -160,7 +152,7 @@ def make_candidate(threshold, input_df, label_df, test_worker, qualify_task, tes
       # a = item_param[task]['alpha']
       beta = category_dic[est_label]['mb']
 
-      for worker in t_worker:
+      for worker in test_worker:
         # workerの正答確率prob
         
         theta = user_param[worker]
@@ -176,7 +168,7 @@ def make_candidate(threshold, input_df, label_df, test_worker, qualify_task, tes
     worker_c_th[th] = worker_c
 
 
-  return worker_c_th, t_worker, qualify_task, test_task, mb_list
+  return worker_c_th, test_worker, qualify_task, test_task, mb_list
 
 
 def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
@@ -185,7 +177,7 @@ def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
   # qualify_task = task_list
   random.shuffle(task_list)
   qualify_task = task_list[:100]
-  test_task = task_list[60:]
+  test_task = task_list[:40]
 
   qualify_dic = {}
   for qt in qualify_task:
@@ -236,12 +228,12 @@ def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
   
     worker_c_th[th] = worker_c
 
-  return worker_c_th, t_worker, test_task, item_param
+  return worker_c_th, t_worker, test_task, item_param, user_param
 
 
-
+# 平均正解率がthreshold以上のワーカに割り当てる
 def entire_top_workers(threshold, input_df, test_worker, q_task, test_task):
-  # test_workerについて正解率を計算する from input_df
+  # test_workerについてqualificationの正解率を計算する from input_df
   # ワーカーのqualifivation taskの正解率を格納する辞書
   worker_rate = {}
   top_worker_dic = {}
@@ -270,8 +262,49 @@ def entire_top_workers(threshold, input_df, test_worker, q_task, test_task):
   
   return top_worker_dic
 
+def top_worker_assignment(threshold, input_df, test_worker, q_task, test_task):
+  # test_workerについてqualificationの正解率を計算する from input_df
+  # ワーカーのqualifivation taskの正解率を格納する辞書
+  n = 3
+  worker_rate = {}
+  # 上位N人のワーカ
+  top_worker_dic = {}
+  # test worker のtestタスクのqualification 正解率を調べる
+  for worker in test_worker:
+    q_score = 0
+    # q_taskにおける平均正解率の計算
+    for task in q_task:
+      if input_df[worker][task] == 1:
+        q_score += 1
+    # 平均正解率の計算
+    q_avg = q_score / len(q_task)
+    worker_rate[worker] = q_avg
+
+  # worker_rateを降順ソート
+  worker_rate = dict(sorted(worker_rate.items(), key=lambda x: x[1], reverse=True))
+ 
+  # 上位N人のワーカリスト
+  top_worker_list = list(worker_rate.keys())
+  top_worker_list = top_worker_list[:n]
+
+  for th in threshold:
+    top_worker_dic[th] = {}
+    
+  for th in threshold: 
+    for task in test_task:
+      top_worker_dic[th][task] = top_worker_list
+     
+  return top_worker_dic
+
+
+
+    
 # random assignment
-# def random_assignment(task_list, worker_list):
+def random_assignment(test_task, test_worker):
+  assign_dic = {}
+  for task in test_task:
+    assign_dic[task] = random.choice(test_worker)
+  return assign_dic
 
 # ワーカ人数の比較用ヒストグラム
 def just_candidate(threshold, label_df, worker_list, task_list):

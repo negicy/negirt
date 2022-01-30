@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import girth
 import sys
+import random
 # from survey import *
 
 label_df = pd.read_csv("label_df.csv", sep = ",")
@@ -68,12 +69,13 @@ for w in worker_list:
       correct += 1
   skill_rate_dic[w] = (correct / task_num)
 
-
+print(skill_rate_dic)
 ours_acc_allth = []
 ours_var_allth = []
 top_acc_allth = []
 top_var_allth = []
-
+random_acc_allth = []
+random_var_allth = []
 df = pd.read_csv('input.csv')
 df = df.set_index('qid')
 # print(df)
@@ -82,7 +84,7 @@ df = df.set_index('qid')
 threshold = list([i / 100 for i in range(50, 81)])
 # data: 0/1 のndarray (2d)  
 data = df.values
-
+'''
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
@@ -91,27 +93,30 @@ for iteration in range(0, iteration_time):
   
   ours_acc_perth = []
   ours_var_perth = []
+
   top_acc_perth = []
   top_var_perth = []
 
-  output =  make_candidate(threshold, input_df, label_df, worker_list, task_list)
-  ours_candidate = output[0]
+  random_acc_perth = []
+  random_var_perth = []
 
   sample = devide_sample(task_list, worker_list)
   qualify_task = sample['qualify_task']
   test_task = sample['test_task']
-  test_worker = sample['test_worker'] 
+  test_worker = sample['test_worker']
 
-  top_candidate = entire_top_workers(threshold, input_df, test_worker, qualify_task, test_task)
+  output =  make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
+  ours_candidate = output[0]
 
+  top_candidate = top_worker_assignment(threshold, input_df, test_worker, qualify_task, test_task)
 
   # worker_c_th = {th: {task: [workers]}}
   for candidate_dic in ours_candidate.values():
     # print(candidate_dic)
-    assign_dic = assignment(candidate_dic, test_worker_set)
+    assign_dic = assignment(candidate_dic, test_worker)
     # 割り当て結果の精度を求める
     acc = accuracy(assign_dic, input_df)
-    var = task_variance(assign_dic, test_worker_set)
+    var = task_variance(assign_dic, test_worker)
   
     ours_acc_perth.append(acc)
     ours_var_perth.append(var)
@@ -119,103 +124,195 @@ for iteration in range(0, iteration_time):
   ours_acc_allth.append(ours_acc_perth)
   ours_var_allth.append(ours_var_perth)
 
+  
   for candidate_dic in top_candidate.values():
     # print(candidate_dic)
-    assign_dic = assignment(candidate_dic, test_worker_set)
+    index = 0
+    assign_dic = {}
+    for task in candidate_dic:
+      index = index%5
+      candidate_list = candidate_dic[task]
+      assign_dic[task] = random.choice(candidate_list)
+      index += 1
+
+
+    #assign_dic = assignment(candidate_dic, test_worker)
+    print('assign_dic:')
+    print(assign_dic)
     # 割り当て結果の精度を求める
     acc = accuracy(assign_dic, input_df)
-    var = task_variance(assign_dic, test_worker_set)
+    var = task_variance(assign_dic, test_worker)
   
-    ours_acc_perth.append(acc)
-    ours_var_perth.append(var)
+    top_acc_perth.append(acc)
+    top_var_perth.append(var)
 
-  ours_acc_allth.append(ours_acc_perth)
-  ours_var_allth.append(ours_var_perth)
+  top_acc_allth.append(top_acc_perth)
+  top_var_allth.append(top_var_perth)
+
+  for th in range(0, len(threshold)):
+  
+    assign_dic = random_assignment(test_task, test_worker)
+    
+    #assign_dic = assignment(candidate_dic, test_worker)
+  
+    # 割り当て結果の精度を求める
+    acc = accuracy(assign_dic, input_df)
+    var = task_variance(assign_dic, test_worker)
+  
+    random_acc_perth.append(acc)
+    random_var_perth.append(var)
+
+  random_acc_allth.append(random_acc_perth)
+  random_var_allth.append(random_var_perth)
 
 ours_acc = [0] * len(threshold)
 ours_var = [0] * len(threshold)
-for acc_list in acc_all_th:
-  # acc_sum = 0
-  for i in range(0, len(threshold)):
-    ours_acc[i] += acc_list[i]
 
-for var_list in var_all_th:
-  # var_sum = 0
-  for i in range(0, len(threshold)):
-    ours_var[i] += var_list[i]
+top_acc = [0] * len(threshold)
+top_var = [0] * len(threshold)
 
-for i in range(0, len(threshold)):
-  ours_acc[i] = ours_acc[i] / iteration_time
-  ours_var[i] = ours_var[i] / iteration_time
+random_acc = [0] * len(threshold)
+random_var = [0] * len(threshold)
 
+for th in range(0, len(threshold)):
+  ours_acc_sum = 0
+  ours_var_sum = 0
+  ours_acc_num = 0
+  ours_var_num = 0
+  for i in range(0, iteration_time):
+    #
+    if ours_acc_allth[i][th] != "null":
+      ours_acc_sum += ours_acc_allth[i][th]
+      ours_acc_num += 1
+    ours_var_sum += ours_var_allth[i][th]
+    ours_var_num += 1
+  ours_acc[th] = ours_acc_sum / ours_acc_num
+  ours_var[th] = ours_var_sum / ours_var_num 
 
-# top
-iteration_time = 10
-for iteration in range(0, iteration_time):
+for th in range(0, len(threshold)):
+  top_acc_sum = 0
+  top_var_sum = 0
+  top_acc_num = 0
+  top_var_num = 0
+  for i in range(0, iteration_time):
+    #
+    if top_acc_allth[i][th] != "null":
+      top_acc_sum += top_acc_allth[i][th]
+      top_acc_num += 1
+    if top_var_allth[i][th] != "null":
+      top_var_sum += top_var_allth[i][th]
+      top_var_num += 1
+    
+  top_acc[th] = top_acc_sum / top_acc_num
+  top_var[th] = top_var_sum / top_var_num 
   
-  acc_per_th = []
-  var_per_th = []
-
-  results = make_candidate(threshold, input_df, test_worker, q_task, test_task)
-
-  # print(results)
-  # results : return worker_c_th, t_worker, test_task, random_quality, random_variance, top_worker_quality, top_worker_variance
-  worker_c_th = results[0]
-  test_worker_set = results[1]
-
-  # worker_c_th = {th: {task: [workers]}}
-  for candidate_dic in worker_c_th.values():
-    # print(candidate_dic)
-    assign_dic = assignment(candidate_dic, test_worker_set)
-    # 割り当て結果の精度を求める
-    acc = accuracy(assign_dic, input_df)
-    v = task_variance(assign_dic, test_worker_set)
-  
-    acc_per_th.append(acc)
-    var_per_th.append(v)
-
-  acc_all_th.append(acc_per_th)
-  var_all_th.append(var_per_th)
-
-ours_acc = [0] * len(threshold)
-ours_var = [0] * len(threshold)
-for acc_list in acc_all_th:
-  # acc_sum = 0
-  for i in range(0, len(threshold)):
-    ours_acc[i] += acc_list[i]
-
-for var_list in var_all_th:
-  # var_sum = 0
-  for i in range(0, len(threshold)):
-    ours_var[i] += var_list[i]
-
-
-for i in range(0, len(threshold)):
-  ours_acc[i] = ours_acc[i] / iteration_time
-  ours_var[i] = ours_var[i] / iteration_time
-
+for th in range(0, len(threshold)):
+  random_acc_sum = 0
+  random_var_sum = 0
+  random_acc_num = 0
+  random_var_num = 0
+  for i in range(0, iteration_time):
+    #
+    if random_acc_allth[i][th] != "null":
+      random_acc_sum += random_acc_allth[i][th]
+      random_acc_num += 1
+    if random_var_allth[i][th] != "null":
+      random_var_sum += random_var_allth[i][th]
+      random_var_num += 1
+    
+  random_acc[th] = random_acc_sum / random_acc_num
+  random_var[th] = random_var_sum / random_var_num 
 
 # 推移をプロット
+plt.rcParams["font.size"] = 18
 fig = plt.figure() #親グラフと子グラフを同時に定義
 ax1 = fig.add_subplot()
 ax1.set_xlabel('threshold')
 # ax1 = fig.add_subplot(2, 2, 1)
+
 ax1.set_ylabel('accuracy')
 
-ax2 = ax1.twinx()
-ax2.set_ylabel('variance')
+# ax2 = ax1.twinx()
+# ax2.set_ylabel('variance')
  
 x = np.array(threshold)
-acc_height = np.array(mean_acc)
-var_height = np.array(mean_var)
+ours = np.array(ours_acc)
+top = np.array(top_acc)
+random = np.array(random_acc)
 
-ax1.plot(x, acc_height, color='red', label='accuracy')
-ax2.plot(x, var_height, color='blue', label='variance')
+ax1.plot(x, ours, color='red', label='ours')
+ax1.plot(x, top, color='blue', label='top')
+ax1.plot(x, random, color='green', label='random')
+ax1.plot(x, x, color='orange', label='threshold', linestyle="dashed")
+#ax.plot(left, var_height)
+fig.legend(bbox_to_anchor=(0.150, 0.880), loc='upper left')
+# plt.savefig("irt-all-pl1.png")
+plt.show()
+
+fig = plt.figure() #親グラフと子グラフを同時に定義
+ax1 = fig.add_subplot()
+ax1.set_xlabel('threshold')
+# ax1 = fig.add_subplot(2, 2, 1)
+ax1.set_ylabel('variance')
+#ax1.set_ylabel('accuracy')
+
+# ax2 = ax1.twinx()
+# ax2.set_ylabel('variance')
+ 
+x = np.array(threshold)
+ours = np.array(ours_var)
+top = np.array(top_var)
+random = np.array(random_var)
+
+ax1.plot(x, ours, color='red', label='ours')
+ax1.plot(x, top, color='blue', label='top')
+ax1.plot(x, random, color='green', label='random')
 
 #ax.plot(left, var_height)
 fig.legend(bbox_to_anchor=(0.150, 0.880), loc='upper left')
 # plt.savefig("irt-all-pl1.png")
 plt.show()
+'''
+# 考察: タスク割り当ての実際のパラメータプロット図
+plt.rcParams["font.size"] = 18
+threshold = [0.75]
+sample = devide_sample(task_list, worker_list)
+qualify_task = sample['qualify_task']
+test_task = sample['test_task']
+test_worker = sample['test_worker']
+
+ours_output = make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
+# ワーカ候補のリスト
+ours_candidate = ours_output[0]
+test_worker = ours_output[1]
+
+all_output = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)
+irt_candidate = all_output[0]
+test_worker = all_output[1]
+
+item_param = all_output[3]
+user_param = all_output[4]
+#for candidate_dic in ours_candidate.values():
+for candidate_dic in irt_candidate.values():
+  # print(candidate_dic)
+  assign_dic = assignment(candidate_dic, test_worker)
+
+ 
+item_list = []
+worker_list = []
+for task in assign_dic:
+  item_list.append(item_param[task])
+  worker = assign_dic[task]
+  worker_list.append(user_param[worker])
+
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+ax.scatter(item_list, worker_list)
+ax.set_xlabel('task difficulty')
+ax.set_ylabel('worker skill')
+
+plt.show()
+
 
 
 threshold = list([i / 100 for i in range(60, 81, 10)])
@@ -296,6 +393,34 @@ plt.rcParams['font.size'] = 20
 
 
 
+
+# ワーカ能力とタスク困難度の実際の分布
+# ヒストグラムを手に入れる
+# これはスレッショルド関係ない
+iteration_time = 1
+for iteration in range(0, iteration_time):
+  # results = just_candidate(threshold, label_df, worker_list)
+  
+  baseline_output = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)
+  item_param = list(baseline_output[3].values())
+  user_param = list(baseline_output[4].values())
+print(item_param)
+
+lim = [-4, 4.5]
+worker_map = Frequency_Distribution(user_param, lim, class_width=0.5)
+item_map = Frequency_Distribution(item_param, lim, class_width=0.5)
+print(worker_map)
+
+
+
+bins=np.linspace(-2, 2, 20)
+# fig3 = plt.figure()
+plt.hist([user_param, item_param], bins, label=['worker', 'task'])
+plt.legend(loc='upper left')
+plt.xlabel("IRT difficulty")
+plt.ylabel("Number of tasks and workers")
+# baseline_map.plot.bar(x='階級値', y='度数', label='item', xlabel='difficulty')
+plt.show()
 
 
 

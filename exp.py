@@ -81,7 +81,7 @@ threshold = list([i / 100 for i in range(50, 81)])
 # data: 0/1 のndarray (2d)  
 data = df.values
 
-
+'''
 # Solve for parameters
 iteration_time = 10
 for iteration in range(0, iteration_time):
@@ -162,14 +162,21 @@ baseline_all_iter = []
 iteration_time = 5
 for iteration in range(0, iteration_time):
   # results = just_candidate(threshold, label_df, worker_list)
-  output =  make_candidate(threshold, input_df, label_df, worker_list, task_list)
+  data = devide_sample(task_list, worker_list)
+  qualify_task = data['qualify_task']
+  test_task = data['test_task']
+  test_worker = data['test_worker'] 
+  output =  make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
+  # output = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)
+
 
   ours_candidate = output[0]
   test_worker = output[1]
   q_task = output[2]
   test_task = output[3]
-  # baseline_candidate = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)[0]
-  baseline_candidate = entire_top_workers(threshold, input_df, test_worker, q_task, test_task)
+  baseline_candidate = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)[0]
+  # baseline_candidate = entire_top_workers(threshold, input_df, test_worker, q_task, test_task)
+
   # print(results)
 
   # top-worker 
@@ -223,7 +230,7 @@ for th in threshold:
 fig = plt.figure()
 plt.subplots_adjust(left=0.2, bottom=0.2)
 plt.figure(figsize=[6,4])
-plt.rcParams['font.family'] = 'Times New Roman' #全体のフォントを設定
+#plt.rcParams['font.family'] = 'Times New Roman' #全体のフォントを設定
 plt.rcParams['font.size'] = 20
 
 location = ['0.6', '0.7', '0.8']
@@ -240,7 +247,7 @@ plt.legend(loc='lower right')
 plt.yticks(np.arange(0, 12, 2))
 # plt.savefig("histgram-i5-s2.pdf", bbox_inches='tight')
 plt.show()
-'''
+
 
 
 # 難易度分布の取得
@@ -249,11 +256,9 @@ plt.show()
 iteration_time = 1
 for iteration in range(0, iteration_time):
   # results = just_candidate(threshold, label_df, worker_list)
-  output =  make_candidate(threshold, input_df, label_df, worker_list, task_list)
+  
+  output =  make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
   ours_candidate = output[0]
-  test_worker = output[1]
-  q_task = output[2]
-  test_task = output[3]
   ours_itempl = np.array(output[4])
 
   baseline_output = make_candidate_all(threshold, input_df, label_df, worker_list, task_list)

@@ -171,13 +171,11 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
   return worker_c_th, test_worker, qualify_task, test_task, mb_list
 
 
-def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
+def make_candidate_all(threshold, input_df, label_df, task_list, worker_list, test_worker, test_task):
   worker_c_th = {}
   # 承認タスクとテストタスクを分離
   # qualify_task = task_list
-  random.shuffle(task_list)
   qualify_task = task_list[:100]
-  test_task = task_list[:40]
 
   qualify_dic = {}
   for qt in qualify_task:
@@ -185,7 +183,7 @@ def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
 
   q_data = np.array(list(qualify_dic.values()))
  
-  t_worker = random.sample(worker_list, 20)
+
   # t_worker = worker_list
   # q_data = np.array(list(qualify_dic.values()))
 
@@ -212,7 +210,7 @@ def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
       # beta = item_param[task]['b']
       beta = item_param[task]
     
-      for worker in t_worker:
+      for worker in test_worker:
         # workerの正答確率prob
         
         theta = user_param[worker]
@@ -228,7 +226,7 @@ def make_candidate_all(threshold, input_df, label_df, worker_list, task_list):
   
     worker_c_th[th] = worker_c
 
-  return worker_c_th, t_worker, test_task, item_param, user_param
+  return worker_c_th, item_param, user_param
 
 
 # 平均正解率がthreshold以上のワーカに割り当てる
@@ -363,14 +361,13 @@ def just_candidate(threshold, label_df, worker_list, task_list):
 
   return worker_c_th, top_worker_th
 
-def Frequency_Distribution(data, lim, class_width=None):
+def Frequency_Distribution(data, class_width=None):
     data = np.asarray(data)
     if class_width is None:
         class_size = int(np.log2(data.size).round()) + 1
         class_width = round((data.max() - data.min()) / class_size)
 
-    bins = np.arange(lim[0], lim[1], class_width)
-    # print(bins)
+    bins = np.arange(0, data.max()+class_width+1, class_width)
     hist = np.histogram(data, bins)[0]
     cumsum = hist.cumsum()
 

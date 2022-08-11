@@ -119,14 +119,17 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
   item_param = params[0]
   user_param = params[1]
 
+
   category_dic = {'Businness':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Economy':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 
                     'Technology&Science':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Health':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}}
+
   for i in qualify_task:
     category = label_df['estimate_label'][i]
     # category_dic[category]['a'].append(item_param[i]['alpha'])
     category_dic[category]['b'].append(item_param[i])
     category_dic[category]['num'] += 1
   mb_list = []
+
   for c in category_dic:
     category_dic[c]['ma'] = np.sum(category_dic[c]['a']) / category_dic[c]['num']
     category_dic[c]['mb'] = np.sum(category_dic[c]['b']) / category_dic[c]['num']
@@ -141,6 +144,9 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
   # 各テストタスクについてワーカー候補を作成する
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成
+  
+  top_workers = sort_test_worker(test_worker, user_param)
+
   for th in threshold:
     candidate_count = 0
     worker_c = {}
@@ -164,12 +170,22 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
         if prob >= th:
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
-  
+    if len(worker_c[task]) == 0:
+      worker_c[task] = top_workers
+    
     worker_c_th[th] = worker_c
 
+  return worker_c_th, test_worker, qualify_task, test_task, mb_list, user_param
 
-  return worker_c_th, test_worker, qualify_task, test_task, mb_list
+# 割当て候補のいないタスクを無くす
+def sort_test_worker(test_worker, user_param, N=1):
+  test_worker_param = {}
+  for worker in test_worker:
+    test_worker_param[worker] = user_param[worker]
 
+  sorted_user_param = dict(sorted(test_worker_param.items(), key=lambda x: x[1], reverse=True))
+  top_workers = list(sorted_user_param.keys())[:N]
+  return top_workers
 
 def make_candidate_all(threshold, input_df, label_df, task_list, worker_list, test_worker, test_task):
   worker_c_th = {}
@@ -263,7 +279,7 @@ def entire_top_workers(threshold, input_df, test_worker, q_task, test_task):
 def top_worker_assignment(threshold, input_df, test_worker, q_task, test_task):
   # test_workerについてqualificationの正解率を計算する from input_df
   # ワーカーのqualifivation taskの正解率を格納する辞書
-  n = 3
+  n = 5
   worker_rate = {}
   # 上位N人のワーカ
   top_worker_dic = {}
@@ -295,8 +311,40 @@ def top_worker_assignment(threshold, input_df, test_worker, q_task, test_task):
   return top_worker_dic
 
 
+# Average Accuracy Assignment
+def AA_assignment(threshold, input_df, test_worker, q_task, test_task):
 
-    
+  AA_candidate_dic = {}
+  # 上位N人のワーカ
+  worker_rate = {}
+  # test worker のtestタスクのqualification 正解率を調べる
+  for worker in test_worker:
+    q_score = 0
+    # q_taskにおける平均正解率の計算
+    for task in q_task:
+      if input_df[worker][task] == 1:
+        q_score += 1
+    # 平均正解率の計算
+    q_avg = q_score / len(q_task)
+    worker_rate[worker] = q_avg
+
+  # 上位N人のワーカ
+  top_workers = list(dict(sorted(worker_rate.items(), key=lambda x: x[1], reverse=True)).keys())
+ 
+  for th in threshold:
+    AA_candidate_dic[th] = {}
+  for th in threshold:
+    for task in test_task:
+      AA_candidate_dic[th][task] = []
+      for worker in worker_rate:
+        if worker_rate[worker] >= th:
+          AA_candidate_dic[th][task].append(worker)
+          
+      if len(AA_candidate_dic[th][task]) == 0:
+        AA_candidate_dic[th][task] = top_workers[:1]
+
+  return AA_candidate_dic
+
 # random assignment
 def random_assignment(test_task, test_worker):
   assign_dic = {}

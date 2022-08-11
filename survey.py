@@ -84,6 +84,8 @@ def worker_correct_rate(input_df, worker_list, task_list):
   return skill_rate_dic
 
 
+'''
+
 # 本当の正答確率とタスクの平均正解率
 th = 0.8
 acc_count = 0
@@ -172,7 +174,7 @@ for i in item_param:
     if input_df[u][i] == 1:
       score += 1
     prob_sum += OnePLM(b, theta)
-  #avg_theta = theta_sum / u_num
+  # avg_theta = theta_sum / u_num
   # avg_task_score[i].append(avg_theta)
   # タスクiの, ワーカーによる正解率平均
   avg_task_score[i].append(score/u_num)
@@ -189,4 +191,4 @@ for l in avg_task_score.values():
 print(x)
 print(y)
 
-  
+'''

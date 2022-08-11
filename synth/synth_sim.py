@@ -10,29 +10,54 @@ import scikit_posthocs as sp
 from assignment_method import *
 from irt_method import *
 from simulation import *
-from survey import *
+# from survey import *ttrr333232
 
-path = os.getcwd()
+# 1. worker list, task listをsynthデータで代替する
+# 2. IRTによるパラメータ推定は省略
 
-label_df = pd.read_csv("label_df.csv", sep = ",")
-batch_df = pd.read_csv("batch_100.csv", sep = ",")
-label_df = label_df.rename(columns={'Unnamed: 0': 'id'})
-label_df = label_df.set_index('id')
+import numpy as np
 
-with open('input_data.pickle', 'rb') as f:
-  input_data = pickle.load(f)
-  input_df = input_data['input_df']
-  worker_list = input_data['worker_list']
-  task_list = input_data['task_list']
+from girth.synthetic import create_synthetic_irt_dichotomous
+from girth import onepl_mml
+import matplotlib.pyplot as plt 
+from scipy.stats import norm
+import matplotlib.pyplot as plt 
+
+worker_size = 50
+task_size = 100
+
+user_param_list = norm.rvs(loc=0, scale=1, size=worker_size)
+item_param_list = norm.rvs(loc=0.5, scale=1, size=task_size)
+a_list = np.array([1]*task_size)
+user_param = {}
+item_param = {}
+
+for i in range(0, worker_size):
+    worker_id = 'w' + str(i+1)
+    user_param[worker_id] = user_param_list[i]
+
+for j in range(0, task_size):
+    task_id = 't' + str(j+1)
+    item_param[task_id] = item_param_list[j]
+
+worker_list = list(user_param.keys())
+task_list = list(item_param.keys())
+# 仮想項目反応データ生成
+input_data = create_synthetic_irt_dichotomous(item_param_list, a_list, user_param_list)
+input_df = pd.DataFrame(input_data, columns=worker_list, index=task_list)
 
 ours_acc_allth = []
 ours_var_allth = []
+
 top_acc_allth = []
 top_var_allth = []
+
 AA_acc_allth = []
 AA_var_allth = []
+
 random_acc_allth = []
 random_var_allth = []
+
 full_irt_acc_allth = []
 full_irt_var_allth = []
 
@@ -50,12 +75,16 @@ for iteration in range(0, iteration_time):
   
   ours_acc_perth = []
   ours_var_perth = []
+
   top_acc_perth = []
   top_var_perth = []
+
   AA_acc_perth = []
   AA_var_perth = []
+
   random_acc_perth = []
   random_var_perth = []
+
   full_irt_acc_perth = []
   full_irt_var_perth = []
   
@@ -65,16 +94,14 @@ for iteration in range(0, iteration_time):
   test_worker = sample['test_worker']
 
   # 各手法でのワーカ候補作成
-  ours_output =  make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
-  ours_candidate = ours_output[0]
-  user_param = ours_output[5]
+  ours_output =  make_candidate(threshold, worker_list, test_worker, qualify_task, test_task, user_param, item_param)
+  ours_candidate = ours_output
 
   top_candidate = top_worker_assignment(threshold, input_df, test_worker, qualify_task, test_task)
   AA_candidate = AA_assignment(threshold, input_df, test_worker, qualify_task, test_task)
-  full_output = make_candidate_all(threshold, input_df, label_df, task_list, worker_list, test_worker, test_task)
-  full_irt_candidate = full_output[0]
-  full_item_param = full_output[1]
-  full_user_param = full_output[2]
+  full_output = make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task, user_param, item_param)
+  full_irt_candidate = full_output
+
   # 保存用
   ours_output_alliter[iteration] = ours_output
   full_output_alliter[iteration] = full_output
@@ -92,7 +119,7 @@ for iteration in range(0, iteration_time):
     # print('th'+str(th)+'assignment size'+str(len(assign_dic_opt)))
     # print(len(assign_dic_opt.keys()))
     if th in [0.5, 0.6, 0.7, 0.8]:
-      welldone_dist[th] += welldone_count(th, assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
+      welldone_dist[th] += welldone_count(th, assign_dic_opt, user_param, item_param) / len(test_task) 
       # 割当て候補人数を数える
       worker_with_task_list = []
       for worker_set in ours_candidate[th].values():
@@ -144,10 +171,9 @@ for iteration in range(0, iteration_time):
     
     print(th, len(assign_dic_opt))
       
-    
-  
+
     if th in [0.5, 0.6, 0.7, 0.8]:
-      welldone_dist[th] += welldone_count(th, assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
+      welldone_dist[th] += welldone_count(th, assign_dic_opt, user_param, item_param) / len(test_task) 
       # 割当て候補人数を数える
       # worker_with_task['AA'] += len(assign_dic_opt[th])
       worker_with_task_list = []
@@ -169,7 +195,7 @@ for iteration in range(0, iteration_time):
   AA_var_allth.append(AA_var_perth)
   
   for candidate_dic in full_irt_candidate.values():
-    assign_dic_opt = {}
+    # assign_dic = assignment(candidate_dic, test_worker)
     assigned = optim_assignment(candidate_dic, test_worker, test_task, user_param)
 
     for worker in assigned:
@@ -181,12 +207,16 @@ for iteration in range(0, iteration_time):
     acc = accuracy(assign_dic_opt, input_df)
     var = task_variance(assign_dic_opt, test_worker)
     
+    # 割当て結果の精度を求める
+    acc = accuracy(assign_dic, input_df)
+    var = task_variance(assign_dic, test_worker)
+    
     full_irt_acc_perth.append(acc)
     full_irt_var_perth.append(var)
 
   full_irt_acc_allth.append(full_irt_acc_perth)
   full_irt_var_allth.append(full_irt_var_perth)
-
+  
   for th in range(0, len(threshold)):
     assign_dic = random_assignment(test_task, test_worker)
     # 割り当て結果の精度を求める
@@ -352,6 +382,7 @@ for th in range(0, len(threshold)):
   if th == len(threshold)-1:
     random_acc_tail = list_acc_th
 
+
 for th in range(0, len(threshold)):
   full_irt_acc_sum = 0
   full_irt_var_sum = 0
@@ -396,10 +427,11 @@ result = {
 
 
 # 結果データの保存
+'''
 filename = "result/result_{0:%Y%m%d_%H%M%S}.pickle".format(now)
 with open(filename, 'wb') as f:
     pickle.dump(result, f)
-
+'''
 
 for th in welldone_dist:
   welldone_dist[th] = welldone_dist[th] / iteration_time
@@ -481,6 +513,5 @@ ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 # 
 ax.plot(x, full_irt, color='purple', label='IRT')
 # plt.show()
-
 
 

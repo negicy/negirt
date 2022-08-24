@@ -23,11 +23,11 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 import matplotlib.pyplot as plt 
 
-worker_size = 50
-task_size = 100
+worker_size = 100
+task_size = 200
 
-user_param_list = norm.rvs(loc=0, scale=1, size=worker_size)
-item_param_list = norm.rvs(loc=0.5, scale=1, size=task_size)
+user_param_list = norm.rvs(loc=0.70, scale=0.5, size=worker_size)
+item_param_list = norm.rvs(loc=0.50, scale=0.5, size=task_size)
 a_list = np.array([1]*task_size)
 user_param = {}
 item_param = {}
@@ -69,7 +69,7 @@ full_output_alliter = {}
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 5
+iteration_time = 20
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
@@ -511,7 +511,7 @@ ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 # ax.plot(top_trade[0], top_trade[1], color='blue', label='top')
 # ax.plot(random_trade[0], random_trade[1], color='green', label='random')
 # 
-ax.plot(x, full_irt, color='purple', label='IRT')
+ax.plot(threshold, full_irt, color='purple', label='IRT')
 # plt.show()
 
 

@@ -479,7 +479,7 @@ ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 # ax.plot(top_trade[0], top_trade[1], color='blue', label='top')
 # ax.plot(random_trade[0], random_trade[1], color='green', label='random')
 # 
-ax.plot(x, full_irt, color='purple', label='IRT')
+ax.plot(threshold, full_irt, color='purple', label='IRT')
 # plt.show()
 
 

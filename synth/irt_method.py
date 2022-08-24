@@ -21,6 +21,8 @@ def TwoPLM_test(a, b, theta, d=1.7):
 
 
 # input: 01の2D-ndarray, 対象タスクのリスト, 対象ワーカーのリスト
+
+
 def run_girth_onepl(data, task_list, worker_list):
     estimates = onepl_mml(data)
 
@@ -35,7 +37,7 @@ def run_girth_onepl(data, task_list, worker_list):
         a_list.append(discrimination_estimates)
 
     abilitiy_estimates = ability_mle(data, difficulty_estimates, a_list)
-    # print(abilitiy_estimates)
+    print(abilitiy_estimates)
 
     user_param = {}
     item_param = {}
@@ -99,7 +101,7 @@ def devide_sample(task_list, worker_list):
  
   output['qualify_task'] = qualify_task
   output['test_task'] = test_task
-  output['test_worker'] = random.sample(worker_list, 30)
+  output['test_worker'] = random.sample(worker_list, 50)
 
   return output
   
@@ -140,7 +142,7 @@ def make_candidate(threshold, worker_list, test_worker, qualify_task, test_task,
       for worker in test_worker:
         # workerの正答確率prob
         actual_b = item_param[task]
-        est_b = ai_model(actual_b, dist=1)
+        est_b = ai_model(actual_b, dist=0.5)
         theta = user_param[worker]
         prob = OnePLM(est_b, theta)
 
@@ -148,8 +150,9 @@ def make_candidate(threshold, worker_list, test_worker, qualify_task, test_task,
         if prob >= th:
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
-    if len(worker_c[task]) == 0:
-      worker_c[task] = top_workers
+      # 割当て候補リストが空の場合
+      if len(worker_c[task]) == 0:
+        worker_c[task] = top_workers
     
     worker_c_th[th] = worker_c
 
@@ -184,8 +187,8 @@ def make_candidate_all(threshold, input_df, task_list, worker_list, test_worker,
         if prob >= th:
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
-    if len(worker_c[task]) == 0:
-      worker_c[task] = top_workers
+      if len(worker_c[task]) == 0:
+        worker_c[task] = top_workers
     
     worker_c_th[th] = worker_c
 

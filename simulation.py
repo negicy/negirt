@@ -94,11 +94,14 @@ def tp_acc_plot(tp, acc):
     c = sorted(c)
     tp, acc = zip(*c)
     tp = list(tp)
-    acc = list(acc)
+    acc_list = list(acc)
     # accを逆数にする
-    for a in acc:
-        a = 1 / a
-    print(acc)
+    acc_reverse = []
+    for acc in acc_list:
+        acc = 1 / acc
+        acc_reverse.append(acc)
+
+   
     # 推移をプロット
     '''
     
@@ -110,7 +113,7 @@ def tp_acc_plot(tp, acc):
     ax.plot(tp, acc, color='red', label='ours')
     '''
     
-    return tp, acc
+    return tp, acc_reverse
 
 # 実際の能力 > 実際の難易度だった割当ての度数分布thresholdごとに
 # 引数: 割り当ての辞書，実際のワーカ能力，実際のタスク難易度

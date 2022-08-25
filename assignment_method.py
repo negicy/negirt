@@ -172,3 +172,13 @@ def task_variance(assign_dic, test_workers):
   v = np.var(count_list)
   return v
 
+def calc_tp(assign_dic, test_worker):
+  count_dic = {}
+  for tw in test_worker:
+    count_dic[tw] = 0
+  for aw in assign_dic.values():
+    count_dic[aw] += 1
+  # 最大のvalueを調べる
+  max_num = max(list(count_dic.values()))
+  return max_num
+

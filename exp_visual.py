@@ -26,7 +26,8 @@ with open('input_data.pickle', 'rb') as f:
   task_list = input_data['task_list']
 
 ours_acc_allth = []
-ours_var_allth = []
+ours_var_allth = [] 
+ours_tp_allth = []
 top_acc_allth = []
 top_var_allth = []
 AA_acc_allth = []
@@ -44,12 +45,14 @@ full_output_alliter = {}
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 5
+iteration_time = 15
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
   ours_acc_perth = []
   ours_var_perth = []
+  ours_tp_perth = []
+
   top_acc_perth = []
   top_var_perth = []
   AA_acc_perth = []
@@ -104,14 +107,18 @@ for iteration in range(0, iteration_time):
   
     # 割り当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
+    # 割当て結果分散を求める
     var = task_variance(assign_dic_opt, test_worker)
+    # 割当て結果のTPを求める
+    tp = calc_tp(assign_dic_opt, test_worker)
     
     ours_acc_perth.append(acc)
     ours_var_perth.append(var)
+    ours_tp_perth.append(tp)
   
   ours_acc_allth.append(ours_acc_perth)
   ours_var_allth.append(ours_var_perth)
- 
+  ours_tp_allth.append(ours_tp_perth)
   
   for candidate_dic in top_candidate.values():
 
@@ -144,8 +151,6 @@ for iteration in range(0, iteration_time):
     
     print(th, len(assign_dic_opt))
       
-    
-  
     if th in [0.5, 0.6, 0.7, 0.8]:
       welldone_dist[th] += welldone_count(th, assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
       # 割当て候補人数を数える
@@ -161,6 +166,7 @@ for iteration in range(0, iteration_time):
      # 割り当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
     var = task_variance(assign_dic_opt, test_worker)
+    print(assign_dic_opt)
 
     AA_acc_perth.append(acc)
     AA_var_perth.append(var)
@@ -201,6 +207,7 @@ for iteration in range(0, iteration_time):
 
 ours_acc = [0] * len(threshold)
 ours_var = [0] * len(threshold)
+ours_tp = [0] * len(threshold)
 ours_acc_std =  []
 ours_var_std =  []
 
@@ -227,8 +234,10 @@ full_var_std = []
 for th in range(0, len(threshold)):
   ours_acc_sum = 0
   ours_var_sum = 0
+  ours_tp_sum = 0
   ours_acc_num = 0
   ours_var_num = 0
+  ours_tp_num = 0
   # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
   list_acc_th = []
   list_var_th = []
@@ -241,10 +250,13 @@ for th in range(0, len(threshold)):
     ours_var_sum += ours_var_allth[i][th]
     list_var_th.append(ours_var_allth[i][th])
     ours_var_num += 1
-  # acc, var の平均を計算
+    ours_tp_sum += ours_tp_allth[i][th]
+    ours_tp_num += 1
+  # acc, var, tpの平均を計算
 
   ours_acc[th] = ours_acc_sum / ours_acc_num
   ours_var[th] = ours_var_sum / ours_var_num 
+  ours_tp[th] = ours_tp_sum / ours_tp_num
   # 標準偏差を計算
   acc_std = np.std(list_acc_th)
   var_std = np.std(list_var_th)
@@ -439,14 +451,12 @@ plt.bar(x1, y_ours, color='blue', width=0.3, label='DI', align="center")
 plt.bar(x2, y_AA, color='coral', width=0.3, label='AA', align="center")
 
 # 凡例
-
 plt.xlabel('threshold')
 plt.ylabel('Number of workers with tasks')
 # X軸の目盛りを置換
 plt.xticks([1.15, 2.15, 3.15, 4.15], label_x)
 fig.legend(bbox_to_anchor=(0.15, 0.250), loc='upper left')
 # plt.show()
-
 
 # 推移をプロット
 result_acc_dic = {
@@ -457,29 +467,31 @@ result_acc_dic = {
 result_var_dic = {
   'ours': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'full_irt': full_irt_var,
   'ours_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'full_irt_std': full_var_std
-  
 }
 
 result_plot_1(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400)).show()
 result_plot_1(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
 
 # トレードオフのグラフ
-
-ours_trade = var_acc_plot(ours_var, ours_acc)
-top_trade = var_acc_plot(top_var, top_acc)
-random_trade = var_acc_plot(random_var, random_acc)
+ours_trade = tp_acc_plot(ours_tp, ours_acc)
+# top_trade = var_acc_plot(top_var, top_acc)
+# random_trade = var_acc_plot(random_var, random_acc)
 
 plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義
 ax = fig.add_subplot()
 ax.set_xlabel('variance')
 ax.set_ylabel('accuracy')
-    
-ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
+
+# ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 # ax.plot(top_trade[0], top_trade[1], color='blue', label='top')
 # ax.plot(random_trade[0], random_trade[1], color='green', label='random')
-# 
-ax.plot(threshold, full_irt, color='purple', label='IRT')
+ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
+plt.show()
+print(ours_trade)
+
+
+# ax.plot(threshold, full_irt, color='purple', label='IRT')
 # plt.show()
 
 

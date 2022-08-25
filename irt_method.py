@@ -368,9 +368,9 @@ def AA_assignment(threshold, input_df, test_worker, q_task, test_task):
       for worker in worker_rate:
         if worker_rate[worker] >= th:
           AA_candidate_dic[th][task].append(worker)
-          
-      if len(AA_candidate_dic[th][task]) == 0:
-        AA_candidate_dic[th][task] = top_workers[:1]
+      # 割当てがないタスクに上位ワーカを割り当てる．
+      # if len(AA_candidate_dic[th][task]) == 0:
+        # AA_candidate_dic[th][task] = top_workers[:1]
 
   return AA_candidate_dic
 

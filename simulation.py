@@ -78,15 +78,39 @@ def var_acc_plot(var, acc):
     var = list(var)
     acc = list(acc)
     # 推移をプロット
-    '''
+    
     plt.rcParams["font.size"] = 18
     fig = plt.figure() #親グラフと子グラフを同時に定義
     ax = fig.add_subplot()
     ax.set_xlabel('variance')
     ax.set_ylabel('accuracy')
     ax.plot(var, acc, color='red', label='ours')
-    '''
+    
     return var, acc
+
+def tp_acc_plot(tp, acc):
+    # ソート
+    c = zip(tp, acc)
+    c = sorted(c)
+    tp, acc = zip(*c)
+    tp = list(tp)
+    acc = list(acc)
+    # accを逆数にする
+    for a in acc:
+        a = 1 / a
+    print(acc)
+    # 推移をプロット
+    '''
+    
+    plt.rcParams["font.size"] = 18
+    fig = plt.figure() #親グラフと子グラフを同時に定義
+    ax = fig.add_subplot()
+    ax.set_xlabel('TP')
+    ax.set_ylabel('accuracy')
+    ax.plot(tp, acc, color='red', label='ours')
+    '''
+    
+    return tp, acc
 
 # 実際の能力 > 実際の難易度だった割当ての度数分布thresholdごとに
 # 引数: 割り当ての辞書，実際のワーカ能力，実際のタスク難易度

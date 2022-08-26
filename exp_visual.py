@@ -328,7 +328,6 @@ for th in range(0, len(threshold)):
   
   for i in range(0, iteration_time):
     #
-    '''
     if AA_acc_allth[i][th] != "null":
       AA_acc_sum += AA_acc_allth[i][th]
       list_acc_th.append(AA_acc_allth[i][th])
@@ -338,7 +337,7 @@ for th in range(0, len(threshold)):
       AA_var_sum += AA_var_allth[i][th]
       list_var_th.append(AA_var_allth[i][th])
       AA_var_num += 1
-    '''
+    
   # print(AA_acc_allth)
   AA_acc[th] = AA_acc_sum / AA_acc_num
   AA_var[th] = AA_var_sum / AA_var_num

@@ -28,10 +28,15 @@ with open('input_data.pickle', 'rb') as f:
 ours_acc_allth = []
 ours_var_allth = [] 
 ours_tp_allth = []
+
 top_acc_allth = []
 top_var_allth = []
+
 AA_acc_allth = []
 AA_var_allth = []
+AA_tp_allth = []
+
+
 random_acc_allth = []
 random_var_allth = []
 full_irt_acc_allth = []
@@ -55,8 +60,11 @@ for iteration in range(0, iteration_time):
 
   top_acc_perth = []
   top_var_perth = []
+
   AA_acc_perth = []
   AA_var_perth = []
+  AA_tp_perth = []
+
   random_acc_perth = []
   random_var_perth = []
   full_irt_acc_perth = []
@@ -166,13 +174,16 @@ for iteration in range(0, iteration_time):
      # 割り当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
     var = task_variance(assign_dic_opt, test_worker)
+    tp = calc_tp(assign_dic_opt, test_worker)
     print(assign_dic_opt)
 
     AA_acc_perth.append(acc)
     AA_var_perth.append(var)
+    AA_tp_perth.append(tp)
 
   AA_acc_allth.append(AA_acc_perth)
   AA_var_allth.append(AA_var_perth)
+  AA_tp_allth.append(AA_tp_perth)
   
   for candidate_dic in full_irt_candidate.values():
     assign_dic_opt = {}
@@ -218,6 +229,7 @@ top_var_std = []
 
 AA_acc = [0] * len(threshold)
 AA_var = [0] * len(threshold)
+AA_tp = [0] * len(threshold)
 AA_acc_std = []
 AA_var_std = []
 
@@ -243,10 +255,12 @@ for th in range(0, len(threshold)):
   list_var_th = []
   for i in range(0, iteration_time):
     # 
+    '''
     if ours_acc_allth[i][th] != "null":
       list_acc_th.append(ours_acc_allth[i][th])
       ours_acc_sum += ours_acc_allth[i][th]
       ours_acc_num += 1
+    '''
     ours_var_sum += ours_var_allth[i][th]
     list_var_th.append(ours_var_allth[i][th])
     ours_var_num += 1
@@ -278,6 +292,7 @@ for th in range(0, len(threshold)):
   list_var_th = []
   for i in range(0, iteration_time):
     #
+    '''
     if top_acc_allth[i][th] != "null":
       top_acc_sum += top_acc_allth[i][th]
       list_acc_th.append(top_acc_allth[i][th])
@@ -286,6 +301,7 @@ for th in range(0, len(threshold)):
       top_var_sum += top_var_allth[i][th]
       list_var_th.append(top_var_allth[i][th])
       top_var_num += 1
+    '''
     
   top_acc[th] = top_acc_sum / top_acc_num
   top_var[th] = top_var_sum / top_var_num 
@@ -304,12 +320,15 @@ for th in range(0, len(threshold)):
   AA_var_sum = 0
   AA_acc_num = 0
   AA_var_num = 0
+  AA_tp_sum = 0
+  AA_tp_num = 0
   # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
   list_acc_th = []
   list_var_th = []
   
   for i in range(0, iteration_time):
     #
+    '''
     if AA_acc_allth[i][th] != "null":
       AA_acc_sum += AA_acc_allth[i][th]
       list_acc_th.append(AA_acc_allth[i][th])
@@ -319,9 +338,11 @@ for th in range(0, len(threshold)):
       AA_var_sum += AA_var_allth[i][th]
       list_var_th.append(AA_var_allth[i][th])
       AA_var_num += 1
+    '''
   # print(AA_acc_allth)
   AA_acc[th] = AA_acc_sum / AA_acc_num
-  AA_var[th] = AA_var_sum / AA_var_num 
+  AA_var[th] = AA_var_sum / AA_var_num
+
   # 標準偏差を計算
   acc_std = np.std(list_acc_th)
   var_std = np.std(list_var_th)
@@ -342,6 +363,7 @@ for th in range(0, len(threshold)):
   list_var_th = []
   for i in range(0, iteration_time):
     # e
+    '''
     if random_acc_allth[i][th] != "null":
       random_acc_sum += random_acc_allth[i][th]
       list_acc_th.append(random_acc_allth[i][th])
@@ -350,6 +372,7 @@ for th in range(0, len(threshold)):
       random_var_sum += random_var_allth[i][th]
       list_var_th.append(random_var_allth[i][th])
       random_var_num += 1
+    '''
     
   random_acc[th] = random_acc_sum / random_acc_num
   random_var[th] = random_var_sum / random_var_num 
@@ -474,6 +497,7 @@ result_plot_1(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).sho
 
 # トレードオフのグラフ
 ours_trade = tp_acc_plot(ours_tp, ours_acc)
+AA_trade = tp_acc_plot(AA_tp, AA_acc)
 # top_trade = var_acc_plot(top_var, top_acc)
 # random_trade = var_acc_plot(random_var, random_acc)
 
@@ -486,6 +510,7 @@ ax.set_ylabel('accuracy')
 # ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 # ax.plot(top_trade[0], top_trade[1], color='blue', label='top')
 # ax.plot(random_trade[0], random_trade[1], color='green', label='random')
+ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 plt.show()
 print(ours_trade)

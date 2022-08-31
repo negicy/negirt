@@ -50,7 +50,7 @@ full_output_alliter = {}
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 30
+iteration_time = 25
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
@@ -254,13 +254,12 @@ for th in range(0, len(threshold)):
   list_acc_th = []
   list_var_th = []
   for i in range(0, iteration_time):
-    # 
-    '''
+    #
     if ours_acc_allth[i][th] != "null":
       list_acc_th.append(ours_acc_allth[i][th])
       ours_acc_sum += ours_acc_allth[i][th]
       ours_acc_num += 1
-    '''
+    
     ours_var_sum += ours_var_allth[i][th]
     list_var_th.append(ours_var_allth[i][th])
     ours_var_num += 1
@@ -292,7 +291,7 @@ for th in range(0, len(threshold)):
   list_var_th = []
   for i in range(0, iteration_time):
     #
-    '''
+    
     if top_acc_allth[i][th] != "null":
       top_acc_sum += top_acc_allth[i][th]
       list_acc_th.append(top_acc_allth[i][th])
@@ -301,7 +300,7 @@ for th in range(0, len(threshold)):
       top_var_sum += top_var_allth[i][th]
       list_var_th.append(top_var_allth[i][th])
       top_var_num += 1
-    '''
+    
     
   top_acc[th] = top_acc_sum / top_acc_num
   top_var[th] = top_var_sum / top_var_num 
@@ -337,10 +336,14 @@ for th in range(0, len(threshold)):
       AA_var_sum += AA_var_allth[i][th]
       list_var_th.append(AA_var_allth[i][th])
       AA_var_num += 1
+ 
+      AA_tp_sum += AA_tp_allth[i][th]
+      AA_tp_num += 1
     
   # print(AA_acc_allth)
   AA_acc[th] = AA_acc_sum / AA_acc_num
   AA_var[th] = AA_var_sum / AA_var_num
+  AA_tp[th]  = AA_tp_sum / AA_tp_num
 
   # 標準偏差を計算
   acc_std = np.std(list_acc_th)
@@ -362,7 +365,7 @@ for th in range(0, len(threshold)):
   list_var_th = []
   for i in range(0, iteration_time):
     # e
-    '''
+    
     if random_acc_allth[i][th] != "null":
       random_acc_sum += random_acc_allth[i][th]
       list_acc_th.append(random_acc_allth[i][th])
@@ -371,7 +374,7 @@ for th in range(0, len(threshold)):
       random_var_sum += random_var_allth[i][th]
       list_var_th.append(random_var_allth[i][th])
       random_var_num += 1
-    '''
+    
     
   random_acc[th] = random_acc_sum / random_acc_num
   random_var[th] = random_var_sum / random_var_num 
@@ -413,8 +416,10 @@ for th in range(0, len(threshold)):
   full_acc_std.append(acc_std)
   full_var_std.append(var_std)
 
+print("Result Collected!")
 
 # 割当て結果保存:
+
 import datetime
 now = datetime.datetime.now()
 result = {
@@ -502,17 +507,29 @@ AA_trade = tp_acc_plot(AA_tp, AA_acc)
 
 plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義
-ax = fig.add_subplot()
-ax.set_xlabel('variance')
-ax.set_ylabel('accuracy')
+ax1 = fig.add_subplot()
+ax1.set_xlabel('max number of tasks')
+ax1.set_ylabel('1 / accuracy')
+ax1.set_xlim(0, 10)
 
 # ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 # ax.plot(top_trade[0], top_trade[1], color='blue', label='top')
 # ax.plot(random_trade[0], random_trade[1], color='green', label='random')
-ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
-ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
+#ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
+ax1.plot(AA_trade[0], AA_trade[1], color='blue', label='ours')
+# plt.show()
+
+
+# plt.rcParams["font.size"] = 22
+# fig = plt.figure() #親グラフと子グラフを同時に定義
+ax2 = ax1.twinx()
+#ax2.set_xlabel('max number of tasks')
+#ax2.set_ylabel('1 / accuracy')
+ax2.plot(ours_trade[0], ours_trade[1], color='red', label='ours')
+
 plt.show()
-print(ours_trade)
+print('====================================================================')
+print(AA_trade)
 
 
 # ax.plot(threshold, full_irt, color='purple', label='IRT')

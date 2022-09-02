@@ -114,7 +114,7 @@ def ai_model(actual_b, dist):
     return random.choice(b_norm)
 
 # 割当て候補のいないタスクを無くす
-def sort_test_worker(test_worker, user_param, N=1):
+def sort_test_worker(test_worker, user_param, N=5):
   test_worker_param = {}
   for worker in test_worker:
     test_worker_param[worker] = user_param[worker]
@@ -292,7 +292,7 @@ def AA_assignment(threshold, input_df, test_worker, q_task, test_task):
           AA_candidate_dic[th][task].append(worker)
           
       if len(AA_candidate_dic[th][task]) == 0:
-        AA_candidate_dic[th][task] = top_workers[:1]
+        AA_candidate_dic[th][task] = top_workers[:5]
 
   return AA_candidate_dic
 

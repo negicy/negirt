@@ -48,9 +48,11 @@ welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
 ours_output_alliter = {}
 full_output_alliter = {}
 
+
+
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 25
+iteration_time = 40
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
@@ -82,10 +84,12 @@ for iteration in range(0, iteration_time):
 
   top_candidate = top_worker_assignment(threshold, input_df, test_worker, qualify_task, test_task)
   AA_candidate = AA_assignment(threshold, input_df, test_worker, qualify_task, test_task)
-  full_output = make_candidate_all(threshold, input_df, label_df, task_list, worker_list, test_worker, test_task)
+
+  full_output = make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task)
   full_irt_candidate = full_output[0]
   full_item_param = full_output[1]
   full_user_param = full_output[2]
+
   # 保存用
   ours_output_alliter[iteration] = ours_output
   full_output_alliter[iteration] = full_output
@@ -157,7 +161,7 @@ for iteration in range(0, iteration_time):
       for task in assigned[worker]:
         assign_dic_opt[task] = worker
     
-    print(th, len(assign_dic_opt))
+    # print(th, len(assign_dic_opt))
       
     if th in [0.5, 0.6, 0.7, 0.8]:
       welldone_dist[th] += welldone_count(th, assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
@@ -187,8 +191,10 @@ for iteration in range(0, iteration_time):
   
   for candidate_dic in full_irt_candidate.values():
     assign_dic_opt = {}
-    assigned = optim_assignment(candidate_dic, test_worker, test_task, user_param)
-
+  
+    assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
+  
+  
     for worker in assigned:
       for task in assigned[worker]:
         assign_dic_opt[task] = worker
@@ -203,7 +209,7 @@ for iteration in range(0, iteration_time):
 
   full_irt_acc_allth.append(full_irt_acc_perth)
   full_irt_var_allth.append(full_irt_var_perth)
-
+  
   for th in range(0, len(threshold)):
     assign_dic = random_assignment(test_task, test_worker)
     # 割り当て結果の精度を求める
@@ -417,9 +423,9 @@ for th in range(0, len(threshold)):
   full_var_std.append(var_std)
 
 print("Result Collected!")
-
+'''
 # 割当て結果保存:
-
+'''
 import datetime
 now = datetime.datetime.now()
 result = {
@@ -442,6 +448,7 @@ with open(filename, 'wb') as f:
 
 for th in welldone_dist:
   welldone_dist[th] = welldone_dist[th] / iteration_time
+'''
 
 '''
 plt.rcParams["font.size"] = 18
@@ -452,10 +459,11 @@ ax.set_xlabel('threshold')
 ax.set_ylabel('rate of successful assignments')
 ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.5, color='forestgreen')
 # plt.show()
-'''
+
 
 # タスクのあるワーカ人数をヒストグラムで
 # iteration間の平均を求める
+
 num_worker = [[], []]
 for th in [0.5, 0.6, 0.7, 0.8]:
   num_worker[0].append(worker_with_task['ours'][th] / iteration_time)
@@ -486,6 +494,7 @@ fig.legend(bbox_to_anchor=(0.15, 0.250), loc='upper left')
 # plt.show()
 
 # 推移をプロット
+
 result_acc_dic = {
   'ours': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'full_irt': full_irt_acc,
   'ours_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'full_irt_std': full_acc_std
@@ -510,7 +519,7 @@ fig = plt.figure() #親グラフと子グラフを同時に定義
 ax1 = fig.add_subplot()
 ax1.set_xlabel('max number of tasks')
 ax1.set_ylabel('1 / accuracy')
-ax1.set_xlim(0, 10)
+ax1.set_xlim(0, 15)
 
 # ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 # ax.plot(top_trade[0], top_trade[1], color='blue', label='top')

@@ -207,7 +207,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
   return worker_c_th, test_worker, qualify_task, test_task, mb_list, user_param
 
 # 割当て候補のいないタスクを無くす
-def sort_test_worker(test_worker, user_param, N=1):
+def sort_test_worker(test_worker, user_param, N=3):
   test_worker_param = {}
   for worker in test_worker:
     test_worker_param[worker] = user_param[worker]
@@ -216,7 +216,7 @@ def sort_test_worker(test_worker, user_param, N=1):
   top_workers = list(sorted_user_param.keys())[:N]
   return top_workers
 
-def make_candidate_all(threshold, input_df, label_df, task_list, worker_list, test_worker, test_task):
+def make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task):
   worker_c_th = {}
   # 承認タスクとテストタスクを分離
   # qualify_task = task_list
@@ -232,7 +232,7 @@ def make_candidate_all(threshold, input_df, label_df, task_list, worker_list, te
   # t_worker = worker_list
   # q_data = np.array(list(qualify_dic.values()))
 
-  params = run_girth_onepl(q_data, qualify_task, worker_list)
+  params = run_girth_rasch(q_data, qualify_task, worker_list)
   item_param = params[0]
   user_param = params[1]
   # print(item_param)
@@ -245,14 +245,13 @@ def make_candidate_all(threshold, input_df, label_df, task_list, worker_list, te
   # 各テストタスクについてワーカー候補を作成する
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成
+
+  top_workers = sort_test_worker(test_worker, user_param)
   for th in threshold:
-    candidate_count = 0
     worker_c = {}
     for task in test_task:
       worker_c[task] = []
-      # user_paramのワーカー能力がcategory_dicのタスク難易度より大きければ候補に入れる.
-      # alpha = item_param[task]['a']
-      # beta = item_param[task]['b']
+
       beta = item_param[task]
     
       for worker in test_worker:
@@ -268,6 +267,10 @@ def make_candidate_all(threshold, input_df, label_df, task_list, worker_list, te
         if prob >= th:
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
+      if len(worker_c[task]) == 0:
+        worker_c[task] = top_workers
+        print('TOP:', th)
+        print(top_workers)
   
     worker_c_th[th] = worker_c
 
@@ -370,7 +373,7 @@ def AA_assignment(threshold, input_df, test_worker, q_task, test_task):
           AA_candidate_dic[th][task].append(worker)
       # 割当てがないタスクに上位ワーカを割り当てる．
       if len(AA_candidate_dic[th][task]) == 0:
-        AA_candidate_dic[th][task] = top_workers[:1]
+        AA_candidate_dic[th][task] = top_workers[:5]
 
   return AA_candidate_dic
 

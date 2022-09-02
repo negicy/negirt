@@ -140,7 +140,7 @@ def assignment(worker_c, test_worker):
   return assign_dic
 
 # 各テストタスクの正解率平均求める
-def accuracy(assign_dic, input_df):
+def accuracy(assign_dic, input_df, inspecter="OFF"):
   score = 0
   task_num = 0
   for task in assign_dic:
@@ -149,6 +149,9 @@ def accuracy(assign_dic, input_df):
     #print(task, worker)
     if input_df[worker][task] == 1:
       score += 1
+    if inspecter == "ON":
+      print("Hello")
+
   # print(task_num)
   # print(score, task_num)
   if task_num > 0:

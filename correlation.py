@@ -115,7 +115,20 @@ for iteration in range(0, iteration_time):
   plt.show()
   print(len(rate_list))
   print(len(theta_list))
-  print(skill_rate_dic)
+  sorted_skill_rate = dict(sorted(skill_rate_dic.items(), key=lambda x: x[1], reverse=True))
+  sorted_item_param = dict(sorted(full_item_param.items(), key=lambda x: x[1], reverse=True))
 
+  print(sorted_skill_rate)
+  print(sorted_item_param)
+
+bins=np.linspace(-3, 3, 20)
+x = list(sorted_skill_rate.values())
+y = list(sorted_item_param.values())
+# fig3 = plt.figure()
+plt.hist([x, y], bins, label=['worker', 'task'])
+plt.legend(loc='upper left')
+plt.xlabel("IRT parameter ")
+plt.ylabel("Number of tasks and workers")
+plt.show()
 
   

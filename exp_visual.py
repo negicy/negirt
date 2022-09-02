@@ -25,6 +25,7 @@ with open('input_data.pickle', 'rb') as f:
   worker_list = input_data['worker_list']
   task_list = input_data['task_list']
 
+
 ours_acc_allth = []
 ours_var_allth = [] 
 ours_tp_allth = []
@@ -52,7 +53,7 @@ full_output_alliter = {}
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 40
+iteration_time = 30
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
@@ -179,7 +180,7 @@ for iteration in range(0, iteration_time):
     acc = accuracy(assign_dic_opt, input_df)
     var = task_variance(assign_dic_opt, test_worker)
     tp = calc_tp(assign_dic_opt, test_worker)
-    print(assign_dic_opt)
+  
 
     AA_acc_perth.append(acc)
     AA_var_perth.append(var)
@@ -189,19 +190,21 @@ for iteration in range(0, iteration_time):
   AA_var_allth.append(AA_var_perth)
   AA_tp_allth.append(AA_tp_perth)
   
-  for candidate_dic in full_irt_candidate.values():
+  for th in full_irt_candidate:
+    candidate_dic = full_irt_candidate[th]
     assign_dic_opt = {}
-  
+
     assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
-  
   
     for worker in assigned:
       for task in assigned[worker]:
         assign_dic_opt[task] = worker
-    # assign_dic = assignment(candidate_dic, test_worker)
+    # print(th, len(assign_dic_opt))
     
     # 割当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
+    # print("full-irt assignment")  
+    # print(assign_dic_opt)
     var = task_variance(assign_dic_opt, test_worker)
     
     full_irt_acc_perth.append(acc)
@@ -209,6 +212,7 @@ for iteration in range(0, iteration_time):
 
   full_irt_acc_allth.append(full_irt_acc_perth)
   full_irt_var_allth.append(full_irt_var_perth)
+ 
   
   for th in range(0, len(threshold)):
     assign_dic = random_assignment(test_task, test_worker)
@@ -413,7 +417,7 @@ for th in range(0, len(threshold)):
       full_irt_var_sum += full_irt_var_allth[i][th]
       list_var_th.append(full_irt_var_allth[i][th])
       full_irt_var_num += 1
-    
+ 
   full_irt_acc[th] = full_irt_acc_sum / full_irt_acc_num
   full_irt_var[th] = full_irt_var_sum / full_irt_var_num
   # 標準偏差を計算

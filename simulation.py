@@ -98,7 +98,7 @@ def tp_acc_plot(tp, acc):
     # accを逆数にする
     acc_reverse = []
     for acc in acc_list:
-        acc = 1 / acc
+        # acc = 1 / acc
         acc_reverse.append(acc)
 
    
@@ -120,7 +120,7 @@ def tp_acc_plot(tp, acc):
 def welldone_count(threshold, assign_dic, user_param, item_param):
    
     count = 0
-    print('length' + str(len(assign_dic)))
+    # print('length' + str(len(assign_dic)))
     for task in assign_dic:
         worker = assign_dic[task]
         b = item_param[task]

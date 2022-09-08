@@ -27,7 +27,7 @@ worker_size = 100
 task_size = 200
 
 user_param_list = norm.rvs(loc=0.70, scale=0.5, size=worker_size)
-item_param_list = norm.rvs(loc=0.50, scale=0.5, size=task_size)
+item_param_list = norm.rvs(loc=0.20, scale=0.5, size=task_size)
 a_list = np.array([1]*task_size)
 user_param = {}
 item_param = {}
@@ -69,7 +69,7 @@ full_output_alliter = {}
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 40
+iteration_time = 10
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   

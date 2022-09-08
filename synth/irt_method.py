@@ -90,6 +90,35 @@ def run_girth_twopl(data, task_list, worker_list):
 # qualification task, test taskに分けてシミュレーション
 # IRT: girthを使用
 # 
+# input: 01の2D-ndarray, 対象タスクのリスト, 対象ワーカーのリスト
+def run_girth_rasch(data, task_list, worker_list):
+    estimates = rasch_mml(data, 1)
+
+    # Unpack estimates(a, b)
+    discrimination_estimates = estimates['Discrimination']
+    difficulty_estimates = estimates['Difficulty']
+
+    print(discrimination_estimates)
+    #print(difficulty_estimates)
+
+  
+    abilitiy_estimates = ability_mle(data, difficulty_estimates, discrimination_estimates)
+    # print(abilitiy_estimates)
+
+    user_param = {}
+    item_param = {}
+
+    for k in range(len(task_list)):
+        task_id = task_list[k]
+
+        item_param[task_id] = difficulty_estimates[k]
+    for j in range(len(worker_list)):
+        worker_id = worker_list[j]
+        user_param[worker_id] = abilitiy_estimates[j] 
+
+    # print(item_param)
+    # print(len(user_param))
+    return item_param, user_param
 
 # ワーカとタスクを分離
 def devide_sample(task_list, worker_list):
@@ -114,7 +143,7 @@ def ai_model(actual_b, dist):
     return random.choice(b_norm)
 
 # 割当て候補のいないタスクを無くす
-def sort_test_worker(test_worker, user_param, N=5):
+def sort_test_worker(test_worker, user_param, N=3):
   test_worker_param = {}
   for worker in test_worker:
     test_worker_param[worker] = user_param[worker]

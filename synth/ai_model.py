@@ -3,5 +3,5 @@ import matplotlib.pyplot as plt
 import random
 
 def ai_model(actual_b, dist):
-    b_norm = norm.rvs(loc=actual_b, scale=, size=100)
+    b_norm = norm.rvs(loc=actual_b, scale=0.01, size=100)
     return random.choice(b_norm)

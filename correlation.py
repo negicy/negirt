@@ -69,21 +69,7 @@ for w in worker_list:
 for iteration in range(0, iteration_time):
 
   
-  ours_acc_perth = []
-  ours_var_perth = []
-  ours_tp_perth = []
 
-  top_acc_perth = []
-  top_var_perth = []
-
-  AA_acc_perth = []
-  AA_var_perth = []
-  AA_tp_perth = []
-
-  random_acc_perth = []
-  random_var_perth = []
-  full_irt_acc_perth = []
-  full_irt_var_perth = []
   
   sample = devide_sample(task_list, worker_list)
   qualify_task = sample['qualify_task']
@@ -91,11 +77,33 @@ for iteration in range(0, iteration_time):
   test_worker = sample['test_worker']
 
   
-  full_output = make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task)
-  full_irt_candidate = full_output[0]
-  full_item_param = full_output[1]
-  full_user_param = full_output[2]
+  # full_output = make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task)
+  # full_irt_candidate = full_output[0]
+  
 
+
+  # 承認タスクとテストタスクを分離
+  qualify_task = task_list
+
+  qualify_dic = {}
+  for qt in qualify_task:
+    qualify_dic[qt] = list(input_df.T[qt])
+
+  q_data = np.array(list(qualify_dic.values()))
+ 
+
+  # t_worker = worker_list
+  # q_data = np.array(list(qualify_dic.values()))
+
+  params = run_girth_twopl(q_data, task_list, worker_list)
+
+  item_param = params[0]
+  full_item_param = {}
+  for item in item_param:
+    full_item_param[item] = item_param[item]['b']
+
+  full_user_param = params[1]
+  print(full_item_param)
   rate_list = []
   theta_list = []
 
@@ -113,13 +121,16 @@ for iteration in range(0, iteration_time):
   #ax1.plot(rate_list, theta_list, color='blue', label='ours')
   plt.scatter(theta_list, rate_list, color='blue', label='ours')
   plt.show()
-  print(len(rate_list))
-  print(len(theta_list))
+
   sorted_skill_rate = dict(sorted(skill_rate_dic.items(), key=lambda x: x[1], reverse=True))
   sorted_item_param = dict(sorted(full_item_param.items(), key=lambda x: x[1], reverse=True))
+  sorted_user_param = dict(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
+  
+
 
   print(sorted_skill_rate)
   print(sorted_item_param)
+  print(sorted_user_param)
 
 bins=np.linspace(-3, 3, 20)
 x = list(sorted_skill_rate.values())

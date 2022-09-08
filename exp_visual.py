@@ -49,11 +49,14 @@ welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
 ours_output_alliter = {}
 full_output_alliter = {}
 
-
+top_assignment_allth = {}
+for th in threshold:
+  top_assignment_allth[th] = []
+  
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 30
+iteration_time = 10
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
@@ -82,7 +85,7 @@ for iteration in range(0, iteration_time):
   ours_output =  make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
   ours_candidate = ours_output[0]
   user_param = ours_output[5]
-
+  top_result = ours_output[6]
   top_candidate = top_worker_assignment(threshold, input_df, test_worker, qualify_task, test_task)
   AA_candidate = AA_assignment(threshold, input_df, test_worker, qualify_task, test_task)
 
@@ -90,6 +93,10 @@ for iteration in range(0, iteration_time):
   full_irt_candidate = full_output[0]
   full_item_param = full_output[1]
   full_user_param = full_output[2]
+  # top_result = full_output[3]
+
+  for th in top_result:
+    top_assignment_allth[th].append(top_result[th])
 
   # 保存用
   ours_output_alliter[iteration] = ours_output
@@ -427,6 +434,12 @@ for th in range(0, len(threshold)):
   full_var_std.append(var_std)
 
 print("Result Collected!")
+for th in top_assignment_allth:
+  res = top_assignment_allth[th]
+  print(th, len(res), np.mean(res))
+print('=====================================')
+print(full_irt_acc)
+
 '''
 # 割当て結果保存:
 '''
@@ -522,27 +535,29 @@ plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義
 ax1 = fig.add_subplot()
 ax1.set_xlabel('max number of tasks')
-ax1.set_ylabel('1 / accuracy')
-ax1.set_xlim(0, 15)
+ax1.set_ylabel('accuracy')
+ax1.set_xlim(2, 10)
+
 
 # ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 # ax.plot(top_trade[0], top_trade[1], color='blue', label='top')
 # ax.plot(random_trade[0], random_trade[1], color='green', label='random')
 #ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
-ax1.plot(AA_trade[0], AA_trade[1], color='blue', label='ours')
+ax1.plot(ours_trade[0], ours_trade[1], color='red', label='ours')
 # plt.show()
 
 
 # plt.rcParams["font.size"] = 22
 # fig = plt.figure() #親グラフと子グラフを同時に定義
-ax2 = ax1.twinx()
+# ax2 = ax1.twinx()
 #ax2.set_xlabel('max number of tasks')
 #ax2.set_ylabel('1 / accuracy')
-ax2.plot(ours_trade[0], ours_trade[1], color='red', label='ours')
+ax1.plot(AA_trade[0], AA_trade[1], color='blue', label='AA')
 
 plt.show()
 print('====================================================================')
-print(AA_trade)
+print(len(ours_trade[0]))
+
 
 
 # ax.plot(threshold, full_irt, color='purple', label='IRT')

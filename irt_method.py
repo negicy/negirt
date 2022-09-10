@@ -131,8 +131,23 @@ def devide_sample(task_list, worker_list):
   output['test_worker'] = random.sample(worker_list, 20)
 
   return output
-  
 
+def assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
+ 
+  
+  sorted_full_user_param = list(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
+
+  for task in test_task:
+    b = full_item_param[task]
+    theta = sorted_full_user_param[0][1]
+    prob = OnePLM(b, theta)
+    if prob < 0.7:
+      return False
+  
+  return True
+
+
+  
 def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):
   worker_c_th = {}
   top_result = {}
@@ -217,7 +232,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
       top_result[th] = top_assignment_acc / top_assignment_count
       
     worker_c_th[th] = worker_c
-    print(th, top_assignment_count)
+    # print(th, top_assignment_count)
 
   return worker_c_th, test_worker, qualify_task, test_task, mb_list, user_param, top_result
 
@@ -233,25 +248,10 @@ def sort_test_worker(test_worker, user_param, N=1):
   top_workers = list(sorted_user_param.keys())[:N]
   return top_workers
 
-def make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task):
+def make_candidate_all(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
   worker_c_th = {}
-
   top_result = {}
-  # 承認タスクとテストタスクを分離
-  qualify_task = task_list
-  qualify_dic = {}
-  for qt in qualify_task:
-    qualify_dic[qt] = list(input_df.T[qt])
-
-  q_data = np.array(list(qualify_dic.values()))
  
-
-  # t_worker = worker_list
-  # q_data = np.array(list(qualify_dic.values()))
-
-  params = run_girth_rasch(q_data, task_list, worker_list)
-  full_item_param = params[0]
-  full_user_param = params[1]
   # print(item_param)
   # 難易度の最小値, 最大値
   theta_range = []
@@ -303,12 +303,169 @@ def make_candidate_all(threshold, input_df, task_list, worker_list, test_worker,
       top_result[th] = top_assignment_acc / top_assignment_count
          
     worker_c_th[th] = worker_c
-    # print(th, top_assignment_count)
-  # print('top割り当ての正解率')
-  # print(top_result)
+    print(th, top_assignment_count)
+  print('top割り当ての正解率-Full')
+  print(top_result)
     
 
   return worker_c_th, full_item_param, full_user_param, top_result
+
+
+def make_candidate_imp(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):
+  worker_c_th = {}
+  top_result = {}
+  # 割当先がいないタスクの割当て
+  imp_worker_c_th = {}
+
+  qualify_dic = {}
+  for qt in qualify_task:
+    qualify_dic[qt] = list(input_df.T[qt])
+
+  q_data = np.array(list(qualify_dic.values()))
+  # q_data = input_df.values
+  # 
+
+  params = run_girth_rasch(q_data, qualify_task, worker_list)
+  item_param = params[0]
+  user_param = params[1]
+
+
+  category_dic = {'Businness':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Economy':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 
+                    'Technology&Science':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Health':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}}
+
+  for i in qualify_task:
+    category = label_df['estimate_label'][i]
+    # category_dic[category]['a'].append(item_param[i]['alpha'])
+    category_dic[category]['b'].append(item_param[i])
+    category_dic[category]['num'] += 1
+  mb_list = []
+
+  for c in category_dic:
+    category_dic[c]['ma'] = np.sum(category_dic[c]['a']) / category_dic[c]['num']
+    category_dic[c]['mb'] = np.sum(category_dic[c]['b']) / category_dic[c]['num']
+    for num in range(0, category_dic[c]['num']):
+      mb_list.append(category_dic[c]['mb'])
+
+  # 難易度の最小値, 最大値
+  theta_range = []
+  theta_range.append(np.min(mb_list))
+  theta_range.append(np.max(mb_list))
+
+  # 各テストタスクについてワーカー候補を作成する
+  # output: worker_c = {task: []}
+  # すべてのスレッショルドについてワーカー候補作成
+  
+  top_workers = sort_test_worker(test_worker, user_param, N=3)
+
+  for th in threshold:
+    candidate_count = 0
+    top_assignment_count = 0
+    top_assignment_acc = 0
+    imp_worker_c = {}
+    worker_c = {}
+    for task in test_task:
+      worker_c[task] = []
+      # test_taskのカテゴリ推定
+      est_label = label_df['estimate_label'][task]
+      # user_paramのワーカー能力がcategory_dicのタスク難易度より大きければ候補に入れる.
+      # a = item_param[task]['alpha']
+      beta = category_dic[est_label]['mb']
+
+      for worker in test_worker:
+        # workerの正答確率prob
+        
+        theta = user_param[worker]
+        # prob = irt_fnc(theta, b, a)
+        prob = OnePLM(beta, theta)
+        # prob = TwoPLM(a, b, theta, d=1.7)
+
+        # workerの正解率がthresholdより大きければ
+        if prob >= th:
+          # ワーカーを候補リストに代入
+          worker_c[task].append(worker)
+      if len(worker_c[task]) == 0:
+        top_assignment_count += 1
+        # worker_c[task] = top_workers
+        imp_worker_c[task] = top_workers
+        # print(th, count, top_workers, task, input_df[top_workers[0]][task])
+   
+      
+    imp_worker_c_th[th] = imp_worker_c
+    print(th, top_assignment_count)
+
+  return imp_worker_c_th, test_worker, qualify_task, test_task, mb_list, user_param, top_result
+
+def make_candidate_all_imp(threshold, input_df, task_list, worker_list, test_worker, test_task):
+  worker_c_th = {}
+  imp_worker_c_th = {}
+  top_result = {}
+  # 承認タスクとテストタスクを分離
+  qualify_task = task_list
+  qualify_dic = {}
+  for qt in qualify_task:
+    qualify_dic[qt] = list(input_df.T[qt])
+
+  q_data = np.array(list(qualify_dic.values()))
+ 
+
+  # t_worker = worker_list
+  # q_data = np.array(list(qualify_dic.values()))
+
+  params = run_girth_rasch(q_data, task_list, worker_list)
+  full_item_param = params[0]
+  full_user_param = params[1]
+  # print(item_param)
+  # 難易度の最小値, 最大値
+
+
+  # 各テストタスクについてワーカー候補を作成する
+  # output: worker_c = {task: []}
+  # すべてのスレッショルドについてワーカー候補作成
+
+  top_workers = sort_test_worker(test_worker, full_user_param, N=3)
+  print('====== all =====')
+  for th in threshold:
+    top_assignment_count = 0
+    top_assignment_acc = 0
+ 
+    worker_c = {}
+    imp_worker_c = {}
+    for task in test_task:
+      worker_c[task] = []
+
+      beta = full_item_param[task]
+    
+      for worker in test_worker:
+        # workerの正答確率prob
+        
+        theta = full_user_param[worker]
+        # prob = irt_fnc(theta, b, a)
+        prob = OnePLM(beta, theta)
+
+        # workerの正解率がthresholdより大きければ
+        # worker_c[task] = top_workers
+        if prob >= th:
+          # ワーカーを候補リストに代入
+          worker_c[task].append(worker)
+
+      if len(worker_c[task]) == 0:
+        top_assignment_count += 1
+        w = random.choice(top_workers)
+        imp_worker_c[task] = top_workers
+        worker_c[task] = top_workers
+        if input_df[w][task] == 1:
+          top_assignment_acc += 1
+
+    if top_assignment_count > 0:
+      top_result[th] = top_assignment_acc / top_assignment_count
+         
+    imp_worker_c_th[th] = imp_worker_c
+
+    
+
+  return imp_worker_c_th, full_item_param, full_user_param, top_result
+
+
 
 
 # 平均正解率がthreshold以上のワーカに割り当てる

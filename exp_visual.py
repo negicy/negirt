@@ -53,10 +53,20 @@ top_assignment_allth = {}
 for th in threshold:
   top_assignment_allth[th] = []
   
+# 承認タスクとテストタスクを分離
+qualify_task = task_list
+qualify_dic = {}
+for qt in qualify_task:
+  qualify_dic[qt] = list(input_df.T[qt])
+
+q_data = np.array(list(qualify_dic.values()))
+params = run_girth_rasch(q_data, task_list, worker_list)
+full_item_param = params[0]
+full_user_param = params[1]
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 10
+iteration_time = 25
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
@@ -76,10 +86,13 @@ for iteration in range(0, iteration_time):
   full_irt_acc_perth = []
   full_irt_var_perth = []
   
-  sample = devide_sample(task_list, worker_list)
-  qualify_task = sample['qualify_task']
-  test_task = sample['test_task']
-  test_worker = sample['test_worker']
+  while True:
+    sample = devide_sample(task_list, worker_list)
+    qualify_task = sample['qualify_task']
+    test_task = sample['test_task']
+    test_worker = sample['test_worker']
+    if assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task) == True:
+      break
 
   # 各手法でのワーカ候補作成
   ours_output =  make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
@@ -89,10 +102,10 @@ for iteration in range(0, iteration_time):
   top_candidate = top_worker_assignment(threshold, input_df, test_worker, qualify_task, test_task)
   AA_candidate = AA_assignment(threshold, input_df, test_worker, qualify_task, test_task)
 
-  full_output = make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task)
+  full_output = make_candidate_all(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
   full_irt_candidate = full_output[0]
-  full_item_param = full_output[1]
-  full_user_param = full_output[2]
+  # full_item_param = full_output[1]
+  # full_user_param = full_output[2]
   # top_result = full_output[3]
 
   for th in top_result:
@@ -259,6 +272,11 @@ full_irt_acc = [0] * len(threshold)
 full_irt_var = [0] * len(threshold)
 full_acc_std = []
 full_var_std = []
+
+print('accuracy of DI for all threshold: for 1 iteration')
+print(ours_acc_allth)
+print('accuracy of PI for all threshold: for 1 iteration')
+print(full_irt_acc_allth)
 
 for th in range(0, len(threshold)):
   ours_acc_sum = 0
@@ -497,10 +515,10 @@ label_x = ['0.5', '0.6', '0.7', '0.8']
 plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義
 # 1つ目の棒グラフ
-plt.bar(x1, y_ours, color='blue', width=0.3, label='DI', align="center")
+# plt.bar(x1, y_ours, color='blue', width=0.3, label='DI', align="center")
 
 # 2つ目の棒グラフ
-plt.bar(x2, y_AA, color='coral', width=0.3, label='AA', align="center")
+# plt.bar(x2, y_AA, color='coral', width=0.3, label='AA', align="center")
 
 # 凡例
 plt.xlabel('threshold')
@@ -554,7 +572,7 @@ ax1.plot(ours_trade[0], ours_trade[1], color='red', label='ours')
 #ax2.set_ylabel('1 / accuracy')
 ax1.plot(AA_trade[0], AA_trade[1], color='blue', label='AA')
 
-plt.show()
+# plt.show()
 print('====================================================================')
 print(len(ours_trade[0]))
 

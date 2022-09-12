@@ -218,6 +218,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
         if prob >= th:
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
+      '''
       if len(worker_c[task]) == 0:
         top_assignment_count += 1
         w = random.choice(top_workers)
@@ -226,9 +227,12 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
         # print(th, count, top_workers, task, input_df[top_workers[0]][task])
         if input_df[w][task] == 1:
           top_assignment_acc += 1
-
-    if top_assignment_count > 0:
-      top_result[th] = top_assignment_acc / top_assignment_count
+      '''
+      
+    '''
+    '''
+    # if top_assignment_count > 0:
+      # top_result[th] = top_assignment_acc / top_assignment_count
       
     worker_c_th[th] = worker_c
     # print(th, top_assignment_count)
@@ -288,7 +292,8 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
         if prob >= th:
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
-
+      
+      '''
       if len(worker_c[task]) == 0:
         top_assignment_count += 1
         w = random.choice(top_workers)
@@ -296,7 +301,8 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
         worker_c[task] = top_workers
         if input_df[w][task] == 1:
           top_assignment_acc += 1
-
+      '''
+      
           # print(th, count, w, task, input_df[top_workers[0]][task])
     if top_assignment_count > 0:
       top_result[th] = top_assignment_acc / top_assignment_count
@@ -322,7 +328,7 @@ def make_candidate_imp(threshold, input_df, label_df, worker_list, test_worker, 
 
   q_data = np.array(list(qualify_dic.values()))
   # q_data = input_df.values
-  # 
+ 
 
   params = run_girth_rasch(q_data, qualify_task, worker_list)
   item_param = params[0]

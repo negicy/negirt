@@ -133,15 +133,14 @@ def devide_sample(task_list, worker_list):
   return output
 
 def assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
- 
-  
   sorted_full_user_param = list(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
+  # print(sorted_full_user_param)
 
   for task in test_task:
     b = full_item_param[task]
     theta = sorted_full_user_param[0][1]
     prob = OnePLM(b, theta)
-    if prob < 0.7:
+    if prob < 0.65:
       return False
   
   return True

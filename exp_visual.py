@@ -45,7 +45,6 @@ full_irt_var_allth = []
 
 threshold = list([i / 100 for i in range(50, 61)])
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
-
 ours_output_alliter = {}
 full_output_alliter = {}
 
@@ -66,7 +65,7 @@ full_user_param = params[1]
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 40
+iteration_time = 30
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
@@ -91,7 +90,7 @@ for iteration in range(0, iteration_time):
     qualify_task = sample['qualify_task']
     test_task = sample['test_task']
     test_worker = sample['test_worker']
-    if assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task) == True:
+    if assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task) != True:
       break
 
   # 各手法でのワーカ候補作成
@@ -140,6 +139,17 @@ for iteration in range(0, iteration_time):
   
     # 割り当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
+    print("DI assignment", th, acc, len(assign_dic_opt))
+  
+    DI_margin_sum = 0
+    for task in assign_dic_opt:
+      worker = assign_dic_opt[task]
+      DI_margin = full_user_param[worker] - full_item_param[task]
+      DI_margin_sum += DI_margin
+      # print(full_item_param[task], full_user_param[worker], full_user_param[worker] - full_item_param[task], input_df[worker][task])
+    print(DI_margin_sum / len(assign_dic_opt))
+    print('==========================================================')
+
     # 割当て結果分散を求める
     var = task_variance(assign_dic_opt, test_worker)
     # 割当て結果のTPを求める
@@ -223,7 +233,15 @@ for iteration in range(0, iteration_time):
     
     # 割当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
-    # print("full-irt assignment")  
+    print("PI assignment", th, acc, len(assign_dic_opt))  
+    PI_margin_sum = 0
+    for task in assign_dic_opt:
+      worker = assign_dic_opt[task]
+      PI_margin = full_user_param[worker] - full_item_param[task]
+      PI_margin_sum += PI_margin
+      # print(full_item_param[task], full_user_param[worker], full_user_param[worker] - full_item_param[task], input_df[worker][task])
+    print(PI_margin_sum / len(assign_dic_opt))
+    print('==========================================================')
     # print(assign_dic_opt)
     var = task_variance(assign_dic_opt, test_worker)
     
@@ -301,7 +319,7 @@ for th in range(0, len(threshold)):
     ours_tp_sum += ours_tp_allth[i][th]
     ours_tp_num += 1
   # acc, var, tpの平均を計算
-
+  
   ours_acc[th] = ours_acc_sum / ours_acc_num
   ours_var[th] = ours_var_sum / ours_var_num 
   ours_tp[th] = ours_tp_sum / ours_tp_num

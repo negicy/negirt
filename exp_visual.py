@@ -29,6 +29,7 @@ with open('input_data.pickle', 'rb') as f:
 ours_acc_allth = []
 ours_var_allth = [] 
 ours_tp_allth = []
+DI_margin_allth = []
 
 top_acc_allth = []
 top_var_allth = []
@@ -42,6 +43,7 @@ random_acc_allth = []
 random_var_allth = []
 full_irt_acc_allth = []
 full_irt_var_allth = []
+PI_margin_allth = []
 
 threshold = list([i / 100 for i in range(50, 76)])
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
@@ -65,13 +67,14 @@ full_user_param = params[1]
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 20
+iteration_time = 40
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
   ours_acc_perth = []
   ours_var_perth = []
   ours_tp_perth = []
+  DI_margin_perth = []
 
   top_acc_perth = []
   top_var_perth = []
@@ -84,14 +87,14 @@ for iteration in range(0, iteration_time):
   random_var_perth = []
   full_irt_acc_perth = []
   full_irt_var_perth = []
+  PI_margin_perth = []
   
-  while True:
-    sample = devide_sample(task_list, worker_list)
-    qualify_task = sample['qualify_task']
-    test_task = sample['test_task']
-    test_worker = sample['test_worker']
-    if assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task) != True:
-      break
+  
+  sample = devide_sample(task_list, worker_list)
+  qualify_task = sample['qualify_task']
+  test_task = sample['test_task']
+  test_worker = sample['test_worker']
+   
 
   # 各手法でのワーカ候補作成
   ours_output =  make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
@@ -140,28 +143,34 @@ for iteration in range(0, iteration_time):
     # 割り当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
     print("DI assignment", th, acc, len(assign_dic_opt))
-  
+    
     DI_margin_sum = 0
+    
     for task in assign_dic_opt:
       worker = assign_dic_opt[task]
       DI_margin = full_user_param[worker] - full_item_param[task]
       DI_margin_sum += DI_margin
       # print(full_item_param[task], full_user_param[worker], full_user_param[worker] - full_item_param[task], input_df[worker][task])
-    print(DI_margin_sum / len(assign_dic_opt))
+    DI_margin_mean = DI_margin_sum / len(assign_dic_opt)
+    print(DI_margin_mean)
     print('==========================================================')
 
     # 割当て結果分散を求める
     var = task_variance(assign_dic_opt, test_worker)
     # 割当て結果のTPを求める
     tp = calc_tp(assign_dic_opt, test_worker)
+
+
     
     ours_acc_perth.append(acc)
     ours_var_perth.append(var)
     ours_tp_perth.append(tp)
-  
+    DI_margin_perth.append(DI_margin_mean)
+
   ours_acc_allth.append(ours_acc_perth)
   ours_var_allth.append(ours_var_perth)
   ours_tp_allth.append(ours_tp_perth)
+  DI_margin_allth.append(DI_margin_perth)
   
   for candidate_dic in top_candidate.values():
 
@@ -239,17 +248,20 @@ for iteration in range(0, iteration_time):
       worker = assign_dic_opt[task]
       PI_margin = full_user_param[worker] - full_item_param[task]
       PI_margin_sum += PI_margin
-      # print(full_item_param[task], full_user_param[worker], full_user_param[worker] - full_item_param[task], input_df[worker][task])
-    print(PI_margin_sum / len(assign_dic_opt))
+
+    PI_margin_mean = PI_margin_sum / len(assign_dic_opt)
+    print(PI_margin_mean)
     print('==========================================================')
-    # print(assign_dic_opt)
+ 
     var = task_variance(assign_dic_opt, test_worker)
     
     full_irt_acc_perth.append(acc)
     full_irt_var_perth.append(var)
+    PI_margin_perth.append(PI_margin_mean)
 
   full_irt_acc_allth.append(full_irt_acc_perth)
   full_irt_var_allth.append(full_irt_var_perth)
+  PI_margin_allth.append(PI_margin_perth)
  
   
   for th in range(0, len(threshold)):
@@ -267,6 +279,7 @@ for iteration in range(0, iteration_time):
 ours_acc = [0] * len(threshold)
 ours_var = [0] * len(threshold)
 ours_tp = [0] * len(threshold)
+DI_margin_result = [0] * len(threshold) 
 ours_acc_std =  []
 ours_var_std =  []
 
@@ -290,6 +303,7 @@ full_irt_acc = [0] * len(threshold)
 full_irt_var = [0] * len(threshold)
 full_acc_std = []
 full_var_std = []
+PI_margin_result = [0] * len(threshold) 
 
 print('accuracy of DI for all threshold: for 1 iteration')
 print(ours_acc_allth)
@@ -303,6 +317,9 @@ for th in range(0, len(threshold)):
   ours_acc_num = 0
   ours_var_num = 0
   ours_tp_num = 0
+  DI_margin_sum_th = 0
+
+
   # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
   list_acc_th = []
   list_var_th = []
@@ -313,16 +330,20 @@ for th in range(0, len(threshold)):
       ours_acc_sum += ours_acc_allth[i][th]
       ours_acc_num += 1
     
+    
     ours_var_sum += ours_var_allth[i][th]
     list_var_th.append(ours_var_allth[i][th])
     ours_var_num += 1
     ours_tp_sum += ours_tp_allth[i][th]
     ours_tp_num += 1
+
+    DI_margin_sum_th += DI_margin_allth[i][th]
   # acc, var, tpの平均を計算
   
   ours_acc[th] = ours_acc_sum / ours_acc_num
   ours_var[th] = ours_var_sum / ours_var_num 
   ours_tp[th] = ours_tp_sum / ours_tp_num
+  DI_margin_result[th] = DI_margin_sum_th / iteration_time
   # 標準偏差を計算
   acc_std = np.std(list_acc_th)
   var_std = np.std(list_var_th)
@@ -447,6 +468,7 @@ for th in range(0, len(threshold)):
   full_irt_var_sum = 0
   full_irt_acc_num = 0
   full_irt_var_num = 0
+  PI_margin_sum_th = 0
   # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
   list_acc_th = []
   list_var_th = []
@@ -460,9 +482,11 @@ for th in range(0, len(threshold)):
       full_irt_var_sum += full_irt_var_allth[i][th]
       list_var_th.append(full_irt_var_allth[i][th])
       full_irt_var_num += 1
+    PI_margin_sum_th += PI_margin_allth[i][th]
  
   full_irt_acc[th] = full_irt_acc_sum / full_irt_acc_num
   full_irt_var[th] = full_irt_var_sum / full_irt_var_num
+  PI_margin_result[th] = PI_margin_sum_th / iteration_time
   # 標準偏差を計算
   acc_std = np.std(list_acc_th)
   var_std = np.std(list_var_th)
@@ -510,7 +534,7 @@ ax = fig.add_subplot(1, 1, 1)
 
 ax.set_xlabel('threshold')
 ax.set_ylabel('rate of successful assignments')
-ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.5, color='forestgreen')
+# ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.5, color='forestgreen')
 # plt.show()
 
 
@@ -575,10 +599,26 @@ ax1.set_ylabel('accuracy')
 ax1.set_xlim(2, 10)
 
 
+
+# 推移をプロット
+plt.rcParams["font.size"] = 22
+fig = plt.figure() #親グラフと子グラフを同時に定義
+ax = fig.add_subplot()
+ax.set_xlabel('threshold')
+ax.set_ylabel('margin')
+x = np.array(threshold)
+
+    
+ax.plot(x, DI_margin_result, color='red', label='ours')
+ax.plot(x, PI_margin_result, color='purple', label='IRT')
+plt.show()
+
+
 # ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 # ax.plot(top_trade[0], top_trade[1], color='blue', label='top')
 # ax.plot(random_trade[0], random_trade[1], color='green', label='random')
 #ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
+
 ax1.plot(ours_trade[0], ours_trade[1], color='red', label='ours')
 # plt.show()
 

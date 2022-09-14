@@ -1,9 +1,10 @@
 import math
+from tkinter import N
 import girth
 import pandas as pd
 import numpy as np
 import statistics
-from girth import twopl_mml, onepl_mml, ability_mle
+from girth import twopl_mml, onepl_mml, ability_mle, rasch_mml
 import random
 
 def TwoPLM(alpha, beta, theta, d=1.7, c=0.0):
@@ -124,9 +125,9 @@ def run_girth_rasch(data, task_list, worker_list):
 def devide_sample(task_list, worker_list):
   output = {}
   random.shuffle(task_list)
-  
-  qualify_task = task_list[:50]
-  test_task = task_list[50:]
+  n = 100
+  qualify_task = task_list[:n]
+  test_task = task_list[n:]
  
   output['qualify_task'] = qualify_task
   output['test_task'] = test_task
@@ -139,7 +140,7 @@ import matplotlib.pyplot as plt
 import random
 
 def ai_model(actual_b, dist):
-    b_norm = norm.rvs(loc=actual_b, scale=1, size=100)
+    b_norm = norm.rvs(loc=actual_b, scale=dist, size=100)
     return random.choice(b_norm)
 
 # 割当て候補のいないタスクを無くす
@@ -152,14 +153,25 @@ def sort_test_worker(test_worker, user_param, N=3):
   top_workers = list(sorted_user_param.keys())[:N]
   return top_workers
 
-def make_candidate(threshold, worker_list, test_worker, qualify_task, test_task, user_param, item_param):
+def make_candidate(threshold, input_df, worker_list, test_worker, qualify_task, test_task, full_item_param):
   worker_c_th = {}
   qualify_dic = {}
+
+  qualify_dic = {}
+  for qt in qualify_task:
+    qualify_dic[qt] = list(input_df.T[qt])
+
+  q_data = np.array(list(qualify_dic.values()))
 
   # 各テストタスクについてワーカー候補を作成する
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成
-  top_workers = sort_test_worker(test_worker, user_param)
+
+  params = run_girth_rasch(q_data, qualify_task, worker_list)
+  est_item_param = params[0]
+  est_user_param = params[1]
+
+  top_workers = sort_test_worker(test_worker, est_user_param)
 
   for th in threshold:
     candidate_count = 0
@@ -170,10 +182,11 @@ def make_candidate(threshold, worker_list, test_worker, qualify_task, test_task,
 
       for worker in test_worker:
         # workerの正答確率prob
-        actual_b = item_param[task]
-        est_b = ai_model(actual_b, dist=0.5)
-        theta = user_param[worker]
-        prob = OnePLM(est_b, theta)
+        actual_b = full_item_param[task]
+        ai_b = ai_model(actual_b, dist=0.01)
+        print(ai_b, actual_b)
+        theta = est_user_param[worker]
+        prob = OnePLM(ai_b, theta)
 
         # workerの正解率がthresholdより大きければ
         if prob >= th:
@@ -185,20 +198,21 @@ def make_candidate(threshold, worker_list, test_worker, qualify_task, test_task,
     
     worker_c_th[th] = worker_c
 
-  return worker_c_th
+  return worker_c_th, est_user_param
 
 
 
-def make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task, user_param, item_param):
+def make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task, full_user_param, full_item_param):
   worker_c_th = {}
   qualify_dic = {}
 
   # 各テストタスクについてワーカー候補を作成する
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成
-  top_workers = sort_test_worker(test_worker, user_param)
+  top_workers = sort_test_worker(test_worker, full_user_param)
 
   for th in threshold:
+    top_assignment_count = 0
     candidate_count = 0
     worker_c = {}
     for task in test_task:
@@ -207,9 +221,9 @@ def make_candidate_all(threshold, input_df, task_list, worker_list, test_worker,
 
       for worker in test_worker:
         # workerの正答確率prob
-        actual_b = item_param[task]
+        actual_b = full_item_param[task]
     
-        theta = user_param[worker]
+        theta = full_user_param[worker]
         prob = OnePLM(actual_b, theta)
 
         # workerの正解率がthresholdより大きければ
@@ -218,8 +232,10 @@ def make_candidate_all(threshold, input_df, task_list, worker_list, test_worker,
           worker_c[task].append(worker)
       if len(worker_c[task]) == 0:
         worker_c[task] = top_workers
+        top_assignment_count += 1
     
     worker_c_th[th] = worker_c
+    print('top', th, top_assignment_count)
 
   return worker_c_th
 

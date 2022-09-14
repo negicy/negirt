@@ -135,13 +135,13 @@ def devide_sample(task_list, worker_list):
 def assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
   sorted_full_user_param = list(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
   # print(sorted_full_user_param)
-
-  for task in test_task:
-    b = full_item_param[task]
-    theta = sorted_full_user_param[0][1]
-    prob = OnePLM(b, theta)
-    if prob < 0.65:
-      return False
+  for th in threshold:
+    for task in test_task:
+      b = full_item_param[task]
+      top_theta = sorted_full_user_param[0][1]
+      prob = OnePLM(b, top_theta)
+      if prob < th:
+        return False
   
   return True
 
@@ -218,7 +218,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
         if prob >= th:
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
-      '''
+    
       if len(worker_c[task]) == 0:
         top_assignment_count += 1
         w = random.choice(top_workers)
@@ -227,7 +227,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
         # print(th, count, top_workers, task, input_df[top_workers[0]][task])
         if input_df[w][task] == 1:
           top_assignment_acc += 1
-      '''
+    
       
     '''
     '''
@@ -293,7 +293,7 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
       
-      '''
+      
       if len(worker_c[task]) == 0:
         top_assignment_count += 1
         w = random.choice(top_workers)
@@ -301,7 +301,7 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
         worker_c[task] = top_workers
         if input_df[w][task] == 1:
           top_assignment_acc += 1
-      '''
+      
       
           # print(th, count, w, task, input_df[top_workers[0]][task])
     if top_assignment_count > 0:

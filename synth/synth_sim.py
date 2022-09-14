@@ -26,8 +26,12 @@ import matplotlib.pyplot as plt
 worker_size = 100
 task_size = 200
 
-user_param_list = norm.rvs(loc=0.70, scale=0.5, size=worker_size)
-item_param_list = norm.rvs(loc=0.20, scale=0.5, size=task_size)
+user_param_list = norm.rvs(loc=1.2, scale=0.25, size=worker_size)
+item_param_list = norm.rvs(loc=0.8, scale=0.25, size=task_size)
+
+bins=np.linspace(-3, 3, 20)
+plt.hist([user_param_list, item_param_list], bins, label=['worker', 'task'])
+
 a_list = np.array([1]*task_size)
 user_param = {}
 item_param = {}
@@ -40,11 +44,25 @@ for j in range(0, task_size):
     task_id = 't' + str(j+1)
     item_param[task_id] = item_param_list[j]
 
+
+
 worker_list = list(user_param.keys())
 task_list = list(item_param.keys())
+
 # 仮想項目反応データ生成
 input_data = create_synthetic_irt_dichotomous(item_param_list, a_list, user_param_list)
 input_df = pd.DataFrame(input_data, columns=worker_list, index=task_list)
+
+qualify_task = task_list
+qualify_dic = {}
+for qt in qualify_task:
+  qualify_dic[qt] = list(input_df.T[qt])
+q_data = np.array(list(qualify_dic.values()))
+params = run_girth_rasch(q_data, task_list, worker_list)
+full_item_param = params[0]
+full_user_param = params[1]
+
+
 
 ours_acc_allth = []
 ours_var_allth = []
@@ -69,7 +87,7 @@ full_output_alliter = {}
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 10
+iteration_time = 5
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
@@ -94,12 +112,14 @@ for iteration in range(0, iteration_time):
   test_worker = sample['test_worker']
 
   # 各手法でのワーカ候補作成
-  ours_output =  make_candidate(threshold, worker_list, test_worker, qualify_task, test_task, user_param, item_param)
-  ours_candidate = ours_output
+  ours_output =  make_candidate(threshold, input_df, worker_list, test_worker, qualify_task, test_task, full_item_param)
+  ours_candidate = ours_output[0]
+  est_user_param = ours_output[1]
 
   top_candidate = top_worker_assignment(threshold, input_df, test_worker, qualify_task, test_task)
   AA_candidate = AA_assignment(threshold, input_df, test_worker, qualify_task, test_task)
-  full_output = make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task, user_param, item_param)
+
+  full_output = make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task, full_user_param, full_item_param)
   full_irt_candidate = full_output
 
   # 保存用
@@ -111,7 +131,7 @@ for iteration in range(0, iteration_time):
     candidate_dic = ours_candidate[th]
     
     assign_dic_opt = {}
-    assigned = optim_assignment(candidate_dic, test_worker, test_task, user_param)
+    assigned = optim_assignment(candidate_dic, test_worker, test_task, est_user_param)
 
     for worker in assigned:
       for task in assigned[worker]:
@@ -164,12 +184,12 @@ for iteration in range(0, iteration_time):
     candidate_dic = AA_candidate[th]
     
     assign_dic_opt = {}
-    assigned = optim_assignment(candidate_dic, test_worker, test_task, user_param)
+    assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
     for worker in assigned:
       for task in assigned[worker]:
         assign_dic_opt[task] = worker
     
-    print(th, len(assign_dic_opt))
+   
       
 
     if th in [0.5, 0.6, 0.7, 0.8]:
@@ -193,23 +213,27 @@ for iteration in range(0, iteration_time):
 
   AA_acc_allth.append(AA_acc_perth)
   AA_var_allth.append(AA_var_perth)
-  
-  for candidate_dic in full_irt_candidate.values():
+ 
+  for th in full_irt_candidate:
+    candidate_dic = full_irt_candidate[th]
+    assign_dic_opt = {}
     # assign_dic = assignment(candidate_dic, test_worker)
-    assigned = optim_assignment(candidate_dic, test_worker, test_task, user_param)
+    assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
 
     for worker in assigned:
       for task in assigned[worker]:
         assign_dic_opt[task] = worker
     # assign_dic = assignment(candidate_dic, test_worker)
-    
+    print('==========================================-------')
+    print(th, assign_dic_opt)
     # 割当て結果の精度を求める
+
     acc = accuracy(assign_dic_opt, input_df)
     var = task_variance(assign_dic_opt, test_worker)
     
     # 割当て結果の精度を求める
-    acc = accuracy(assign_dic, input_df)
-    var = task_variance(assign_dic, test_worker)
+    acc = accuracy(assign_dic_opt, input_df)
+    var = task_variance(assign_dic_opt, test_worker)
     
     full_irt_acc_perth.append(acc)
     full_irt_var_perth.append(var)

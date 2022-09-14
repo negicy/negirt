@@ -43,7 +43,7 @@ random_var_allth = []
 full_irt_acc_allth = []
 full_irt_var_allth = []
 
-threshold = list([i / 100 for i in range(50, 61)])
+threshold = list([i / 100 for i in range(50, 76)])
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
 ours_output_alliter = {}
 full_output_alliter = {}
@@ -65,7 +65,7 @@ full_user_param = params[1]
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 30
+iteration_time = 20
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
@@ -223,7 +223,7 @@ for iteration in range(0, iteration_time):
   for th in full_irt_candidate:
     candidate_dic = full_irt_candidate[th]
     assign_dic_opt = {}
-
+    # print(candidate_dic)
     assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
   
     for worker in assigned:

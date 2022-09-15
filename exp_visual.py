@@ -232,7 +232,7 @@ for iteration in range(0, iteration_time):
   for th in full_irt_candidate:
     candidate_dic = full_irt_candidate[th]
     assign_dic_opt = {}
-    # print(candidate_dic)
+    print(candidate_dic)
     assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
   
     for worker in assigned:
@@ -526,8 +526,6 @@ with open(filename, 'wb') as f:
 for th in welldone_dist:
   welldone_dist[th] = welldone_dist[th] / iteration_time
 '''
-
-'''
 plt.rcParams["font.size"] = 18
 fig =  plt.figure()
 ax = fig.add_subplot(1, 1, 1)
@@ -540,6 +538,8 @@ ax.set_ylabel('rate of successful assignments')
 
 # タスクのあるワーカ人数をヒストグラムで
 # iteration間の平均を求める
+'''
+
 
 num_worker = [[], []]
 for th in [0.5, 0.6, 0.7, 0.8]:
@@ -553,6 +553,7 @@ y_AA = num_worker[1]
 x1 = [1, 2, 3, 4]
 x2 = [1.3, 2.3, 3.3, 4.3]
 
+'''
 label_x = ['0.5', '0.6', '0.7', '0.8']
 plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義
@@ -562,6 +563,8 @@ fig = plt.figure() #親グラフと子グラフを同時に定義
 # 2つ目の棒グラフ
 # plt.bar(x2, y_AA, color='coral', width=0.3, label='AA', align="center")
 
+
+
 # 凡例
 plt.xlabel('threshold')
 plt.ylabel('Number of workers with tasks')
@@ -569,7 +572,7 @@ plt.ylabel('Number of workers with tasks')
 plt.xticks([1.15, 2.15, 3.15, 4.15], label_x)
 fig.legend(bbox_to_anchor=(0.15, 0.250), loc='upper left')
 # plt.show()
-
+'''
 # 推移をプロット
 
 result_acc_dic = {
@@ -619,7 +622,7 @@ plt.show()
 # ax.plot(random_trade[0], random_trade[1], color='green', label='random')
 #ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 
-ax1.plot(ours_trade[0], ours_trade[1], color='red', label='ours')
+# ax1.plot(ours_trade[0], ours_trade[1], color='red', label='ours')
 # plt.show()
 
 
@@ -628,7 +631,7 @@ ax1.plot(ours_trade[0], ours_trade[1], color='red', label='ours')
 # ax2 = ax1.twinx()
 #ax2.set_xlabel('max number of tasks')
 #ax2.set_ylabel('1 / accuracy')
-ax1.plot(AA_trade[0], AA_trade[1], color='blue', label='AA')
+# ax1.plot(AA_trade[0], AA_trade[1], color='blue', label='AA')
 
 # plt.show()
 print('====================================================================')

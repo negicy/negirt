@@ -122,7 +122,7 @@ def run_girth_twopl(data, task_list, worker_list):
 def devide_sample(task_list, worker_list):
   output = {}
   random.shuffle(task_list)
-  n = 60
+  n = 40
   qualify_task = task_list[:n]
   test_task = task_list[n:]
  
@@ -132,18 +132,19 @@ def devide_sample(task_list, worker_list):
 
   return output
 
-def assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
-  sorted_full_user_param = list(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
+def task_assignable_check(th, item_param, user_param, test_worker, task):
+  # sorted_full_user_param = list(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
   # print(sorted_full_user_param)
-  for th in threshold:
-    for task in test_task:
-      b = full_item_param[task]
-      top_theta = sorted_full_user_param[0][1]
-      prob = OnePLM(b, top_theta)
-      if prob < th:
-        return False
+ 
+  b = item_param[task]
+  for worker in test_worker:
+    # top_theta = sorted_full_user_param[0][1]
+    theta = user_param[worker]
+    prob = OnePLM(b, theta)
+    if prob >= th:
+      return True
   
-  return True
+  return False
 
 
   
@@ -191,12 +192,10 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成
   
-  top_workers = sort_test_worker(test_worker, user_param, N=3)
+  top_workers = sort_test_worker(test_worker, user_param, N=5)
 
   for th in threshold:
     candidate_count = 0
-    top_assignment_count = 0
-    top_assignment_acc = 0
     worker_c = {}
     for task in test_task:
       worker_c[task] = []
@@ -220,19 +219,12 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
           worker_c[task].append(worker)
     
       if len(worker_c[task]) == 0:
-        top_assignment_count += 1
-        w = random.choice(top_workers)
-        worker_c[task] = top_workers
         
-        # print(th, count, top_workers, task, input_df[top_workers[0]][task])
-        if input_df[w][task] == 1:
-          top_assignment_acc += 1
-    
-      
-    '''
-    '''
-    # if top_assignment_count > 0:
-      # top_result[th] = top_assignment_acc / top_assignment_count
+        # w = random.choice(top_workers)
+        worker_c[task] = top_workers
+        #worker_c[task].append(w)
+        
+  
       
     worker_c_th[th] = worker_c
     # print(th, top_assignment_count)
@@ -242,7 +234,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
 
 
 # 割当て候補のいないタスクを無くす
-def sort_test_worker(test_worker, user_param, N=1):
+def sort_test_worker(test_worker, user_param, N):
   test_worker_param = {}
   for worker in test_worker:
     test_worker_param[worker] = user_param[worker]
@@ -266,52 +258,43 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成
 
-  top_workers = sort_test_worker(test_worker, full_user_param, N=3)
+  top_workers = sort_test_worker(test_worker, full_user_param, N=5)
   print('====== all =====')
+  margin = 0.22
+
   for th in threshold:
-    top_assignment_count = 0
-    top_assignment_acc = 0
- 
     worker_c = {}
     for task in test_task:
-      worker_c[task] = []
-
-      beta = full_item_param[task]
-    
-      for worker in test_worker:
-        # workerの正答確率prob
-        
-        theta = full_user_param[worker]
-        # prob = irt_fnc(theta, b, a)
-        prob = OnePLM(beta, theta)
-        # print(prob)
-        # prob = TwoPLM(alpha, beta, theta, d=1.7)
-
-        # workerの正解率がthresholdより大きければ
-        # worker_c[task] = top_workers
-        if prob >= th:
-          # ワーカーを候補リストに代入
-          worker_c[task].append(worker)
-      
-      
-      if len(worker_c[task]) == 0:
-        top_assignment_count += 1
-        w = random.choice(top_workers)
+      if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == False:
+        # Bタスク
+        # w = random.choice(test_worker)
         # worker_c[task].append(w)
+        # worker_c[task].append(random.choice(test_worker))
         worker_c[task] = top_workers
-        if input_df[w][task] == 1:
-          top_assignment_acc += 1
-      
-      
-          # print(th, count, w, task, input_df[top_workers[0]][task])
-    if top_assignment_count > 0:
-      top_result[th] = top_assignment_acc / top_assignment_count
+        
+        
+      else:
+        # Aタスク
+        worker_c[task] = []
+        beta = full_item_param[task]
+        for worker in test_worker:
+          # workerの正答確率prob
+          theta = full_user_param[worker]
+          prob = OnePLM(beta, theta)
+          # print(prob)
+          # prob = TwoPLM(alpha, beta, theta, d=1.7)
+
+          # workerの正解率がthresholdより大きければ
+          # worker_c[task] = 
+          # top_workers
+          if prob >= th + margin:
+            # ワーカーを候補リストに代入
+            worker_c[task].append(worker)
+
          
     worker_c_th[th] = worker_c
-    print(th, top_assignment_count)
-  print('top割り当ての正解率-Full')
-  print(top_result)
-    
+
+  
 
   return worker_c_th, full_item_param, full_user_param, top_result
 
@@ -427,7 +410,7 @@ def make_candidate_all_imp(threshold, input_df, task_list, worker_list, test_wor
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成
 
-  top_workers = sort_test_worker(test_worker, full_user_param, N=3)
+  top_workers = sort_test_worker(test_worker, full_user_param, N=10)
   print('====== all =====')
   for th in threshold:
     top_assignment_count = 0

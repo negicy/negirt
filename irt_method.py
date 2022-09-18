@@ -122,15 +122,28 @@ def run_girth_twopl(data, task_list, worker_list):
 def devide_sample(task_list, worker_list):
   output = {}
   random.shuffle(task_list)
-  n = 40
+  n = 20
   qualify_task = task_list[:n]
-  test_task = task_list[n:]
+  test_task = task_list[60:]
  
   output['qualify_task'] = qualify_task
   output['test_task'] = test_task
   output['test_worker'] = random.sample(worker_list, 20)
 
   return output
+
+def assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
+  sorted_full_user_param = list(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
+  top_theta = sorted_full_user_param[0][1]
+  # print(sorted_full_user_param)
+  for th in threshold:
+    for task in test_task:
+      b = full_item_param[task]
+      prob = OnePLM(b, top_theta)
+      if prob < 0.6:
+        return False
+  
+  return True
 
 def task_assignable_check(th, item_param, user_param, test_worker, task):
   # sorted_full_user_param = list(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
@@ -262,7 +275,7 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
 
   for th in threshold:
     # margin = th / 5
-    margin = th/6
+    margin = th/7
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == False:

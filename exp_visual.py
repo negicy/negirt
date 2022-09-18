@@ -69,10 +69,10 @@ full_user_param = params[1]
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 10
+iteration_time = 20
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
-  
+  print('============|', iteration, "|===============")
   ours_acc_perth = []
   ours_var_perth = []
   ours_tp_perth = []
@@ -93,12 +93,24 @@ for iteration in range(0, iteration_time):
   PI_tp_perth = []
   PI_margin_perth = []
   
-  
+  '''
+ 
+
+  while True:
+    sample = devide_sample(task_list, worker_list)
+    qualify_task = sample['qualify_task']
+    test_task = sample['test_task']
+    test_worker = sample['test_worker']
+    if assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task) == False:
+      break
+  '''
   sample = devide_sample(task_list, worker_list)
   qualify_task = sample['qualify_task']
   test_task = sample['test_task']
   test_worker = sample['test_worker']
+  
    
+  
 
   # 各手法でのワーカ候補作成
   ours_output =  make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)

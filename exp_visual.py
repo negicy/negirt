@@ -41,11 +41,13 @@ AA_tp_allth = []
 
 random_acc_allth = []
 random_var_allth = []
+
 full_irt_acc_allth = []
 full_irt_var_allth = []
+PI_tp_allth = []
 PI_margin_allth = []
 
-threshold = list([i / 100 for i in range(50, 76)])
+threshold = list([i / 100 for i in range(50, 81)])
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
 ours_output_alliter = {}
 full_output_alliter = {}
@@ -67,7 +69,7 @@ full_user_param = params[1]
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 40
+iteration_time = 10
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
@@ -85,8 +87,10 @@ for iteration in range(0, iteration_time):
 
   random_acc_perth = []
   random_var_perth = []
+
   full_irt_acc_perth = []
   full_irt_var_perth = []
+  PI_tp_perth = []
   PI_margin_perth = []
   
   
@@ -128,6 +132,12 @@ for iteration in range(0, iteration_time):
       for task in assigned[worker]:
         assign_dic_opt[task] = worker
     # print('th'+str(th)+'assignment size'+str(len(assign_dic_opt)))
+    # NA タスクをランダム割当て
+    top_workers = sort_test_worker(test_worker, user_param, N=5)
+    for task in test_task:
+      if task not in assign_dic_opt.keys():
+        assign_dic_opt[task] = random.choice(top_workers)
+
     # print(len(assign_dic_opt.keys()))
     if th in [0.5, 0.6, 0.7, 0.8]:
       welldone_dist[th] += welldone_count(th, assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
@@ -201,7 +211,7 @@ for iteration in range(0, iteration_time):
       for task in assigned[worker]:
         assign_dic_opt[task] = worker
     
-    # print(th, len(assign_dic_opt))
+    
       
     if th in [0.5, 0.6, 0.7, 0.8]:
       welldone_dist[th] += welldone_count(th, assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
@@ -239,6 +249,12 @@ for iteration in range(0, iteration_time):
       for task in assigned[worker]:
         assign_dic_opt[task] = worker
     # print(th, len(assign_dic_opt))
+
+    # NA タスクをランダム割当て
+    top_workers = sort_test_worker(test_worker, full_user_param, N=5)
+    for task in test_task:
+      if task not in assign_dic_opt.keys():
+        assign_dic_opt[task] = random.choice(top_workers)
     
     # 割当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
@@ -254,13 +270,16 @@ for iteration in range(0, iteration_time):
     print('==========================================================')
  
     var = task_variance(assign_dic_opt, test_worker)
+    tp = calc_tp(assign_dic_opt, test_worker)
     
     full_irt_acc_perth.append(acc)
     full_irt_var_perth.append(var)
+    PI_tp_perth.append(tp)
     PI_margin_perth.append(PI_margin_mean)
 
   full_irt_acc_allth.append(full_irt_acc_perth)
   full_irt_var_allth.append(full_irt_var_perth)
+  PI_tp_allth.append(PI_tp_perth)
   PI_margin_allth.append(PI_margin_perth)
  
   
@@ -301,6 +320,7 @@ random_var_std = []
 
 full_irt_acc = [0] * len(threshold)
 full_irt_var = [0] * len(threshold)
+PI_tp = [0] * len(threshold)
 full_acc_std = []
 full_var_std = []
 PI_margin_result = [0] * len(threshold) 
@@ -438,7 +458,6 @@ for th in range(0, len(threshold)):
   list_acc_th = []
   list_var_th = []
   for i in range(0, iteration_time):
-    # e
     
     if random_acc_allth[i][th] != "null":
       random_acc_sum += random_acc_allth[i][th]
@@ -468,6 +487,7 @@ for th in range(0, len(threshold)):
   full_irt_var_sum = 0
   full_irt_acc_num = 0
   full_irt_var_num = 0
+  PI_tp_sum = 0
   PI_margin_sum_th = 0
   # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
   list_acc_th = []
@@ -482,10 +502,12 @@ for th in range(0, len(threshold)):
       full_irt_var_sum += full_irt_var_allth[i][th]
       list_var_th.append(full_irt_var_allth[i][th])
       full_irt_var_num += 1
+    PI_tp_sum += PI_tp_allth[i][th]
     PI_margin_sum_th += PI_margin_allth[i][th]
  
   full_irt_acc[th] = full_irt_acc_sum / full_irt_acc_num
   full_irt_var[th] = full_irt_var_sum / full_irt_var_num
+  PI_tp[th] = PI_tp_sum / iteration_time
   PI_margin_result[th] = PI_margin_sum_th / iteration_time
   # 標準偏差を計算
   acc_std = np.std(list_acc_th)
@@ -591,6 +613,7 @@ result_plot_1(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).sho
 # トレードオフのグラフ
 ours_trade = tp_acc_plot(ours_tp, ours_acc)
 AA_trade = tp_acc_plot(AA_tp, AA_acc)
+
 # top_trade = var_acc_plot(top_var, top_acc)
 # random_trade = var_acc_plot(random_var, random_acc)
 

@@ -192,7 +192,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成
   
-  top_workers = sort_test_worker(test_worker, user_param, N=5)
+  # top_workers = sort_test_worker(test_worker, user_param, N=8)
 
   for th in threshold:
     candidate_count = 0
@@ -218,13 +218,11 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
     
-      if len(worker_c[task]) == 0:
+      # if len(worker_c[task]) == 0:
         
         # w = random.choice(top_workers)
-        worker_c[task] = top_workers
+        # worker_c[task] = top_workers
         #worker_c[task].append(w)
-        
-  
       
     worker_c_th[th] = worker_c
     # print(th, top_assignment_count)
@@ -258,11 +256,13 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成
 
-  top_workers = sort_test_worker(test_worker, full_user_param, N=5)
+  # top_workers = sort_test_worker(test_worker, full_user_param, N=10)
   print('====== all =====')
-  margin = 0.22
+  
 
   for th in threshold:
+    # margin = th / 5
+    margin = th/6
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == False:
@@ -270,8 +270,8 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
         # w = random.choice(test_worker)
         # worker_c[task].append(w)
         # worker_c[task].append(random.choice(test_worker))
-        worker_c[task] = top_workers
-        
+        # worker_c[task] = top_workers
+        print('Skipped assignment.')
         
       else:
         # Aタスク
@@ -343,7 +343,7 @@ def make_candidate_imp(threshold, input_df, label_df, worker_list, test_worker, 
   # output: worker_c = {task: []}
   # すべてのスレッショルドについてワーカー候補作成
   
-  top_workers = sort_test_worker(test_worker, user_param, N=3)
+  top_workers = sort_test_worker(test_worker, user_param, N=10)
 
   for th in threshold:
     candidate_count = 0
@@ -374,7 +374,7 @@ def make_candidate_imp(threshold, input_df, label_df, worker_list, test_worker, 
       if len(worker_c[task]) == 0:
         top_assignment_count += 1
         # worker_c[task] = top_workers
-        imp_worker_c[task] = top_workers
+        # imp_worker_c[task] = top_workers
         # print(th, count, top_workers, task, input_df[top_workers[0]][task])
    
       

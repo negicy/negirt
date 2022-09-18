@@ -657,16 +657,16 @@ plt.show()
 # ax.plot(random_trade[0], random_trade[1], color='green', label='random')
 #ax.plot(ours_trade[0], ours_trade[1], color='blue', label='ours')
 
-# ax1.plot(ours_trade[0], ours_trade[1], color='red', label='ours')
+ax1.plot(ours_trade[0], ours_trade[1], color='red', label='ours')
 # plt.show()
 
 
-# plt.rcParams["font.size"] = 22
-# fig = plt.figure() #親グラフと子グラフを同時に定義
-# ax2 = ax1.twinx()
-#ax2.set_xlabel('max number of tasks')
-#ax2.set_ylabel('1 / accuracy')
-# ax1.plot(AA_trade[0], AA_trade[1], color='blue', label='AA')
+plt.rcParams["font.size"] = 22
+fig = plt.figure() #親グラフと子グラフを同時に定義
+ax2 = ax1.twinx()
+ax2.set_xlabel('max number of tasks')
+ax2.set_ylabel('accuracy')
+ax1.plot(AA_trade[0], AA_trade[1], color='blue', label='AA')
 
 # plt.show()
 print('====================================================================')

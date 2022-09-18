@@ -32,8 +32,9 @@ def flatten(assign_dic, worker_list, i):
   while len(assign_dic[worker]) < len(assign_dic[pre_worker]):
     print(assign_dic[worker], assign_dic[pre_worker], i)
     task = assign_dic[pre_worker][0]
-    assign_dic[worker].append(task)
     assign_dic[pre_worker].remove(task)
+    assign_dic[worker].append(task)
+    
     if i >= 1:
       flatten(assign_dic, worker_list, i-1)
 

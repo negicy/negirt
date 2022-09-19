@@ -69,7 +69,7 @@ full_user_param = params[1]
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 20
+iteration_time = 40
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")
@@ -94,8 +94,6 @@ for iteration in range(0, iteration_time):
   PI_margin_perth = []
   
   '''
- 
-
   while True:
     sample = devide_sample(task_list, worker_list)
     qualify_task = sample['qualify_task']
@@ -104,13 +102,11 @@ for iteration in range(0, iteration_time):
     if assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task) == False:
       break
   '''
-  sample = devide_sample(task_list, worker_list)
+  sample = devide_sample(task_list, worker_list, label_df)
   qualify_task = sample['qualify_task']
   test_task = sample['test_task']
   test_worker = sample['test_worker']
-  
    
-  
 
   # 各手法でのワーカ候補作成
   ours_output =  make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
@@ -149,7 +145,7 @@ for iteration in range(0, iteration_time):
     for task in test_task:
       if task not in assign_dic_opt.keys():
         assign_dic_opt[task] = random.choice(top_workers)
-
+    '''
     # print(len(assign_dic_opt.keys()))
     if th in [0.5, 0.6, 0.7, 0.8]:
       welldone_dist[th] += welldone_count(th, assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
@@ -159,9 +155,9 @@ for iteration in range(0, iteration_time):
         for worker in worker_set:
           if worker not in worker_with_task_list:
             worker_with_task_list.append(worker)
-      
+     
       worker_with_task['ours'][th] += len(worker_with_task_list)
-  
+    '''
     # 割り当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
     print("DI assignment", th, acc, len(assign_dic_opt))
@@ -174,8 +170,6 @@ for iteration in range(0, iteration_time):
       DI_margin_sum += DI_margin
       # print(full_item_param[task], full_user_param[worker], full_user_param[worker] - full_item_param[task], input_df[worker][task])
     DI_margin_mean = DI_margin_sum / len(assign_dic_opt)
-    print(DI_margin_mean)
-    print('==========================================================')
 
     # 割当て結果分散を求める
     var = task_variance(assign_dic_opt, test_worker)
@@ -254,7 +248,7 @@ for iteration in range(0, iteration_time):
   for th in full_irt_candidate:
     candidate_dic = full_irt_candidate[th]
     assign_dic_opt = {}
-    print(candidate_dic)
+
     assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
   
     for worker in assigned:
@@ -270,7 +264,7 @@ for iteration in range(0, iteration_time):
     
     # 割当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
-    print("PI assignment", th, acc, len(assign_dic_opt))  
+   
     PI_margin_sum = 0
     for task in assign_dic_opt:
       worker = assign_dic_opt[task]
@@ -634,10 +628,11 @@ fig = plt.figure() #親グラフと子グラフを同時に定義
 ax1 = fig.add_subplot()
 ax1.set_xlabel('max number of tasks')
 ax1.set_ylabel('accuracy')
-ax1.set_xlim(2, 10)
+ax1.set_xlim(10, 20)
 
-
-
+ax1.plot(ours_trade[0], ours_trade[1], color='red', label='ours')
+ax1.plot(AA_trade[0], AA_trade[1], color='blue', label='AA')
+plt.show()
 # 推移をプロット
 plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義

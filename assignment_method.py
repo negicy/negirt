@@ -30,16 +30,17 @@ def flatten(assign_dic, worker_list, i):
 
   # if len(assign_dic[worker]) < len(assign_dic[pre_worker]):
   while len(assign_dic[worker]) < len(assign_dic[pre_worker]):
-    print(assign_dic[worker], assign_dic[pre_worker], i)
+    # print(assign_dic[worker], assign_dic[pre_worker], i)
     task = assign_dic[pre_worker][0]
     assign_dic[pre_worker].remove(task)
     assign_dic[worker].append(task)
     
-    if i >= 1:
-      flatten(assign_dic, worker_list, i-1)
+  if i > 1:
+    flatten(assign_dic, worker_list, i-1)
 
     #print('====-!====!====!=====')
     #print(assign_dic[worker], assign_dic[pre_worker], i)
+ 
   
  
   return assign_dic
@@ -68,7 +69,7 @@ def optim_assignment(worker_c, test_worker, test_task, user_param):
   
   # w_1, ... , w_nについて
   for i in range(0, n):
-    print("ワーカ番号: ", i)
+    # print("ワーカ番号: ", i)
     worker = worker_list[i]
     # 可能なタスクをすべて割当て
     for task in worker_c:

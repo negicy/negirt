@@ -117,15 +117,41 @@ def run_girth_twopl(data, task_list, worker_list):
 # qualification task, test taskに分けてシミュレーション
 # IRT: girthを使用
 # 
+def sample_category(task_list, test_size, label_df):
+  # すべてのカテゴリがバランスよく含まれるようにする
+  qualify_task = []
+  category_name = ['Technology&Science', 'Economy', 'Businness', 'Health']
+  for category in category_name:
+    # categoryのタスクをN個選ぶ
+    i = 0
+    size_per_category = test_size / len(category_name)
+    
+    for task in task_list:
+      category_of_task = label_df['true_label'][task]
+
+      if category_of_task == category:
+       
+        i += 1
+        print(category, category_of_task, i)
+        qualify_task.append(task)
+        if i == size_per_category:
+          break
+          
+  
+
+  return qualify_task
+
+
+
 
 # ワーカとタスクを分離
-def devide_sample(task_list, worker_list):
+def devide_sample(task_list, worker_list, label_df):
   output = {}
   random.shuffle(task_list)
-  n = 20
-  qualify_task = task_list[:n]
-  test_task = task_list[60:]
- 
+  n = 40
+  qualify_task = sample_category(task_list, n, label_df)
+  test_task = list(set(task_list) - set(qualify_task))
+  print(len(qualify_task))
   output['qualify_task'] = qualify_task
   output['test_task'] = test_task
   output['test_worker'] = random.sample(worker_list, 20)
@@ -270,12 +296,12 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
   # すべてのスレッショルドについてワーカー候補作成
 
   # top_workers = sort_test_worker(test_worker, full_user_param, N=10)
-  print('====== all =====')
+
   
 
   for th in threshold:
     # margin = th / 5
-    margin = th/7
+    margin = th/6.0
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == False:

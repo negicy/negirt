@@ -348,62 +348,6 @@ def random_assignment(test_task, test_worker):
     assign_dic[task] = random.choice(test_worker)
   return assign_dic
 
-# ワーカ人数の比較用ヒストグラム
-def just_candidate(threshold, label_df, worker_list, task_list):
-  worker_c_th = {}
-  # 承認タスクとテストタスクを分離
-  import random
-  random.shuffle(task_list)
-  qualify_task = task_list[:60]
-  test_task = task_list[60:]
-  t_worker = random.sample(worker_list, 20)
- 
-  # top-worker-approach による仕事のあるワーカー一覧: 各スレッショルドごと
-  top_worker_th = {}
-  # top worker assignment
-  for th in threshold:
-    top_results = entire_top_workers(test_task, t_worker, qualify_task, th)
-    # top_worker_quality = top_results[0]
-    # top_worker_variance = top_results[1]
-    top_worker_th[th] = top_results
-  
-  # IRT
-  params = irt_devide(worker_list, qualify_task)
-  item_param = params[0]
-  user_param = params[1]
-
-  category_dic = {'Businness':{'b': [], 'num':0, 'm': 0}, 'Economy':{'b': [], 'num':0, 'm': 0}, 
-                  'Technology&Science':{'b': [], 'num':0, 'm': 0}, 'Health':{'b': [], 'num':0, 'm': 0}}
-  for i in qualify_task:
-    category = label_df['true_label'][i]
-    category_dic[category]['b'].append(item_param[i]['beta'])
-    category_dic[category]['num'] += 1
-
-  for c in category_dic:
-    category_dic[c]['m'] = np.sum(category_dic[c]['b']) / category_dic[c]['num']
-  # 各テストタスクについてワーカー候補を作成する
-  # output: worker_c = {task: []}
-  # すべてのスレッショルドについてワーカー候補作成
-  for th in threshold:
-    worker_c = {}
-    for task in test_task:
-      worker_c[task] = []
-      # test_taskのカテゴリ推定
-      est_label = label_df['estimate_label'][task]
-      # user_paramのワーカー能力がcategory_dicのタスク難易度より大きければ候補に入れる.
-      for worker in t_worker:
-        # workerの正答確率prob
-       
-        b = category_dic[est_label]['m']
-        theta = user_param[worker]
-        # prob = OnePLM(b, theta, d=1.7)
-        # workerの正解率がthresholdより大きければ
-        prob = OnePLM(b, theta) 
-        if prob >= th:
-          worker_c[task].append(worker)
-    worker_c_th[th] = worker_c
-
-  return worker_c_th, top_worker_th
 
 def Frequency_Distribution(data, class_width=None):
     data = np.asarray(data)

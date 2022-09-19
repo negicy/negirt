@@ -136,18 +136,7 @@ for iteration in range(0, iteration_time):
     for worker in assigned:
       for task in assigned[worker]:
         assign_dic_opt[task] = worker
-    # print('th'+str(th)+'assignment size'+str(len(assign_dic_opt)))
-    # print(len(assign_dic_opt.keys()))
-    if th in [0.5, 0.6, 0.7, 0.8]:
-      welldone_dist[th] += welldone_count(th, assign_dic_opt, user_param, item_param) / len(test_task) 
-      # 割当て候補人数を数える
-      worker_with_task_list = []
-      for worker_set in ours_candidate[th].values():
-        for worker in worker_set:
-          if worker not in worker_with_task_list:
-            worker_with_task_list.append(worker)
-      
-      worker_with_task['ours'][th] += len(worker_with_task_list)
+
   
     # 割り当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
@@ -189,20 +178,6 @@ for iteration in range(0, iteration_time):
       for task in assigned[worker]:
         assign_dic_opt[task] = worker
     
-   
-      
-
-    if th in [0.5, 0.6, 0.7, 0.8]:
-      welldone_dist[th] += welldone_count(th, assign_dic_opt, user_param, item_param) / len(test_task) 
-      # 割当て候補人数を数える
-      # worker_with_task['AA'] += len(assign_dic_opt[th])
-      worker_with_task_list = []
-      for worker_set in AA_candidate[th].values():
-        for worker in worker_set:
-          if worker not in worker_with_task_list:
-            worker_with_task_list.append(worker)
-
-      worker_with_task['AA'][th] += len(worker_with_task_list)
 
      # 割り当て結果の精度を求める
     acc = accuracy(assign_dic_opt, input_df)
@@ -451,11 +426,11 @@ result = {
 
 
 # 結果データの保存
-'''
+
 filename = "result/result_{0:%Y%m%d_%H%M%S}.pickle".format(now)
 with open(filename, 'wb') as f:
     pickle.dump(result, f)
-'''
+
 
 for th in welldone_dist:
   welldone_dist[th] = welldone_dist[th] / iteration_time

@@ -4,19 +4,29 @@ import copy
 import numpy as np
 
 # アルゴリズム
-
+  
 def flatten(assign_dic, worker_list, i):
   worker = worker_list[i]
   pre_worker =  worker_list[i-1]
 
   # if len(assign_dic[worker]) < len(assign_dic[pre_worker]):
   while len(assign_dic[worker]) < len(assign_dic[pre_worker]):
+    # print(assign_dic[worker], assign_dic[pre_worker], i)
     task = assign_dic[pre_worker][0]
+    assign_dic[pre_worker].remove(task)
     assign_dic[worker].append(task)
-    assign_dic[pre_worker].pop(0)
-    if i >= 1:
+    
+    if i > 1:
       flatten(assign_dic, worker_list, i-1)
+
+    #print('====-!====!====!=====')
+    #print(assign_dic[worker], assign_dic[pre_worker], i)
+ 
+  
+ 
   return assign_dic
+
+
 
    
 

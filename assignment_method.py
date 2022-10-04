@@ -35,8 +35,8 @@ def flatten(assign_dic, worker_list, i):
     assign_dic[pre_worker].remove(task)
     assign_dic[worker].append(task)
     
-  if i > 1:
-    flatten(assign_dic, worker_list, i-1)
+    if i > 1:
+      flatten(assign_dic, worker_list, i-1)
 
     #print('====-!====!====!=====')
     #print(assign_dic[worker], assign_dic[pre_worker], i)
@@ -194,6 +194,6 @@ def calc_tp(assign_dic, test_worker):
   for aw in assign_dic.values():
     count_dic[aw] += 1
   # 最大のvalueを調べる
-  max_num = max(list(count_dic.values()))
+  max_num =  1/max(list(count_dic.values()))
   return max_num
 

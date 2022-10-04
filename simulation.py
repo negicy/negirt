@@ -3,6 +3,45 @@ import matplotlib.pyplot as plt
 from operator import itemgetter
 from irt_method import *
 
+
+
+def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth):
+  acc = [0] * len(threshold)
+  var = [0] * len(threshold)
+  tp = [0] * len(threshold)
+  acc_std = []
+  var_std = []
+  for th in range(0, len(threshold)):
+    
+    acc_sum = 0
+    var_sum = 0
+    tp_sum = 0
+    # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
+    list_acc_th = []
+    list_var_th = []
+    for i in range(0, iteration_time): 
+        acc_sum += acc_allth[i][th]
+        list_acc_th.append(acc_allth[i][th])
+        var_sum += var_allth[i][th]
+        list_var_th.append(var_allth[i][th])
+        tp_sum += tp_allth[i][th]
+        
+    acc[th] = acc_sum / iteration_time
+    var[th] = var_sum / iteration_time
+    tp[th] = tp_sum / iteration_time
+
+    # 標準偏差を計算
+    acc_std_th = np.std(list_acc_th)
+    var_std_th = np.std(list_var_th)
+    acc_std.append(acc_std_th)
+    var_std.append(var_std_th)
+  print(acc)
+
+    
+  return acc, var, tp, acc_std, var_std
+
+
+
 def result_plot_1(threshold, result_dic, ay, bbox):
     
     # 推移をプロット
@@ -24,11 +63,11 @@ def result_plot_1(threshold, result_dic, ay, bbox):
     random_std = np.array(result_dic['random_std'])
     full_irt_std = np.array(result_dic['full_irt_std'])
     AA_std = np.array(result_dic['AA_std'])
-    ax.plot(x, ours, color='red', label='DI')
+    ax.plot(x, ours, color='red', label='IRT(DI)')
     ax.plot(x, top, color='blue', label='TOP')
     ax.plot(x, AA, color='cyan', label='AA')
     ax.plot(x, random, color='green', label='RANDOM')
-    ax.plot(x, full_irt, color='purple', label='PI')
+    ax.plot(x, full_irt, color='purple', label='IRT(PI)')
     if ay == 'accuracy':
         ax.plot(x, x, color='orange', linestyle="dashed")
 
@@ -98,7 +137,7 @@ def tp_acc_plot(tp, acc):
     # accを逆数にする
     acc_reverse = []
     for acc in acc_list:
-        # acc = 1 / acc
+       
         acc_reverse.append(acc)
 
    

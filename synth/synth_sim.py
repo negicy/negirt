@@ -24,10 +24,10 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt 
 
 worker_size = 100
-task_size = 200
+task_size = 100
 
-user_param_list = norm.rvs(loc=1.2, scale=0.25, size=worker_size)
-item_param_list = norm.rvs(loc=0.8, scale=0.25, size=task_size)
+user_param_list = norm.rvs(loc=1.5, scale=0.5, size=worker_size)
+item_param_list = norm.rvs(loc=0.8, scale=0.5, size=task_size)
 
 bins=np.linspace(-3, 3, 20)
 plt.hist([user_param_list, item_param_list], bins, label=['worker', 'task'])
@@ -79,6 +79,9 @@ random_var_allth = []
 full_irt_acc_allth = []
 full_irt_var_allth = []
 
+PI_noise1_acc_allth = []
+PI_noise1_var_allth = []
+
 threshold = list([i / 100 for i in range(50, 81)])
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
 
@@ -87,7 +90,7 @@ full_output_alliter = {}
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 5
+iteration_time = 20
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   
@@ -105,6 +108,9 @@ for iteration in range(0, iteration_time):
 
   full_irt_acc_perth = []
   full_irt_var_perth = []
+
+  PI_noise1_acc_perth = []
+  PI_noise1_var_perth = []
   
   sample = devide_sample(task_list, worker_list)
   qualify_task = sample['qualify_task']
@@ -117,10 +123,15 @@ for iteration in range(0, iteration_time):
   est_user_param = ours_output[1]
 
   top_candidate = top_worker_assignment(threshold, input_df, test_worker, qualify_task, test_task)
-  AA_candidate = AA_assignment(threshold, input_df, test_worker, qualify_task, test_task)
+  AA_output = AA_assignment(threshold, input_df, test_worker, qualify_task, test_task)
+  AA_candidate = AA_output[0]
+  AA_top_workers_dict = AA_output[1]
 
-  full_output = make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task, full_user_param, full_item_param)
-  full_irt_candidate = full_output
+  full_output = make_candidate_all(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
+  full_irt_candidate = full_output[0]
+
+  PI_noise1 = make_candidate_PI_noise(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
+  PI_noise1_candidate = full_output[0]
 
   # 保存用
   ours_output_alliter[iteration] = ours_output
@@ -130,17 +141,23 @@ for iteration in range(0, iteration_time):
   for th in ours_candidate:
     candidate_dic = ours_candidate[th]
     
-    assign_dic_opt = {}
+    DI_assign_dic_opt = {}
     assigned = optim_assignment(candidate_dic, test_worker, test_task, est_user_param)
 
     for worker in assigned:
       for task in assigned[worker]:
-        assign_dic_opt[task] = worker
+        DI_assign_dic_opt[task] = worker
+
+    top_workers = sort_test_worker(test_worker, est_user_param, N=5)
+    for task in test_task:
+      if task not in DI_assign_dic_opt.keys():
+        DI_assign_dic_opt[task] = random.choice(top_workers)
+    
 
   
     # 割り当て結果の精度を求める
-    acc = accuracy(assign_dic_opt, input_df)
-    var = task_variance(assign_dic_opt, test_worker)
+    acc = accuracy(DI_assign_dic_opt, input_df)
+    var = task_variance(DI_assign_dic_opt, test_worker)
     
     ours_acc_perth.append(acc)
     ours_var_perth.append(var)
@@ -172,16 +189,19 @@ for iteration in range(0, iteration_time):
   for th in AA_candidate:
     candidate_dic = AA_candidate[th]
     
-    assign_dic_opt = {}
+    AA_assign_dic_opt = {}
     assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
     for worker in assigned:
       for task in assigned[worker]:
-        assign_dic_opt[task] = worker
+        AA_assign_dic_opt[task] = worker
     
-
+    AA_top_workers_list = list(AA_top_workers_dict)
+    for task in test_task:
+      if task not in AA_assign_dic_opt.keys():
+        AA_assign_dic_opt[task] = random.choice(AA_top_workers_list[:5])
      # 割り当て結果の精度を求める
-    acc = accuracy(assign_dic_opt, input_df)
-    var = task_variance(assign_dic_opt, test_worker)
+    acc = accuracy(AA_assign_dic_opt, input_df)
+    var = task_variance(AA_assign_dic_opt, test_worker)
 
     AA_acc_perth.append(acc)
     AA_var_perth.append(var)
@@ -191,30 +211,57 @@ for iteration in range(0, iteration_time):
  
   for th in full_irt_candidate:
     candidate_dic = full_irt_candidate[th]
-    assign_dic_opt = {}
+    PI_assign_dic_opt = {}
     # assign_dic = assignment(candidate_dic, test_worker)
     assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
 
     for worker in assigned:
       for task in assigned[worker]:
-        assign_dic_opt[task] = worker
+        PI_assign_dic_opt[task] = worker
+
+    top_workers = sort_test_worker(test_worker, full_user_param, N=5)
+    for task in test_task:
+      if task not in PI_assign_dic_opt.keys():
+        PI_assign_dic_opt[task] = random.choice(top_workers)
     # assign_dic = assignment(candidate_dic, test_worker)
-    print('==========================================-------')
-    print(th, assign_dic_opt)
     # 割当て結果の精度を求める
 
-    acc = accuracy(assign_dic_opt, input_df)
-    var = task_variance(assign_dic_opt, test_worker)
-    
-    # 割当て結果の精度を求める
-    acc = accuracy(assign_dic_opt, input_df)
-    var = task_variance(assign_dic_opt, test_worker)
+    acc = accuracy(PI_assign_dic_opt, input_df)
+    var = task_variance(PI_assign_dic_opt, test_worker)
+  
     
     full_irt_acc_perth.append(acc)
     full_irt_var_perth.append(var)
 
   full_irt_acc_allth.append(full_irt_acc_perth)
   full_irt_var_allth.append(full_irt_var_perth)
+
+  for th in PI_noise1_candidate:
+    candidate_dic = PI_noise1_candidate[th]
+    PI_noise1_assign_dic_opt = {}
+    # assign_dic = assignment(candidate_dic, test_worker)
+    assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
+
+    for worker in assigned:
+      for task in assigned[worker]:
+        PI_assign_dic_opt[task] = worker
+
+    top_workers = sort_test_worker(test_worker, full_user_param, N=5)
+    for task in test_task:
+      if task not in PI_noise1_assign_dic_opt.keys():
+        PI_noise1_assign_dic_opt[task] = random.choice(top_workers)
+    # assign_dic = assignment(candidate_dic, test_worker)
+    # 割当て結果の精度を求める
+
+    acc = accuracy(PI_noise1_assign_dic_opt, input_df)
+    var = task_variance(PI_noise1_assign_dic_opt, test_worker)
+  
+    
+    PI_noise1_acc_perth.append(acc)
+    PI_noise1_var_perth.append(var)
+
+  PI_noise1_acc_allth.append(PI_noise1_acc_perth)
+  PI_noise1_var_allth.append(PI_noise1_var_perth)
   
   for th in range(0, len(threshold)):
     assign_dic = random_assignment(test_task, test_worker)
@@ -252,6 +299,10 @@ full_irt_acc = [0] * len(threshold)
 full_irt_var = [0] * len(threshold)
 full_acc_std = []
 full_var_std = []
+
+PI_noise1_acc = [0] * len(threshold)
+PI_noise1_var = [0] * len(threshold)
+
 
 for th in range(0, len(threshold)):
   ours_acc_sum = 0
@@ -403,6 +454,34 @@ for th in range(0, len(threshold)):
     
   full_irt_acc[th] = full_irt_acc_sum / full_irt_acc_num
   full_irt_var[th] = full_irt_var_sum / full_irt_var_num
+  # 標準偏差を計算
+  acc_std = np.std(list_acc_th)
+  var_std = np.std(list_var_th)
+  full_acc_std.append(acc_std)
+  full_var_std.append(var_std)
+
+
+for th in range(0, len(threshold)):
+  PI_noise1_acc_sum = 0
+  PI_noise1_var_sum = 0
+  PI_noise1_acc_num = 0
+  PI_noise1_var_num = 0
+  # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
+  list_acc_th = []
+  list_var_th = []
+  for i in range(0, iteration_time):
+    #
+    if PI_noise1_acc_allth[i][th] != "null":
+      PI_noise1_acc_sum += PI_noise1_acc_allth[i][th]
+      list_acc_th.append(random_acc_allth[i][th])
+      PI_noise1_acc_num += 1
+    if PI_noise1_var_allth[i][th] != "null":
+      PI_noise1_var_sum += PI_noise1_var_allth[i][th]
+      list_var_th.append(PI_noise1_var_allth[i][th])
+      PI_noise1_var_num += 1
+    
+  PI_noise1_acc[th] = PI_noise1_acc_sum / PI_noise1_acc_num
+  PI_noise1_var[th] = PI_noise1_var_sum / PI_noise1_var_num
   # 標準偏差を計算
   acc_std = np.std(list_acc_th)
   var_std = np.std(list_var_th)

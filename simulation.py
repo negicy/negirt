@@ -35,10 +35,15 @@ def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth)
     var_std_th = np.std(list_var_th)
     acc_std.append(acc_std_th)
     var_std.append(var_std_th)
-  print(acc)
 
+    if th == 0:
+      acc_head = list_acc_th
+    if th == len(threshold)-1:
+      acc_tail = list_acc_th
+  print(acc)
     
-  return acc, var, tp, acc_std, var_std
+
+  return acc, var, tp, acc_std, var_std, acc_head, acc_tail
 
 
 
@@ -56,18 +61,18 @@ def result_plot_1(threshold, result_dic, ay, bbox):
     top = np.array(result_dic['top'])
     AA = np.array(result_dic['AA'])
     random = np.array(result_dic['random'])
-    full_irt = np.array(result_dic['full_irt'])
+    PI = np.array(result_dic['PI'])
 
     ours_std = np.array(result_dic['ours_std'])
     top_std = np.array(result_dic['top_std'])
     random_std = np.array(result_dic['random_std'])
-    full_irt_std = np.array(result_dic['full_irt_std'])
+    PI_std = np.array(result_dic['PI_std'])
     AA_std = np.array(result_dic['AA_std'])
     ax.plot(x, ours, color='red', label='IRT(DI)')
     ax.plot(x, top, color='blue', label='TOP')
     ax.plot(x, AA, color='cyan', label='AA')
     ax.plot(x, random, color='green', label='RANDOM')
-    ax.plot(x, full_irt, color='purple', label='IRT(PI)')
+    ax.plot(x, PI, color='purple', label='IRT(PI)')
     if ay == 'accuracy':
         ax.plot(x, x, color='orange', linestyle="dashed")
 
@@ -76,7 +81,7 @@ def result_plot_1(threshold, result_dic, ay, bbox):
     plt.fill_between(x, top - top_std, top + top_std, facecolor='b', alpha=a)
     plt.fill_between(x, AA - AA_std, AA + AA_std, facecolor='cyan', alpha=a)
     plt.fill_between(x, random - random_std, random + random_std, facecolor='g', alpha=a)
-    plt.fill_between(x, full_irt - full_irt_std, full_irt + full_irt_std, facecolor='purple', alpha=a)
+    plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
     return plt
 
@@ -92,19 +97,19 @@ def result_plot_2(threshold, result_dic, ay, bbox):
     x = np.array(threshold)
     
     ours = np.array(result_dic['ours'])
-    full_irt = np.array(result_dic['full_irt'])
+    PI = np.array(result_dic['PI'])
 
     ours_std = np.array(result_dic['ours_std'])
-    full_irt_std = np.array(result_dic['full_irt_std'])
+    PI_std = np.array(result_dic['PI_std'])
     
     ax.plot(x, ours, color='red', label='ours')
-    ax.plot(x, full_irt, color='purple', label='IRT')
+    ax.plot(x, PI, color='purple', label='IRT')
     if ay == 'accuracy':
         ax.plot(x, x, color='orange', linestyle="dashed")
     print(x)
     a = 0.05
     plt.fill_between(x, ours - ours_std, ours + ours_std, facecolor='r', alpha=a)
-    plt.fill_between(x, full_irt - full_irt_std, full_irt + full_irt_std, facecolor='purple', alpha=a)
+    plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
     return plt
 

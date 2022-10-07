@@ -142,7 +142,7 @@ def sample_category(task_list, test_size, label_df):
 def devide_sample(task_list, worker_list, label_df):
   output = {}
   random.shuffle(task_list)
-  n = 40
+  n = 32
   qualify_task = sample_category(task_list, n, label_df)
   test_task = list(set(task_list) - set(qualify_task))
   # qualify_task = task_list[:n]
@@ -287,7 +287,7 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
   for th in threshold:
     # margin = th / 5
  
-    margin = th / 4.7
+    margin = th / 5.8
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == True:

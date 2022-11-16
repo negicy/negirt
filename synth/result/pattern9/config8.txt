@@ -1,0 +1,6 @@
+
+Aimodel dist: 1.0
+iteration: 50
+margin = 0
+worker loc: 2.0
+task loc: 0.8

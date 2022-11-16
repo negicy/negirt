@@ -12,7 +12,6 @@ def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth)
   acc_std = []
   var_std = []
   for th in range(0, len(threshold)):
-    
     acc_sum = 0
     var_sum = 0
     tp_sum = 0
@@ -122,13 +121,15 @@ def var_acc_plot(var, acc):
     var = list(var)
     acc = list(acc)
     # 推移をプロット
-    
+    '''
     plt.rcParams["font.size"] = 18
     fig = plt.figure() #親グラフと子グラフを同時に定義
     ax = fig.add_subplot()
     ax.set_xlabel('variance')
     ax.set_ylabel('accuracy')
     ax.plot(var, acc, color='red', label='ours')
+    '''
+    
     
     return var, acc
 

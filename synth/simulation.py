@@ -104,3 +104,29 @@ def welldone_count(threshold, assign_dic, user_param, item_param):
             count += 1
     return count
 
+def tp_acc_plot(tp, acc):
+    # ソート
+    c = zip(tp, acc)
+    c = sorted(c)
+    tp, acc = zip(*c)
+    tp = list(tp)
+    acc_list = list(acc)
+    # accを逆数にする
+    acc_reverse = []
+    for acc in acc_list:
+       
+        acc_reverse.append(acc)
+
+   
+    # 推移をプロット
+    '''
+    
+    plt.rcParams["font.size"] = 18
+    fig = plt.figure() #親グラフと子グラフを同時に定義
+    ax = fig.add_subplot()
+    ax.set_xlabel('TP')
+    ax.set_ylabel('accuracy')
+    ax.plot(tp, acc, color='red', label='ours')
+    '''
+    
+    return tp, acc_reverse

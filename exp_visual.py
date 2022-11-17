@@ -178,7 +178,7 @@ for iteration in range(0, iteration_time):
     # print('DI_size:', len(DI_assign_dic_opt))
     for task in test_task:
       if task not in DI_assign_dic_opt.keys():
-     
+        
         DI_NA_count += 1
         assigned_worker = random.choice(top_workers)
         DI_assign_dic_opt[task] = assigned_worker
@@ -186,7 +186,7 @@ for iteration in range(0, iteration_time):
     ## DIが見つけたNAタスクの正解率を調べる．
     
     # print(DI_NA_count, len(qualify_task), len(DI_assign_dic_opt))
-    print('DI_size', len(DI_assign_dic_opt))
+    print('DI_size-1', len(DI_assign_dic_opt), th)
     
     '''
     # print(len(assign_dic_opt.keys()))
@@ -319,21 +319,22 @@ for iteration in range(0, iteration_time):
         PI_assign_dic_opt[task] = assigned_worker
         PI_assign_dic_opt_NA[task] = assigned_worker
         count += 1
-    print('DI size:', len(DI_assign_dic_opt))
-    print('PI size:', len(PI_assign_dic_opt))
+    print('DI size-2:', len(DI_assign_dic_opt), th)
+    print('PI size:', len(PI_assign_dic_opt), th)
     print('PI-NA:', accuracy(PI_assign_dic_opt_NA, input_df), len(PI_assign_dic_opt_NA), th)
     print('PI-A:', accuracy(PI_assign_dic_opt_A, input_df), len(PI_assign_dic_opt_A), th)
     DI_assign_dic_PI_NA = {}
     for task in test_task:
       if task in PI_assign_dic_opt_NA:
         DI_assign_dic_PI_NA[task] = DI_assign_dic_opt[task]
-    print('DI-PIのNA:', accuracy(DI_assign_dic_PI_NA, input_df), len(DI_assign_dic_PI_NA), th)
-    DI_assign_dic_opt = DI_assign_dic_PI_NA
-    PI_assign_dic_opt = PI_assign_dic_opt_NA
+    #print('DI-PIのNA:', accuracy(DI_assign_dic_PI_NA, input_df), len(DI_assign_dic_PI_NA), th)
+    # DI_assign_dic_opt = DI_assign_dic_PI_NA
+    # PI_assign_dic_opt = PI_assign_dic_opt_NA
 
     #print('DI-NA:', accuracy(DI_assign_dic_opt_NA, input_df), len(DI_assign_dic_opt_NA), th)
     #print('DI-A:', accuracy(DI_assign_dic_opt_A, input_df), len(DI_assign_dic_opt_A), th)
     # 割当て結果の精度を求める
+    
     acc = accuracy(PI_assign_dic_opt, input_df)
    
     PI_margin_sum = 0
@@ -379,7 +380,6 @@ for iteration in range(0, iteration_time):
     var = task_variance(PI_noise1_assign_dic_opt, test_worker)
     tp = calc_tp(PI_noise1_assign_dic_opt, test_worker)
 
-    
     PI_noise1_acc_perth.append(acc)
     PI_noise1_var_perth.append(var)
     PI_noise1_tp_perth.append(tp)

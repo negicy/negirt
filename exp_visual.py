@@ -59,7 +59,7 @@ PI_noise1_var_allth = []
 PI_noise1_tp_allth = []
 
 
-threshold = list([i / 100 for i in range(50, 61)])
+threshold = list([i / 100 for i in range(50, 81)])
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
 ours_output_alliter = {}
 full_output_alliter = {}
@@ -87,7 +87,7 @@ full_user_param = params[1]
 '''
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 1
+iteration_time = 20
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")
@@ -129,7 +129,6 @@ for iteration in range(0, iteration_time):
     else:
       break
   
-
   # 各手法でのワーカ候補作成
   ours_output =  make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
   ours_candidate = ours_output[0]
@@ -156,6 +155,63 @@ for iteration in range(0, iteration_time):
   ours_output_alliter[iteration] = ours_output
   full_output_alliter[iteration] = full_output
 
+  for th in PI_candidate:
+    candidate_dic = PI_candidate[th]
+    PI_assign_dic_opt_A = {}
+    PI_assign_dic_opt_NA = {}
+    PI_assign_dic_opt = {}
+
+    PI_assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
+  
+    for worker in PI_assigned:
+      for task in PI_assigned[worker]:
+        PI_assign_dic_opt[task] = worker
+        PI_assign_dic_opt_A[task] = worker
+    # print(th, len(assign_dic_opt))
+
+    # NA タスクをランダム割当て
+    # print('PI_size:', len(PI_assign_dic_opt_A))
+    top_workers = sort_test_worker(test_worker, full_user_param, N=10)
+    count = 0
+    for task in test_task:
+      if task not in PI_assign_dic_opt.keys():
+        assigned_worker = random.choice(top_workers)
+        PI_assign_dic_opt[task] = assigned_worker
+        PI_assign_dic_opt_NA[task] = assigned_worker
+    
+    #print('DI-PIのNA:', accuracy(DI_assign_dic_PI_NA, input_df), len(DI_assign_dic_PI_NA), th)
+    # DI_assign_dic_opt = DI_assign_dic_PI_NA
+    # PI_assign_dic_opt = PI_assign_dic_opt_NA
+
+    #print('DI-NA:', accuracy(DI_assign_dic_opt_NA, input_df), len(DI_assign_dic_opt_NA), th)
+    #print('DI-A:', accuracy(DI_assign_dic_opt_A, input_df), len(DI_assign_dic_opt_A), th)
+    # 割当て結果の精度を求める
+    
+    acc = accuracy(PI_assign_dic_opt, input_df)
+    # acc = accuracy(PI_assign_dic_opt_A, input_df)
+   
+    PI_margin_sum = 0
+    for task in PI_assign_dic_opt_NA:
+      worker = PI_assign_dic_opt_NA[task]
+     
+      PI_margin = full_user_param[worker] - full_item_param[task]
+      PI_margin_sum += PI_margin
+
+    PI_margin_mean = PI_margin_sum / len(PI_assign_dic_opt)
+ 
+    var = task_variance(PI_assign_dic_opt, test_worker)
+    tp = calc_tp(PI_assign_dic_opt, test_worker)
+    
+    PI_acc_perth.append(acc)
+    PI_var_perth.append(var)
+    PI_tp_perth.append(tp)
+    PI_margin_perth.append(PI_margin_mean)
+
+  PI_acc_allth.append(PI_acc_perth)
+  PI_var_allth.append(PI_var_perth)
+  PI_tp_allth.append(PI_tp_perth)
+  PI_margin_allth.append(PI_margin_perth)
+
   # worker_c_th = {th: {task: [workers]}}
   for th in ours_candidate:
     candidate_dic = ours_candidate[th]
@@ -174,11 +230,10 @@ for iteration in range(0, iteration_time):
     ## NAが見つけたAタスクのaccuracyを調べる
     # NA タスクをランダム割当て
     DI_NA_count = 0
-    top_workers = sort_test_worker(test_worker, user_param, N=5)
+    top_workers = sort_test_worker(test_worker, user_param, N=10)
     # print('DI_size:', len(DI_assign_dic_opt))
     for task in test_task:
       if task not in DI_assign_dic_opt.keys():
-        
         DI_NA_count += 1
         assigned_worker = random.choice(top_workers)
         DI_assign_dic_opt[task] = assigned_worker
@@ -186,37 +241,38 @@ for iteration in range(0, iteration_time):
     ## DIが見つけたNAタスクの正解率を調べる．
     
     # print(DI_NA_count, len(qualify_task), len(DI_assign_dic_opt))
-    print('DI_size-1', len(DI_assign_dic_opt), th)
     
-    '''
-    # print(len(assign_dic_opt.keys()))
-    if th in [0.5, 0.6, 0.7, , 0.8]:
-      welldone_dist[th] += welldone_count(th, assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
-      # 割当て候補人数を数える
-      worker_with_task_list = []
-      for worker_set in ours_candidate[th].values():
-        for worker in worker_set:
-          if worker not in worker_with_task_list:
-            worker_with_task_list.append(worker)
-     
-      worker_with_task['ours'][th] += len(worker_with_task_list)
-    '''
+    DI_assign_dic_PI_NA = {}
+    DI_assign_dic_PI_A = {}
+    for task in test_task:
+      if task in PI_assign_dic_opt_NA:
+        DI_assign_dic_PI_NA[task] = DI_assign_dic_opt[task]
+      if task in PI_assign_dic_opt_A:
+        DI_assign_dic_PI_A[task] = DI_assign_dic_opt[task]
+
+    # print('DI size-2:', len(DI_assign_dic_opt), th)
+    # print('PI size:', len(PI_assign_dic_opt), th)
+    #print('PI-NA:', accuracy(PI_assign_dic_opt_NA, input_df), len(PI_assign_dic_opt_NA), th)
+    # print('PI-A:', accuracy(PI_assign_dic_opt_A, input_df), len(PI_assign_dic_opt_A), th)
+    #print('DI-PI-NA', accuracy(DI_assign_dic_PI_NA, input_df), len(DI_assign_dic_PI_NA))
+
 
     # 割り当て結果の精度を求める
+    # acc = accuracy(DI_assign_dic_PI_NA, input_df)
     acc = accuracy(DI_assign_dic_opt, input_df)
     # print("DI assignment", th, acc, len(assign_dic_opt))
-    
     DI_margin_sum = 0
     
-    for task in DI_assign_dic_opt:
-      worker = DI_assign_dic_opt[task]
+    for task in DI_assign_dic_PI_NA:
+      worker = DI_assign_dic_PI_NA[task]
       DI_margin = user_param[worker] - full_item_param[task]
+      print(user_param[worker])
       DI_margin_sum += DI_margin
       # print(full_item_param[task], full_user_param[worker], full_user_param[worker] - full_item_param[task], input_df[worker][task])
 
     # DI_mse = math.sqrt(DI_margin_sum / len(DI_assign_dic_opt))
     DI_mean = DI_margin_sum / len(DI_assign_dic_opt)
-    # print(f'DI_mean: {DI_margin_sum}')
+    # print(f'DI_margin_sum: {DI_margin_sum}')
     # print(DI_margin_mean)
     # 割当て結果分散を求める
     var = task_variance(DI_assign_dic_opt, test_worker)
@@ -267,8 +323,7 @@ for iteration in range(0, iteration_time):
         
     if th in [0.5, 0.6, 0.7, 0.8]:
       welldone_dist[th] += welldone_count(th, AA_assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
-      # 割当て候補人数を数える
-      # worker_with_task['AA'] += len(assign_dic_opt[th])
+  
       worker_with_task_list = []
       for worker_set in AA_candidate[th].values():
         for worker in worker_set:
@@ -294,70 +349,6 @@ for iteration in range(0, iteration_time):
   AA_acc_allth.append(AA_acc_perth)
   AA_var_allth.append(AA_var_perth)
   AA_tp_allth.append(AA_tp_perth)
-
-  for th in PI_candidate:
-    candidate_dic = PI_candidate[th]
-    PI_assign_dic_opt_A = {}
-    PI_assign_dic_opt_NA = {}
-    PI_assign_dic_opt = {}
-
-    PI_assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
-  
-    for worker in PI_assigned:
-      for task in PI_assigned[worker]:
-        PI_assign_dic_opt[task] = worker
-        PI_assign_dic_opt_A[task] = worker
-    # print(th, len(assign_dic_opt))
-
-    # NA タスクをランダム割当て
-    # print('PI_size:', len(PI_assign_dic_opt_A))
-    top_workers = sort_test_worker(test_worker, full_user_param, N=5)
-    count = 0
-    for task in test_task:
-      if task not in PI_assign_dic_opt.keys():
-        assigned_worker = random.choice(top_workers)
-        PI_assign_dic_opt[task] = assigned_worker
-        PI_assign_dic_opt_NA[task] = assigned_worker
-        count += 1
-    print('DI size-2:', len(DI_assign_dic_opt), th)
-    print('PI size:', len(PI_assign_dic_opt), th)
-    print('PI-NA:', accuracy(PI_assign_dic_opt_NA, input_df), len(PI_assign_dic_opt_NA), th)
-    print('PI-A:', accuracy(PI_assign_dic_opt_A, input_df), len(PI_assign_dic_opt_A), th)
-    DI_assign_dic_PI_NA = {}
-    for task in test_task:
-      if task in PI_assign_dic_opt_NA:
-        DI_assign_dic_PI_NA[task] = DI_assign_dic_opt[task]
-    #print('DI-PIのNA:', accuracy(DI_assign_dic_PI_NA, input_df), len(DI_assign_dic_PI_NA), th)
-    # DI_assign_dic_opt = DI_assign_dic_PI_NA
-    # PI_assign_dic_opt = PI_assign_dic_opt_NA
-
-    #print('DI-NA:', accuracy(DI_assign_dic_opt_NA, input_df), len(DI_assign_dic_opt_NA), th)
-    #print('DI-A:', accuracy(DI_assign_dic_opt_A, input_df), len(DI_assign_dic_opt_A), th)
-    # 割当て結果の精度を求める
-    
-    acc = accuracy(PI_assign_dic_opt, input_df)
-   
-    PI_margin_sum = 0
-    for task in PI_assign_dic_opt:
-      worker = PI_assign_dic_opt[task]
-     
-      PI_margin = full_user_param[worker] - full_item_param[task]
-      PI_margin_sum += PI_margin
-
-    PI_margin_mean = PI_margin_sum / len(PI_assign_dic_opt)
- 
-    var = task_variance(PI_assign_dic_opt, test_worker)
-    tp = calc_tp(PI_assign_dic_opt, test_worker)
-    
-    PI_acc_perth.append(acc)
-    PI_var_perth.append(var)
-    PI_tp_perth.append(tp)
-    PI_margin_perth.append(PI_margin_mean)
-
-  PI_acc_allth.append(PI_acc_perth)
-  PI_var_allth.append(PI_var_perth)
-  PI_tp_allth.append(PI_tp_perth)
-  PI_margin_allth.append(PI_margin_perth)
   
   for th in PI_noise1_candidate:
     candidate_dic = PI_noise1_candidate[th]
@@ -462,7 +453,7 @@ for th in range(0, len(threshold)):
   # acc, var, tpの平均を計算
   DI_margin_result[th] = DI_margin_sum_th / iteration_time
 # DI_margin_result[th] = DI_margin_sum_th / iteration_time
-# print(DI_margin_result)
+print(DI_margin_allth)
 
 
 
@@ -694,7 +685,7 @@ ax1.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
 ax1.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
 ax1.plot(PI_noise1_trade[0], PI_noise1_trade[1], color='orange', label='IRT(PI0.5)')
 fig.legend(bbox_to_anchor=bbox, loc='upper left')
-plt.show()
+#plt.show()
 
 
 # 推移をプロット

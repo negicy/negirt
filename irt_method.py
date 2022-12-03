@@ -242,6 +242,8 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
           # workerの正答確率prob
           
           theta = user_param[worker]
+          if np.isnan(theta):
+            print('is nan:', worker, theta)
           # prob = irt_fnc(theta, b, a)
           prob = OnePLM(beta, theta)
 
@@ -278,7 +280,7 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
 
   for th in threshold:
     if th < 0.6:
-      margin = th / 8.5
+      margin = th / 7.0
     else:
       margin = th / 6.5
     margin = 0

@@ -5,6 +5,14 @@ from irt_method import *
 
 
 
+def check_nan(user_param):
+    for theta in user_param.values():
+        if np.isnan(theta):
+          return False
+    return True
+    
+
+
 def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth):
   acc = [0] * len(threshold)
   var = [0] * len(threshold)
@@ -39,11 +47,8 @@ def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth)
       acc_head = list_acc_th
     if th == len(threshold)-1:
       acc_tail = list_acc_th
-  print(acc)
-    
-
+ 
   return acc, var, tp, acc_std, var_std, acc_head, acc_tail
-
 
 
 def result_plot_1(threshold, result_dic, ay, bbox):
@@ -105,13 +110,36 @@ def result_plot_2(threshold, result_dic, ay, bbox):
     ax.plot(x, PI, color='purple', label='IRT')
     if ay == 'accuracy':
         ax.plot(x, x, color='orange', linestyle="dashed")
-    print(x)
+  
     a = 0.05
     plt.fill_between(x, ours - ours_std, ours + ours_std, facecolor='r', alpha=a)
     plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
     return plt
 
+def result_plot_PIDI(threshold, result_dic, ay, bbox):
+    
+    # 推移をプロット
+    plt.rcParams["font.size"] = 24
+    fig = plt.figure() #親グラフと子グラフを同時に定義
+    ax = fig.add_subplot()
+    ax.set_xlabel('threshold')
+    ax.set_ylabel(ay)
+    x = np.array(threshold)
+    
+    ours = np.array(result_dic['ours'])
+    PI = np.array(result_dic['PI'])
+
+    ours_std = np.array(result_dic['ours_std'])
+    PI_std = np.array(result_dic['PI_std'])
+
+    ax.plot(x, ours, color='red', label='IRT(DI)')
+    ax.plot(x, PI, color='purple', label='IRT(PI)')
+    if ay == 'accuracy':
+        ax.plot(x, x, color='orange', linestyle="dashed")
+
+    fig.legend(bbox_to_anchor=bbox, loc='upper left')
+    return plt
 
 def var_acc_plot(var, acc):
     # ソート

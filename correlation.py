@@ -95,7 +95,7 @@ for iteration in range(0, iteration_time):
     full_item_param[item] = item_param[item]
 
   full_user_param = params[1]
-  print(full_item_param)
+  # print(full_item_param)
   rate_list = []
   theta_list = []
 
@@ -114,9 +114,9 @@ for iteration in range(0, iteration_time):
   
 
 
-  print(sorted_skill_rate)
+  # print(sorted_skill_rate)
   print(sorted_item_param)
-  print(sorted_user_param)
+  # print(sorted_user_param)
 
 bins=np.linspace(-3, 3, 30)
 x = list(sorted_user_param.values())

@@ -25,22 +25,15 @@ with open('input_data.pickle', 'rb') as f:
   worker_list = input_data['worker_list']
   task_list = input_data['task_list']
 
-ours_acc_allth = []
-ours_var_allth = [] 
-ours_tp_allth = []
+spam_list = [
+  #'ALSF1M6V28URB',
+  #'A303MN1VOKQG5I',
+  'AK9U0LQROU5LW',
+  'A3S2AUQWI7XWT4'
+]
+for spam in spam_list:
+  worker_list.remove(spam)
 
-top_acc_allth = []
-top_var_allth = []
-
-AA_acc_allth = []
-AA_var_allth = []
-AA_tp_allth = []
-
-
-random_acc_allth = []
-random_var_allth = []
-full_irt_acc_allth = []
-full_irt_var_allth = []
 
 threshold = list([i / 100 for i in range(50, 81)])
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
@@ -51,7 +44,6 @@ full_output_alliter = {}
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
 iteration_time = 1
-worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 # 各ワーカーの全体正解率
 skill_rate_dic = {}
 # 各ワーカーの全体正解率
@@ -65,23 +57,16 @@ for w in worker_list:
       correct += 1
   skill_rate_dic[w] = (correct / task_num)
 
-
 for iteration in range(0, iteration_time):
 
-  
-
-  
-  sample = devide_sample(task_list, worker_list)
+  sample = devide_sample(task_list, worker_list, label_df)
   qualify_task = sample['qualify_task']
   test_task = sample['test_task']
   test_worker = sample['test_worker']
-
   
   # full_output = make_candidate_all(threshold, input_df, task_list, worker_list, test_worker, test_task)
   # full_irt_candidate = full_output[0]
   
-
-
   # 承認タスクとテストタスクを分離
   qualify_task = task_list
 
@@ -95,12 +80,12 @@ for iteration in range(0, iteration_time):
   # t_worker = worker_list
   # q_data = np.array(list(qualify_dic.values()))
 
-  params = run_girth_twopl(q_data, task_list, worker_list)
+  params = run_girth_rasch(q_data, task_list, worker_list)
 
   item_param = params[0]
   full_item_param = {}
   for item in item_param:
-    full_item_param[item] = item_param[item]['b']
+    full_item_param[item] = item_param[item]
 
   full_user_param = params[1]
   print(full_item_param)
@@ -113,12 +98,6 @@ for iteration in range(0, iteration_time):
   
   plt.rcParams["font.size"] = 22
   fig = plt.figure() #親グラフと子グラフを同時に定義
-  #ax1 = fig.add_subplot()
-  #ax1.set_xlabel('max number of tasks')
-  #ax1.set_ylabel('1 / accuracy')
-  #ax1.set_xlim(0, 15)
-
-  #ax1.plot(rate_list, theta_list, color='blue', label='ours')
   plt.scatter(theta_list, rate_list, color='blue', label='ours')
   plt.show()
 
@@ -132,8 +111,8 @@ for iteration in range(0, iteration_time):
   print(sorted_item_param)
   print(sorted_user_param)
 
-bins=np.linspace(-3, 3, 20)
-x = list(sorted_skill_rate.values())
+bins=np.linspace(-3, 3, 30)
+x = list(sorted_user_param.values())
 y = list(sorted_item_param.values())
 # fig3 = plt.figure()
 plt.hist([x, y], bins, label=['worker', 'task'])

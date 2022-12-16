@@ -2,6 +2,7 @@
 # A: 各ワーカーの候補リスト中の登場回数
 import copy
 import numpy as np
+import random
 def task_average(org_dic, c_dic):
   task_avg = {}
   for t in org_dic:
@@ -29,11 +30,19 @@ def flatten(assign_dic, worker_list, i):
 
   # if len(assign_dic[worker]) < len(assign_dic[pre_worker]):
   while len(assign_dic[worker]) < len(assign_dic[pre_worker]):
+    # print(assign_dic[worker], assign_dic[pre_worker], i)
     task = assign_dic[pre_worker][0]
+    assign_dic[pre_worker].remove(task)
     assign_dic[worker].append(task)
-    assign_dic[pre_worker].pop(0)
-    if i >= 1:
+    
+    if i > 1:
       flatten(assign_dic, worker_list, i-1)
+
+    #print('====-!====!====!=====')
+    #print(assign_dic[worker], assign_dic[pre_worker], i)
+ 
+  
+ 
   return assign_dic
 
    
@@ -57,8 +66,10 @@ def optim_assignment(worker_c, test_worker, test_task, user_param):
   
 
   n = len(worker_list)
+  
   # w_1, ... , w_nについて
   for i in range(0, n):
+    # print("ワーカ番号: ", i)
     worker = worker_list[i]
     # 可能なタスクをすべて割当て
     for task in worker_c:
@@ -69,6 +80,7 @@ def optim_assignment(worker_c, test_worker, test_task, user_param):
     if i >= 1:
       pre_worker = worker_list[i-1]
       # i-1のワーカよりassignedが小さければ
+      # if len(assign_dic[worker]) < len(assign_dic[pre_worker]):
       assign_dic = flatten(assign_dic, worker_list, i)
     
   return assign_dic
@@ -177,11 +189,13 @@ def task_variance(assign_dic, test_workers):
 
 def calc_tp(assign_dic, test_worker):
   count_dic = {}
+  # print(f'assign_dic: {assign_dic}')
   for tw in test_worker:
-    count_dic[tw] = 0
-  for aw in assign_dic.values():
-    count_dic[aw] += 1
+    assign_worker_list = list(assign_dic.values())
+    workload = assign_worker_list.count(tw)
+    count_dic[tw] = workload
+
   # 最大のvalueを調べる
-  max_num = max(list(count_dic.values()))
-  return max_num
+  max_workload =  max(list(count_dic.values()))
+  return max_workload
 

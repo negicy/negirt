@@ -3,6 +3,49 @@ import matplotlib.pyplot as plt
 from operator import itemgetter
 from irt_method import *
 
+
+
+def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth):
+  acc = [0] * len(threshold)
+  var = [0] * len(threshold)
+  tp = [0] * len(threshold)
+  acc_std = []
+  var_std = []
+  for th in range(0, len(threshold)):
+    acc_sum = 0
+    var_sum = 0
+    tp_sum = 0
+    # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
+    list_acc_th = []
+    list_var_th = []
+    for i in range(0, iteration_time): 
+        acc_sum += acc_allth[i][th]
+        list_acc_th.append(acc_allth[i][th])
+        var_sum += var_allth[i][th]
+        list_var_th.append(var_allth[i][th])
+        tp_sum += tp_allth[i][th]
+        
+    acc[th] = acc_sum / iteration_time
+    var[th] = var_sum / iteration_time
+    tp[th] = tp_sum / iteration_time
+
+    # 標準偏差を計算
+    acc_std_th = np.std(list_acc_th)
+    var_std_th = np.std(list_var_th)
+    acc_std.append(acc_std_th)
+    var_std.append(var_std_th)
+
+    if th == 0:
+      acc_head = list_acc_th
+    if th == len(threshold)-1:
+      acc_tail = list_acc_th
+  print(acc)
+    
+
+  return acc, var, tp, acc_std, var_std, acc_head, acc_tail
+
+
+
 def result_plot_1(threshold, result_dic, ay, bbox):
     
     # 推移をプロット
@@ -17,18 +60,18 @@ def result_plot_1(threshold, result_dic, ay, bbox):
     top = np.array(result_dic['top'])
     AA = np.array(result_dic['AA'])
     random = np.array(result_dic['random'])
-    full_irt = np.array(result_dic['full_irt'])
+    PI = np.array(result_dic['PI'])
 
     ours_std = np.array(result_dic['ours_std'])
     top_std = np.array(result_dic['top_std'])
     random_std = np.array(result_dic['random_std'])
-    full_irt_std = np.array(result_dic['full_irt_std'])
+    PI_std = np.array(result_dic['PI_std'])
     AA_std = np.array(result_dic['AA_std'])
-    ax.plot(x, ours, color='red', label='DI')
+    ax.plot(x, ours, color='red', label='IRT(DI)')
     ax.plot(x, top, color='blue', label='TOP')
     ax.plot(x, AA, color='cyan', label='AA')
     ax.plot(x, random, color='green', label='RANDOM')
-    ax.plot(x, full_irt, color='purple', label='PI')
+    ax.plot(x, PI, color='purple', label='IRT(PI)')
     if ay == 'accuracy':
         ax.plot(x, x, color='orange', linestyle="dashed")
 
@@ -37,7 +80,7 @@ def result_plot_1(threshold, result_dic, ay, bbox):
     plt.fill_between(x, top - top_std, top + top_std, facecolor='b', alpha=a)
     plt.fill_between(x, AA - AA_std, AA + AA_std, facecolor='cyan', alpha=a)
     plt.fill_between(x, random - random_std, random + random_std, facecolor='g', alpha=a)
-    plt.fill_between(x, full_irt - full_irt_std, full_irt + full_irt_std, facecolor='purple', alpha=a)
+    plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
     return plt
 
@@ -53,19 +96,19 @@ def result_plot_2(threshold, result_dic, ay, bbox):
     x = np.array(threshold)
     
     ours = np.array(result_dic['ours'])
-    full_irt = np.array(result_dic['full_irt'])
+    PI = np.array(result_dic['PI'])
 
     ours_std = np.array(result_dic['ours_std'])
-    full_irt_std = np.array(result_dic['full_irt_std'])
+    PI_std = np.array(result_dic['PI_std'])
     
     ax.plot(x, ours, color='red', label='ours')
-    ax.plot(x, full_irt, color='purple', label='IRT')
+    ax.plot(x, PI, color='purple', label='IRT')
     if ay == 'accuracy':
         ax.plot(x, x, color='orange', linestyle="dashed")
     print(x)
     a = 0.05
     plt.fill_between(x, ours - ours_std, ours + ours_std, facecolor='r', alpha=a)
-    plt.fill_between(x, full_irt - full_irt_std, full_irt + full_irt_std, facecolor='purple', alpha=a)
+    plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
     return plt
 
@@ -78,13 +121,15 @@ def var_acc_plot(var, acc):
     var = list(var)
     acc = list(acc)
     # 推移をプロット
-    
+    '''
     plt.rcParams["font.size"] = 18
     fig = plt.figure() #親グラフと子グラフを同時に定義
     ax = fig.add_subplot()
     ax.set_xlabel('variance')
     ax.set_ylabel('accuracy')
     ax.plot(var, acc, color='red', label='ours')
+    '''
+    
     
     return var, acc
 
@@ -98,7 +143,7 @@ def tp_acc_plot(tp, acc):
     # accを逆数にする
     acc_reverse = []
     for acc in acc_list:
-        # acc = 1 / acc
+       
         acc_reverse.append(acc)
 
    
@@ -130,4 +175,7 @@ def welldone_count(threshold, assign_dic, user_param, item_param):
         if OnePLM(b, theta) >= threshold:
             count += 1
     return count
+
+def has_duplicates(seq):
+    return len(seq) != len(set(seq))
 

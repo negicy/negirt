@@ -81,13 +81,20 @@ params = run_girth_rasch(q_data, task_list, worker_list)
 full_item_param = params[0]
 full_user_param = params[1]
 
+spam_worker_list = [
+ 
+  'AK9U0LQROU5LW',
+  'A2CN9J57643499'
+]
+for worker in spam_worker_list:
+  worker_list.remove(worker)
 
 '''
 イテレーション
 '''
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 10
+iteration_time = 50
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")
@@ -170,10 +177,10 @@ for iteration in range(0, iteration_time):
     
     # print('DI size:', len(DI_assign_dic_opt))
 
-    '''
+    
     # print(len(assign_dic_opt.keys()))
     if th in [0.5, 0.6, 0.7, 0.8]:
-      welldone_dist[th] += welldone_count(th, assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
+      welldone_dist[th] += welldone_count(th, DI_assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
       # 割当て候補人数を数える
       worker_with_task_list = []
       for worker_set in ours_candidate[th].values():
@@ -182,7 +189,7 @@ for iteration in range(0, iteration_time):
             worker_with_task_list.append(worker)
      
       worker_with_task['ours'][th] += len(worker_with_task_list)
-    '''
+    
     # 割り当て結果の精度を求める
     acc = accuracy(DI_assign_dic_opt, input_df)
     # print("DI assignment", th, acc, len(assign_dic_opt))
@@ -657,7 +664,7 @@ with open(filename, 'wb') as f:
 for th in welldone_dist:
   welldone_dist[th] = welldone_dist[th] / iteration_time
 
-'''
+
 # 割当て成功数ヒストグラム
 plt.rcParams["font.size"] = 18
 fig =  plt.figure()
@@ -671,7 +678,7 @@ ax.set_ylabel('rate of successful assignments')
 
 # タスクのあるワーカ人数をヒストグラムで
 # iteration間の平均を求める
-'''
+
 
 
 num_worker = [[], []]
@@ -686,7 +693,7 @@ y_AA = num_worker[1]
 x1 = [1, 2, 3, 4]
 x2 = [1.3, 2.3, 3.3, 4.3]
 
-'''
+
 # 少なくとも1つ以上のタスクを与えられたワーカのヒストグラム
 label_x = ['0.5', '0.6', '0.7', '0.8']
 plt.rcParams["font.size"] = 22
@@ -704,7 +711,7 @@ plt.ylabel('Number of workers with tasks')
 plt.xticks([1.15, 2.15, 3.15, 4.15], label_x)
 fig.legend(bbox_to_anchor=(0.15, 0.250), loc='upper left')
 # plt.show()
-'''
+
 # 推移をプロット
 
 result_acc_dic = {
@@ -743,7 +750,7 @@ ax1.plot(ours_trade[0], ours_trade[1], color='red', label='IRT')
 ax1.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
 ax1.plot(top_trade[0], top_trade[1], color='blue', label='TOP')
 ax1.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
-# ax1.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
+ax1.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
 # ax1.plot(PI_noise1_trade[0], PI_noise1_trade[1], color='orange', label='IRT(PI0.5)')
 fig.legend(bbox_to_anchor=bbox, loc='upper left')
 plt.show()

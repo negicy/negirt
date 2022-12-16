@@ -151,9 +151,9 @@ def devide_sample(task_list, worker_list, label_df):
   output = {}
   # random.shuffle(task_list)
   n = 40
-  # qualify_task = sample_category(task_list, n, label_df)
-  task_list_shuffle = random.sample(task_list, len(task_list))
-  qualify_task = task_list_shuffle[:n]
+  qualify_task = sample_category(task_list, n, label_df)
+  #task_list_shuffle = random.sample(task_list, len(task_list))
+  #qualify_task = task_list_shuffle[:n]
   test_task = list(set(task_list) - set(qualify_task))
   # task_list_shuffle = random.sample(task_list, len(task_list))
   # qualify_task = task_list_shuffle[:n]

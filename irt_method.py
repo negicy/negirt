@@ -20,7 +20,6 @@ def TwoPLM_test(a, b, theta, d=1.7):
   return p
   
 
-
 # input: 01の2D-ndarray, 対象タスクのリスト, 対象ワーカーのリスト
 def run_girth_rasch(data, task_list, worker_list):
     estimates = rasch_mml(data, 1)
@@ -117,7 +116,9 @@ def run_girth_twopl(data, task_list, worker_list):
 # IRT: girthを使用
 # 
 def sample_category(task_list, test_size, label_df):
-  # すべてのカテゴリがバランスよく含まれるようにする
+  
+  ''' # すべてのカテゴリがバランスよく含まれるようにする => DIのqualificationタスクのラベル推定を
+    true_labelにするとよくわからない現象が起こる，のでランダムサンプリングでよい．
   qualify_task = []
   category_name = ['Technology&Science', 'Economy', 'Businness', 'Health']
   for category in category_name:
@@ -135,6 +136,11 @@ def sample_category(task_list, test_size, label_df):
         qualify_task.append(task)
         if i == size_per_category:
           break
+  '''
+  
+  task_list_shuffle = random.sample(task_list, len(task_list))
+  qualify_task = task_list_shuffle[:40]
+
           
   return qualify_task
 
@@ -143,10 +149,12 @@ def devide_sample(task_list, worker_list, label_df):
   output = {}
   random.shuffle(task_list)
   n = 40
-  qualify_task = sample_category(task_list, n, label_df)
-  test_task = list(set(task_list) - set(qualify_task))
+  #qualify_task = sample_category(task_list, n, label_df)
+  #test_task = list(set(task_list) - set(qualify_task))
+  task_list_shuffle = random.sample(task_list, len(task_list))
+  qualify_task = task_list_shuffle[:n]
   # qualify_task = task_list[:n]
-  # test_task = task_list[n:]
+  test_task = task_list_shuffle[n:]
   #print(len(qualify_task))
   output['qualify_task'] = qualify_task
   output['test_task'] = test_task
@@ -212,7 +220,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
                     'Technology&Science':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Health':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}}
 
   for i in qualify_task:
-    category = label_df['estimate_label'][i]
+    category = label_df['true_label'][i]
     # category_dic[category]['a'].append(item_param[i]['alpha'])
     category_dic[category]['b'].append(item_param[i])
     category_dic[category]['num'] += 1

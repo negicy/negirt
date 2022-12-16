@@ -94,7 +94,7 @@ spam_worker_list = [
 '''
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 200
+iteration_time = 40
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")
@@ -742,7 +742,7 @@ PI_noise1_trade = tp_acc_plot(PI_noise1_tp, PI_noise1_acc)
 plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義
 ax1 = fig.add_subplot()
-ax1.set_xlabel('Working Opportunity')
+ax1.set_xlabel('maximum number of tasks assigned to one workers')
 ax1.set_ylabel('accuracy')
 ax1.set_xlim(0, 30)
 

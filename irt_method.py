@@ -292,7 +292,12 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
 
   for th in threshold:
     # margin = th / 5
-    margin = th / 5
+    
+    if th < 0.6:
+      margin = th / 2.2
+    else:
+      margin = th / 4.1
+    
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == True:

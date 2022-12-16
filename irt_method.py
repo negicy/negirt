@@ -147,8 +147,10 @@ def sample_category(task_list, test_size, label_df):
 # ワーカとタスクを分離
 def devide_sample(task_list, worker_list, label_df):
   output = {}
-  n = 40
-  qualify_task = sample_category(task_list, n, label_df)
+  #n = 40
+  #qualify_task = sample_category(task_list, n, label_df)
+  task_list_shuffle = random.sample(task_list, len(task_list))
+  qualify_task = task_list_shuffle[:40]
   test_task = list(set(task_list) - set(qualify_task))
 
   #print(len(qualify_task))

@@ -36,7 +36,7 @@ with open('input_data.pickle', 'rb') as f:
   task_list = input_data['task_list']
 
 
-print('全体正解率:', all_task_correct_rate(input_df, worker_list, task_list))
+# print('全体正解率:', all_task_correct_rate(input_df, worker_list, task_list))
 
 ours_acc_allth = []
 ours_var_allth = [] 
@@ -103,7 +103,7 @@ task_list_sorted = list(full_item_param_sorted.keys())
 '''
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 5
+iteration_time = 2
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")
@@ -431,14 +431,15 @@ PI_noise1_tp = [0] * len(threshold)
 
 
 ours_result = combine_iteration(threshold, iteration_time, ours_acc_allth, ours_var_allth, ours_tp_allth)
+print(ours_result)
 ours_acc = ours_result[0]
 ours_var = ours_result[1]
 ours_tp = ours_result[2]
 # 標準偏差を計算
 ours_acc_std = ours_result[3]
 ours_var_std = ours_result[4]
-ours_acc_head = ours_result[5]
-ours_acc_tail = ours_result[6]
+#ours_acc_head = ours_result[5]
+#ours_acc_tail = ours_result[6]
 
 for th in range(0, len(threshold)):
   DI_margin_sum_th = 0
@@ -457,8 +458,8 @@ AA_tp = AA_result[2]
 # 標準偏差を計算
 AA_acc_std = AA_result[3]
 AA_var_std = AA_result[4]
-AA_acc_head = AA_result[5]
-AA_acc_tail = AA_result[6]
+#AA_acc_head = AA_result[5]
+#AA_acc_tail = AA_result[6]
 
 
 random_result = combine_iteration(threshold, iteration_time, random_acc_allth, random_var_allth, random_tp_allth)
@@ -468,8 +469,8 @@ random_tp = random_result[2]
 # 標準偏差を計算
 random_acc_std = random_result[3]
 random_var_std = random_result[4]
-random_acc_head = random_result[5]
-random_acc_tail = random_result[6]
+#random_acc_head = random_result[5]
+#random_acc_tail = random_result[6]
 
 # print(random_acc)
 
@@ -480,8 +481,8 @@ top_tp = top_result[2]
 # 標準偏差を計算
 top_acc_std = top_result[3]
 top_var_std = top_result[4]
-top_acc_head = top_result[5]
-top_acc_tail = top_result[6]
+#top_acc_head = top_result[5]
+#top_acc_tail = top_result[6]
 
 PI_result = combine_iteration(threshold, iteration_time, PI_acc_allth, PI_var_allth, PI_tp_allth)
 PI_acc = PI_result[0]
@@ -630,8 +631,8 @@ result = {
   'ours_var': ours_var_allth, 'top_var': top_var_allth, 
   'random_var': random_var_allth, 'PI_var': PI_var_allth,
   'welldone_dist': welldone_dist, 
-  'ours_acc_head': ours_acc_head, 'AA_acc_head': AA_acc_head,
-  'ours_acc_tail': ours_acc_tail, 'AA_acc_tail': AA_acc_tail
+  #'ours_acc_head': ours_acc_head, 'AA_acc_head': AA_acc_head,
+  #'ours_acc_tail': ours_acc_tail, 'AA_acc_tail': AA_acc_tail
 }
 
 
@@ -731,4 +732,4 @@ x = np.array(threshold)
 print(DI_margin_result)
 ax.plot(x, DI_margin_result, color='red', label='IRT(DI)')
 ax.plot(x, PI_margin_result, color='purple', label='IRT(PI)')
-plt.show()
+# plt.show()

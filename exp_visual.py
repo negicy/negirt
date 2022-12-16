@@ -94,7 +94,7 @@ spam_worker_list = [
 '''
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 40
+iteration_time = 50
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")
@@ -264,8 +264,9 @@ for iteration in range(0, iteration_time):
             worker_with_task_list.append(worker)
 
       worker_with_task['AA'][th] += len(worker_with_task_list)
-    
+
     AA_top_workers_list = list(AA_top_workers_dict)
+    print(AA_top_workers_list)
     for task in test_task:
       if task not in AA_assign_dic_opt.keys():
         AA_assign_dic_opt[task] = random.choice(AA_top_workers_list[:5])
@@ -715,13 +716,13 @@ plt.show()
 # 推移をプロット
 
 result_acc_dic = {
-  'ours': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'full_irt': full_irt_acc,
-  'ours_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'full_irt_std': full_acc_std
+  'ours': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': full_irt_acc,
+  'ours_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': full_acc_std
   }
 
 result_var_dic = {
-  'ours': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'full_irt': full_irt_var,
-  'ours_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'full_irt_std': full_var_std
+  'ours': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'PI': full_irt_var,
+  'ours_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': full_var_std
 }
 
 result_plot_1(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400)).show()

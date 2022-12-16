@@ -117,8 +117,10 @@ def run_girth_twopl(data, task_list, worker_list):
 # 
 def sample_category(task_list, test_size, label_df):
   
-  ''' # すべてのカテゴリがバランスよく含まれるようにする => DIのqualificationタスクのラベル推定を
-    true_labelにするとよくわからない現象が起こる，のでランダムサンプリングでよい．
+  # すべてのカテゴリがバランスよく含まれるようにする => DIのqualificationタスクのラベル推定を
+  # true_labelにするとよくわからない現象が起こる，のでランダムサンプリングでよい．
+  '''
+  
   qualify_task = []
   category_name = ['Technology&Science', 'Economy', 'Businness', 'Health']
   for category in category_name:
@@ -127,7 +129,7 @@ def sample_category(task_list, test_size, label_df):
     size_per_category = test_size / len(category_name)
     
     for task in task_list:
-      category_of_task = label_df['true_label'][task]
+      category_of_task = label_df['_label'][task]
 
       if category_of_task == category:
        
@@ -147,14 +149,16 @@ def sample_category(task_list, test_size, label_df):
 # ワーカとタスクを分離
 def devide_sample(task_list, worker_list, label_df):
   output = {}
-  random.shuffle(task_list)
+  # random.shuffle(task_list)
   n = 40
-  #qualify_task = sample_category(task_list, n, label_df)
-  #test_task = list(set(task_list) - set(qualify_task))
+  # qualify_task = sample_category(task_list, n, label_df)
   task_list_shuffle = random.sample(task_list, len(task_list))
   qualify_task = task_list_shuffle[:n]
+  test_task = list(set(task_list) - set(qualify_task))
+  # task_list_shuffle = random.sample(task_list, len(task_list))
+  # qualify_task = task_list_shuffle[:n]
   # qualify_task = task_list[:n]
-  test_task = task_list_shuffle[n:]
+  # test_task = task_list_shuffle[n:]
   #print(len(qualify_task))
   output['qualify_task'] = qualify_task
   output['test_task'] = test_task
@@ -259,12 +263,6 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
         if prob >= th:
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
-    
-      # if len(worker_c[task]) == 0:
-        
-        # w = random.choice(top_workers)
-        # worker_c[task] = top_workers
-        #worker_c[task].append(w)
       
     worker_c_th[th] = worker_c
 
@@ -294,7 +292,7 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
 
   for th in threshold:
     # margin = th / 5
-    margin = th / 5
+    margin = th / 4.8
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == True:

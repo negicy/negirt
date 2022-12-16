@@ -86,15 +86,15 @@ spam_worker_list = [
   'AK9U0LQROU5LW',
   'A2CN9J57643499'
 ]
-for worker in spam_worker_list:
-  worker_list.remove(worker)
+#for worker in spam_worker_list:
+  #worker_list.remove(worker)
 
 '''
 イテレーション
 '''
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 50
+iteration_time = 200
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")
@@ -254,7 +254,7 @@ for iteration in range(0, iteration_time):
         AA_assign_dic_opt[task] = worker
         
     if th in [0.5, 0.6, 0.7, 0.8]:
-      welldone_dist[th] += welldone_count(th, AA_assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
+      # welldone_dist[th] += welldone_count(th, AA_assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
       # 割当て候補人数を数える
       # worker_with_task['AA'] += len(assign_dic_opt[th])
       worker_with_task_list = []
@@ -672,8 +672,8 @@ ax = fig.add_subplot(1, 1, 1)
 
 ax.set_xlabel('threshold')
 ax.set_ylabel('rate of successful assignments')
-# ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.5, color='forestgreen')
-# plt.show()
+ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.5, color='forestgreen')
+plt.show()
 
 
 # タスクのあるワーカ人数をヒストグラムで
@@ -699,10 +699,10 @@ label_x = ['0.5', '0.6', '0.7', '0.8']
 plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義
 # 1つ目の棒グラフ
-# plt.bar(x1, y_ours, color='blue', width=0.3, label='DI', align="center")
+plt.bar(x1, y_ours, color='blue', width=0.3, label='DI', align="center")
 
 # 2つ目の棒グラフ
-# plt.bar(x2, y_AA, color='coral', width=0.3, label='AA', align="center")
+plt.bar(x2, y_AA, color='coral', width=0.3, label='AA', align="center")
 
 # 凡例
 plt.xlabel('threshold')
@@ -710,7 +710,7 @@ plt.ylabel('Number of workers with tasks')
 # X軸の目盛りを置換
 plt.xticks([1.15, 2.15, 3.15, 4.15], label_x)
 fig.legend(bbox_to_anchor=(0.15, 0.250), loc='upper left')
-# plt.show()
+plt.show()
 
 # 推移をプロット
 
@@ -743,7 +743,7 @@ fig = plt.figure() #親グラフと子グラフを同時に定義
 ax1 = fig.add_subplot()
 ax1.set_xlabel('Working Opportunity')
 ax1.set_ylabel('accuracy')
-ax1.set_xlim(0, 0.3)
+ax1.set_xlim(0, 30)
 
 bbox=(0.2750, 0.400)
 ax1.plot(ours_trade[0], ours_trade[1], color='red', label='IRT')

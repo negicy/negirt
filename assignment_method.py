@@ -194,6 +194,6 @@ def calc_tp(assign_dic, test_worker):
   for aw in assign_dic.values():
     count_dic[aw] += 1
   # 最大のvalueを調べる
-  max_num =  1/max(list(count_dic.values()))
+  max_num =  max(list(count_dic.values()))
   return max_num
 

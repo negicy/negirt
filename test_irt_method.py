@@ -47,3 +47,12 @@ for worker in spam_worker_list:
 print(len(worker_list))
 # 正解確率P
 print(OnePLM(2, 1))
+
+count = 0
+# label_df について
+for task in task_list:
+    if label_df['estimate_label'][task] == label_df['true_label'] [task]:
+        count += 1
+
+print(count/len(task_list))
+

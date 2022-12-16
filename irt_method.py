@@ -276,7 +276,7 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
       margin = th / 8.5
     else:
       margin = th / 6.5
-    margin = th / 7
+    margin = th / 6
 
     
     worker_c = {}

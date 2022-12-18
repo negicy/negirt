@@ -57,7 +57,10 @@ qualify_task = task_list
 qualify_dic = {}
 for qt in qualify_task:
   qualify_dic[qt] = list(input_df.T[qt])
+<<<<<<< HEAD
   
+=======
+>>>>>>> 302163cfebbc0c96fbb2aa557af05097bd01415f
 q_data = np.array(list(qualify_dic.values()))
 params = run_girth_rasch(q_data, task_list, worker_list)
 full_item_param = params[0]
@@ -91,7 +94,11 @@ full_output_alliter = {}
 
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
+<<<<<<< HEAD
 iteration_time = 50
+=======
+iteration_time = 20
+>>>>>>> 302163cfebbc0c96fbb2aa557af05097bd01415f
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print(iteration)
@@ -131,8 +138,13 @@ for iteration in range(0, iteration_time):
   full_output = make_candidate_all(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
   full_irt_candidate = full_output[0]
 
+<<<<<<< HEAD
   # PI_noise1 = make_candidate_PI_noise(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
   # PI_noise1_candidate = full_output[0]
+=======
+  PI_noise1 = make_candidate_PI_noise(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
+  PI_noise1_candidate = full_output[0]
+>>>>>>> 302163cfebbc0c96fbb2aa557af05097bd01415f
 
   # 保存用
   ours_output_alliter[iteration] = ours_output
@@ -154,6 +166,10 @@ for iteration in range(0, iteration_time):
       if task not in DI_assign_dic_opt.keys():
         DI_assign_dic_opt[task] = random.choice(top_workers)
     
+<<<<<<< HEAD
+=======
+
+>>>>>>> 302163cfebbc0c96fbb2aa557af05097bd01415f
   
     # 割り当て結果の精度を求める
     acc = accuracy(DI_assign_dic_opt, input_df)
@@ -235,7 +251,11 @@ for iteration in range(0, iteration_time):
 
   full_irt_acc_allth.append(full_irt_acc_perth)
   full_irt_var_allth.append(full_irt_var_perth)
+<<<<<<< HEAD
   '''
+=======
+
+>>>>>>> 302163cfebbc0c96fbb2aa557af05097bd01415f
   for th in PI_noise1_candidate:
     candidate_dic = PI_noise1_candidate[th]
     PI_noise1_assign_dic_opt = {}
@@ -262,8 +282,11 @@ for iteration in range(0, iteration_time):
 
   PI_noise1_acc_allth.append(PI_noise1_acc_perth)
   PI_noise1_var_allth.append(PI_noise1_var_perth)
+<<<<<<< HEAD
   '''
   
+=======
+>>>>>>> 302163cfebbc0c96fbb2aa557af05097bd01415f
   
   for th in range(0, len(threshold)):
     assign_dic = random_assignment(test_task, test_worker)
@@ -491,6 +514,34 @@ for th in range(0, len(threshold)):
   full_var_std.append(var_std)
 '''
 
+
+
+for th in range(0, len(threshold)):
+  PI_noise1_acc_sum = 0
+  PI_noise1_var_sum = 0
+  PI_noise1_acc_num = 0
+  PI_noise1_var_num = 0
+  # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
+  list_acc_th = []
+  list_var_th = []
+  for i in range(0, iteration_time):
+    #
+    if PI_noise1_acc_allth[i][th] != "null":
+      PI_noise1_acc_sum += PI_noise1_acc_allth[i][th]
+      list_acc_th.append(random_acc_allth[i][th])
+      PI_noise1_acc_num += 1
+    if PI_noise1_var_allth[i][th] != "null":
+      PI_noise1_var_sum += PI_noise1_var_allth[i][th]
+      list_var_th.append(PI_noise1_var_allth[i][th])
+      PI_noise1_var_num += 1
+    
+  PI_noise1_acc[th] = PI_noise1_acc_sum / PI_noise1_acc_num
+  PI_noise1_var[th] = PI_noise1_var_sum / PI_noise1_var_num
+  # 標準偏差を計算
+  acc_std = np.std(list_acc_th)
+  var_std = np.std(list_var_th)
+  full_acc_std.append(acc_std)
+  full_var_std.append(var_std)
 
 
 # 割当て結果保存:

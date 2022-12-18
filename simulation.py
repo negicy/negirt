@@ -12,6 +12,7 @@ def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth)
   acc_std = []
   var_std = []
   for th in range(0, len(threshold)):
+    
     acc_sum = 0
     var_sum = 0
     tp_sum = 0
@@ -34,15 +35,10 @@ def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth)
     var_std_th = np.std(list_var_th)
     acc_std.append(acc_std_th)
     var_std.append(var_std_th)
-
-    if th == 0:
-      acc_head = list_acc_th
-    if th == len(threshold)-1:
-      acc_tail = list_acc_th
   print(acc)
-    
 
-  return acc, var, tp, acc_std, var_std, acc_head, acc_tail
+    
+  return acc, var, tp, acc_std, var_std
 
 
 

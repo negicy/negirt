@@ -41,7 +41,8 @@ def flatten(assign_dic, worker_list, i):
     #print('====-!====!====!=====')
     #print(assign_dic[worker], assign_dic[pre_worker], i)
  
-
+  
+ 
   return assign_dic
 
    
@@ -195,6 +196,6 @@ def calc_tp(assign_dic, test_worker):
     count_dic[tw] = workload
 
   # 最大のvalueを調べる
-  max_workload =  max(list(count_dic.values()))
-  return max_workload
+  max_num =  max(list(count_dic.values()))
+  return max_num
 

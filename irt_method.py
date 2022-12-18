@@ -20,6 +20,7 @@ def TwoPLM_test(a, b, theta, d=1.7):
   return p
   
 
+
 # input: 01の2D-ndarray, 対象タスクのリスト, 対象ワーカーのリスト
 def run_girth_rasch(data, task_list, worker_list):
     estimates = rasch_mml(data, 1)
@@ -114,7 +115,9 @@ def run_girth_twopl(data, task_list, worker_list):
 # IRT: girthを使用
 # 
 def sample_category(task_list, test_size, label_df):
-  # すべてのカテゴリがバランスよく含まれるようにする
+  
+  # すべてのカテゴリがバランスよく含まれるようにする => DIのqualificationタスクのラベル推定を
+  #true_labelにするとよくわからない現象が起こる，のでランダムサンプリングでよい．
   qualify_task = []
   category_name = ['Technology&Science', 'Economy', 'Businness', 'Health']
   for category in category_name:
@@ -132,18 +135,23 @@ def sample_category(task_list, test_size, label_df):
         qualify_task.append(task)
         if i == size_per_category:
           break
+  
+  
+  #task_list_shuffle = random.sample(task_list, len(task_list))
+  #qualify_task = task_list_shuffle[:40]
+
           
   return qualify_task
 
 # ワーカとタスクを分離
 def devide_sample(task_list, worker_list, label_df):
   output = {}
-  random.shuffle(task_list)
   n = 40
-  qualify_task = sample_category(task_list, n, label_df)
+  #qualify_task = sample_category(task_list, n, label_df)
+  task_list_shuffle = random.sample(task_list, len(task_list))
+  qualify_task = task_list_shuffle[:n]
   test_task = list(set(task_list) - set(qualify_task))
-  # qualify_task = task_list[:n]
-  # test_task = task_list[n:]
+
   #print(len(qualify_task))
   output['qualify_task'] = qualify_task
   output['test_task'] = test_task
@@ -180,7 +188,7 @@ def task_assignable_check(th, item_param, user_param, test_worker, task):
 
 def ai_model(actual_b, dist):
     b_norm = norm.rvs(loc=actual_b, scale=dist, size=100)
-    # print(f'ai momdel: {b_norm}')
+    # print(b_norm)
     ai_accuracy = list(b_norm).count(actual_b) / len(b_norm)
     # print(ai_accuracy)
     return random.choice(b_norm)
@@ -208,12 +216,10 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
   category_dic = {'Businness':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Economy':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 
                     'Technology&Science':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Health':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}}
 
-  for task in qualify_task:
-    # AIモデルの推定ラベル
-    category = label_df['true_label'][task]
-    # print(category)
-    # qualificationのタスク難易度を格納
-    category_dic[category]['b'].append(item_param[task])
+  for i in qualify_task:
+    category = label_df['true_label'][i]
+    # category_dic[category]['a'].append(item_param[i]['alpha'])
+    category_dic[category]['b'].append(item_param[i])
     category_dic[category]['num'] += 1
   mb_list = []
 
@@ -238,20 +244,22 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
       est_label = label_df['estimate_label'][task]
       beta = category_dic[est_label]['mb']
       DI_item_param[task] = beta
-      #if task_assignable_check(th, DI_item_param, user_param, test_worker, task) == True:
 
       for worker in test_worker:
-          # workerの正答確率prob
-          theta = user_param[worker]
-          # prob = irt_fnc(theta, b, a)
-          prob = OnePLM(beta, theta)
+        # workerの正答確率prob
+        
+        theta = user_param[worker]
+        # prob = irt_fnc(theta, b, a)
+        prob = OnePLM(beta, theta)
+        # prob = TwoPLM(a, b, theta, d=1.7)
 
-          # workerの正解率がthresholdより大きければ
-          if prob >= th:
-            # ワーカーを候補リストに代入
-            worker_c[task].append(worker)
+        # workerの正解率がthresholdより大きければ
+        if prob >= th:
+          # ワーカーを候補リストに代入
+          worker_c[task].append(worker)
 
     worker_c_th[th] = worker_c
+    # print(th, top_assignment_count)
 
   return worker_c_th, test_worker, qualify_task, test_task, DI_item_param, user_param, top_result
 
@@ -270,18 +278,38 @@ def sort_test_worker(test_worker, user_param, N):
 def make_candidate_all(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
   worker_c_th = {}
   top_result = {}
+ 
+  # print(item_param)
+  # 難易度の最小値, 最大値
+  theta_range = []
+  #theta_range.append(np.min(list(full_item_param.values())))
+  #theta_range.append(np.max(list(full_item_param.values())))  
 
   for th in threshold:
-    if th < 0.6:
-      margin = th / 8.5
-    else:
-      margin = th / 6.5
-    margin = th / 6
+    # margin = th / 5
+    if th < 0.525:
+      margin = 0.32
+    
+    elif th <= 0.55:
+      #margin = th/1.60
+      # margin = 2.25
+      #margin = th/2.55
+      margin = 0.30
+    elif th <= 0.60:
+      margin = 0.280
 
+    elif th <= 0.63:
+      mergin = th/2.5
+    elif th <= 0.67:
+      margin = 0.24
+    else:
+      margin = 0.185
+    # margin = th/4.0
+    #margin = th/3.9
     
     worker_c = {}
     for task in test_task:
-      if task_assignable_check(th, full_item_param, full_user_param, test_worker, task) == True:
+      if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == True:
       
         # Aタスク
         worker_c[task] = []
@@ -290,12 +318,16 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
           # workerの正答確率prob
           theta = full_user_param[worker]
           prob = OnePLM(beta, theta)
-  
+          # print(prob)
+          # prob = TwoPLM(alpha, beta, theta, d=1.7)
+
           # workerの正解率がthresholdより大きければ
           if prob >= th + margin:
             # ワーカーを候補リストに代入
             worker_c[task].append(worker)
     worker_c_th[th] = worker_c
+   
+    
 
   return worker_c_th, full_item_param, full_user_param, top_result
 
@@ -304,36 +336,37 @@ def make_candidate_PI_noise(threshold, input_df, full_item_param, full_user_para
   worker_c_th = {}
   top_result = {}
   margin = 0
-  PI_noise_item_param = {}
+  # print(item_param)
+  # 難易度の最小値, 最大値
+  theta_range = []
+  #theta_range.append(np.min(list(full_item_param.values())))
+  #theta_range.append(np.max(list(full_item_param.values())))  
+
   for th in threshold:
     # margin = th / 5
-   
-    if th < 0.6:
-      margin = th / 8.5
-    else:
-      margin = th / 6.5
-    margin = 0
+    margin = th/8
     worker_c = {}
     for task in test_task:
-      # Aタスク
-      worker_c[task] = []
-      actual_b = full_item_param[task]
-      beta = ai_model(actual_b, dist=2.0)
-      PI_noise_item_param[task] = beta
-      if task_assignable_check(th, PI_noise_item_param, full_user_param, test_worker, task) == True:
+      if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == True:
       
+        # Aタスク
+        worker_c[task] = []
+        actual_b = full_item_param[task]
+        beta = ai_model(actual_b, dist=0.05)
         for worker in test_worker:
           # workerの正答確率prob
           theta = full_user_param[worker]
           prob = OnePLM(beta, theta)
+          # print(prob)
+          # prob = TwoPLM(alpha, beta, theta, d=1.7)
+
           # workerの正解率がthresholdより大きければ
-          if prob >= th + margin:
+          if prob >= th - margin:
             # ワーカーを候補リストに代入
             worker_c[task].append(worker)
          
     worker_c_th[th] = worker_c
 
-  return worker_c_th, full_item_param, full_user_param, top_result
 
 
 # 平均正解率がthreshold以上のワーカに割り当てる
@@ -431,7 +464,9 @@ def AA_assignment(threshold, input_df, test_worker, q_task, test_task):
       for worker in worker_rate:
         if worker_rate[worker] >= th:
           AA_candidate_dic[th][task].append(worker)
-    
+      # 割当てがないタスクに上位ワーカを割り当てる．
+      #if len(AA_candidate_dic[th][task]) == 0:
+        #AA_candidate_dic[th][task] = top_workers[:3]
 
   return AA_candidate_dic, top_workers_dict
 

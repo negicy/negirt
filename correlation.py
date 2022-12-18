@@ -19,7 +19,7 @@ batch_df = pd.read_csv("batch_100.csv", sep = ",")
 label_df = label_df.rename(columns={'Unnamed: 0': 'id'})
 label_df = label_df.set_index('id')
 
-with open('input_data.pickle', 'rb') as f:
+with open('input_data_no_spam.pickle', 'rb') as f:
   input_data = pickle.load(f)
   input_df = input_data['input_df']
   worker_list = input_data['worker_list']
@@ -28,11 +28,12 @@ with open('input_data.pickle', 'rb') as f:
 spam_list = [
   #'ALSF1M6V28URB',
   #'A303MN1VOKQG5I',
-  'AK9U0LQROU5LW',
-  'A3S2AUQWI7XWT4'
+  #'AK9U0LQROU5LW',
+  #'A3S2AUQWI7XWT4'
 ]
 for spam in spam_list:
   worker_list.remove(spam)
+print(len(worker_list))
 
 
 threshold = list([i / 100 for i in range(50, 81)])

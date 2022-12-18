@@ -35,10 +35,24 @@ with open('input_data.pickle', 'rb') as f:
   worker_list = input_data['worker_list']
   task_list = input_data['task_list']
 
+spam_worker_list = [
+ 
+  'AK9U0LQROU5LW',
+  'A2CN9J57643499'
+]
+for worker in spam_worker_list:
+  worker_list.remove(worker)
+
 
 print(len(worker_list))
 # 正解確率P
 print(OnePLM(2, 1))
 
-# すべてのタスクの平均正解率
-print(task_correct_rate(input_df, worker_list, task_list))
+count = 0
+# label_df について
+for task in task_list:
+    if label_df['estimate_label'][task] == label_df['true_label'] [task]:
+        count += 1
+
+print(count/len(task_list))
+

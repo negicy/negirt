@@ -83,8 +83,6 @@ def run_girth_twopl(data, task_list, worker_list):
     # Unpack estimates(a, b)
     discrimination_estimates = estimates['Discrimination']
     difficulty_estimates = estimates['Difficulty']
-    # print(discrimination_estimates)
-    # print(difficulty_estimates)
 
     a_list = []
     for i in range(len(task_list)):
@@ -105,40 +103,12 @@ def run_girth_twopl(data, task_list, worker_list):
         worker_id = worker_list[j]
         user_param[worker_id] = abilitiy_estimates[j] 
 
-    # print(item_param)
-    # print(len(user_param))
     return item_param, user_param
 
 # qualification task, test taskに分けてシミュレーション
 # IRT: girthを使用
 # 
-def sample_category(task_list, test_size, label_df):
-  
-  # すべてのカテゴリがバランスよく含まれるようにする => DIのqualificationタスクのラベル推定を
-  #true_labelにするとよくわからない現象が起こる，のでランダムサンプリングでよい．
-  qualify_task = []
-  category_name = ['Technology&Science', 'Economy', 'Businness', 'Health']
-  for category in category_name:
-    # categoryのタスクをN個選ぶ
-    i = 0
-    size_per_category = test_size / len(category_name)
-    for task in task_list:
-      category_of_task = label_df['true_label'][task]
 
-      if category_of_task == category:
-       
-        i += 1
-        # print(category, category_of_task, i)
-        qualify_task.append(task)
-        if i == size_per_category:
-          break
-  
-  
-  #task_list_shuffle = random.sample(task_list, len(task_list))
-  #qualify_task = task_list_shuffle[:40]
-
-          
-  return qualify_task
 
 # ワーカとタスクを分離
 def devide_sample(task_list, worker_list, label_df):
@@ -157,12 +127,8 @@ def devide_sample(task_list, worker_list, label_df):
   return output
 
 def task_assignable_check(th, item_param, user_param, test_worker, task):
-  # sorted_full_user_param = list(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
-  # print(sorted_full_user_param)
- 
   b = item_param[task]
   for worker in test_worker:
-    # top_theta = sorted_full_user_param[0][1]
     theta = user_param[worker]
     prob = OnePLM(b, theta)
     if prob >= th:
@@ -200,18 +166,12 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
     # qualification taskの真のラベル
     category = label_df['true_label'][i]
     category_dic[category]['b'].append(item_param[i])
-    # category_dic[category]['num'] += 1
   mb_list = []
 
   for category in category_dic:
     category_dic[category]['mb'] = np.mean(category_dic[category]['b'])
     for num in range(0, category_dic[category]['num']):
       mb_list.append(category_dic[category]['mb'])
-
-  # 難易度の最小値, 最大値
-  #theta_range = []
-  #theta_range.append(np.min(mb_list))
-  #theta_range.append(np.max(mb_list))
 
   for th in threshold:
     candidate_count = 0
@@ -234,8 +194,7 @@ def make_candidate(threshold, input_df, label_df, worker_list, test_worker, qual
           worker_c[task].append(worker)
 
     worker_c_th[th] = worker_c
-    # print(th, top_assignment_count)
-
+    
   return worker_c_th, test_worker, qualify_task, test_task, DI_item_param, user_param
 
 

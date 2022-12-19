@@ -10,7 +10,6 @@ import scikit_posthocs as sp
 from assignment_method import *
 from irt_method import *
 from simulation import *
-from survey import *
 
 path = os.getcwd()
 '''

@@ -9,6 +9,7 @@ import random
 from scipy.stats import norm
 from irt_method import *
 from simulation import * 
+from test_make_candidate import *
 
 def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):
   # ワーカ候補の辞書
@@ -33,19 +34,18 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
     # qualification taskの真のラベル
     category = label_df['true_label'][i]
     category_dic[category]['b'].append(item_param[i])
-  mb_list = []
 
   for category in category_dic:
     category_dic[category]['mb'] = np.mean(category_dic[category]['b'])
-    for num in range(0, category_dic[category]['num']):
-      mb_list.append(category_dic[category]['mb'])
+ 
+  print(test_DI_make_candidate(q_data, qualify_task))
 
   for th in threshold:
     candidate_count = 0
     worker_c = {}
     for task in test_task:
       worker_c[task] = []
-      # test_taskのカテゴリ推定
+      # test_taskの推定カテゴリ
       est_label = label_df['estimate_label'][task]
       beta = category_dic[est_label]['mb']
       DI_item_param[task] = beta
@@ -71,24 +71,24 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
   for th in threshold:
     # margin = th / 5
     if th < 0.525:
-      margin = 0.32
+      margin = 0.320
     
     elif th <= 0.55:
       #margin = th/1.60
       # margin = 2.25
       #margin = th/2.55
-      margin = 0.30
+      margin = 0.31
     elif th <= 0.60:
-      margin = 0.280
+      margin = 0.270
 
     elif th <= 0.63:
       mergin = th/2.5
     elif th <= 0.67:
-      margin = 0.24
+      margin = 0.245
     else:
-      margin = 0.18
+      margin = 0.20
     # margin = th/4.0
-    #margin = th/3.9
+  
     
     worker_c = {}
     for task in test_task:
@@ -143,7 +143,7 @@ def make_candidate_PI_noise(threshold, input_df, full_item_param, full_user_para
     worker_c_th[th] = worker_c
 
 
-def top_worker_assignment(threshold, input_df, test_worker, q_task, test_task):
+def top_make_cabdidate(threshold, input_df, test_worker, q_task, test_task):
   # test_workerについてqualificationの正解率を計算する from input_df
   # ワーカーのqualifivation taskの正解率を格納する辞書
   n = 5
@@ -179,7 +179,7 @@ def top_worker_assignment(threshold, input_df, test_worker, q_task, test_task):
 
 
 # Average Accuracy Assignment
-def AA_assignment(threshold, input_df, test_worker, q_task, test_task):
+def AA_make_candidate(threshold, input_df, test_worker, q_task, test_task):
 
   AA_candidate_dic = {}
   # 上位N人のワーカ

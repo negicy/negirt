@@ -11,6 +11,7 @@ from assignment_method import *
 from irt_method import *
 from simulation import *
 from survey import *
+from make_candidate import *
 
 path = os.getcwd()
 '''
@@ -95,7 +96,7 @@ print(len(worker_list))
 '''
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 10
+iteration_time = 200
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")
@@ -138,19 +139,15 @@ for iteration in range(0, iteration_time):
 
   DI_item_param = ours_output[4]
 
-  top_candidate = top_worker_assignment(threshold, input_df, test_worker, qualify_task, test_task)
+  top_candidate = top_make_cabdidate(threshold, input_df, test_worker, qualify_task, test_task)
 
-  AA_output = AA_assignment(threshold, input_df, test_worker, qualify_task, test_task)
+  AA_output = AA_make_candidate(threshold, input_df, test_worker, qualify_task, test_task)
   AA_candidate = AA_output[0]
   AA_top_workers_dict = AA_output[1]
 
   PI_output = PI_make_candidate(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
   PI_candidate = PI_output[0]
   
-  PI_noise1 = make_candidate_PI_noise(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
-  PI_noise1_candidate = PI_output[0]
-
-
 
   # 保存用
   ours_output_alliter[iteration] = ours_output
@@ -330,35 +327,7 @@ for iteration in range(0, iteration_time):
   PI_tp_allth.append(PI_tp_perth)
   PI_margin_allth.append(PI_margin_perth)
   
-  for th in PI_noise1_candidate:
-    candidate_dic = PI_noise1_candidate[th]
-    PI_noise1_assign_dic_opt = {}
-    # assign_dic = assignment(candidate_dic, test_worker)
-    assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
 
-    for worker in assigned:
-      for task in assigned[worker]:
-        PI_assign_dic_opt[task] = worker
-
-    top_workers = sort_test_worker(test_worker, full_user_param, N=5)
-    for task in test_task:
-      if task not in PI_noise1_assign_dic_opt.keys():
-        PI_noise1_assign_dic_opt[task] = random.choice(top_workers)
-    # assign_dic = assignment(candidate_dic, test_worker)
-    # 割当て結果の精度を求める
-
-    acc = accuracy(PI_noise1_assign_dic_opt, input_df)
-    var = task_variance(PI_noise1_assign_dic_opt, test_worker)
-    tp = calc_tp(PI_noise1_assign_dic_opt, test_worker)
-
-    
-    PI_noise1_acc_perth.append(acc)
-    PI_noise1_var_perth.append(var)
-    PI_noise1_tp_perth.append(tp)
-
-  PI_noise1_acc_allth.append(PI_noise1_acc_perth)
-  PI_noise1_var_allth.append(PI_noise1_var_perth)
-  PI_noise1_tp_allth.append(PI_noise1_tp_perth)
   
   for th in range(0, len(threshold)):
     assign_dic = random_assignment(test_task, test_worker)
@@ -487,30 +456,6 @@ for th in range(0, len(threshold)):
 '''
 可視化
 '''
-for th in range(0, len(threshold)):
-  PI_noise1_acc_sum = 0
-  PI_noise1_var_sum = 0
-  PI_noise1_acc_num = 0
-  PI_noise1_var_num = 0
-  PI_noise1_tp_sum = 0
-  # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
-  list_acc_th = []
-  list_var_th = []
-  for i in range(0, iteration_time):
-    #
-    if PI_noise1_acc_allth[i][th] != "null":
-      PI_noise1_acc_sum += PI_noise1_acc_allth[i][th]
-      list_acc_th.append(random_acc_allth[i][th])
-      PI_noise1_acc_num += 1
-    if PI_noise1_var_allth[i][th] != "null":
-      PI_noise1_var_sum += PI_noise1_var_allth[i][th]
-      list_var_th.append(PI_noise1_var_allth[i][th])
-      PI_noise1_var_num += 1
-    PI_noise1_tp_sum += PI_noise1_tp_allth[i][th]
-    
-  PI_noise1_acc[th] = PI_noise1_acc_sum / PI_noise1_acc_num
-  PI_noise1_var[th] = PI_noise1_var_sum / PI_noise1_var_num
-  PI_noise1_tp[th] = PI_noise1_tp_sum / iteration_time
 
   # 標準偏差を計算
 
@@ -616,7 +561,6 @@ AA_trade = tp_acc_plot(AA_tp, AA_acc)
 top_trade = tp_acc_plot(top_tp, top_acc)
 random_trade = tp_acc_plot(random_tp, random_acc)
 PI_trade = tp_acc_plot(PI_tp, PI_acc)
-PI_noise1_trade = tp_acc_plot(PI_noise1_tp, PI_noise1_acc)
 
 # top_trade = var_acc_plot(top_var, top_acc)
 # random_trade = var_acc_plot(random_var, random_acc)
@@ -634,7 +578,6 @@ ax.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
 ax.plot(top_trade[0], top_trade[1], color='blue', label='TOP')
 ax.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
 ax.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
-ax.plot(PI_noise1_trade[0], PI_noise1_trade[1], color='orange', label='IRT(PI0.5)')
 fig.legend(bbox_to_anchor=bbox, loc='upper left')
 plt.show()
 
@@ -645,7 +588,7 @@ AA_trade = var_acc_plot(AA_var, AA_acc)
 top_trade = var_acc_plot(top_var, top_acc)
 random_trade = var_acc_plot(random_var, random_acc)
 PI_trade = var_acc_plot(PI_var, PI_acc)
-PI_noise1_trade = var_acc_plot(PI_noise1_var, PI_noise1_acc)
+
 
 plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義

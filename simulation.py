@@ -3,6 +3,43 @@ import matplotlib.pyplot as plt
 from operator import itemgetter
 from irt_method import *
 
+# ワーカとタスクを分離
+def devide_sample(task_list, worker_list, label_df):
+  output = {}
+  n = 40
+
+  task_list_shuffle = random.sample(task_list, len(task_list))
+  qualify_task = task_list_shuffle[:n]
+  test_task = list(set(task_list) - set(qualify_task))
+
+  #print(len(qualify_task))
+  output['qualify_task'] = qualify_task
+  output['test_task'] = test_task
+  output['test_worker'] = random.sample(worker_list, 20)
+
+  return output
+
+def task_assignable_check(th, item_param, user_param, test_worker, task):
+  b = item_param[task]
+  for worker in test_worker:
+    theta = user_param[worker]
+    prob = OnePLM(b, theta)
+    if prob >= th:
+      return True
+  
+  return False
+
+# 割当て候補のいないタスクを無くす
+def sort_test_worker(test_worker, user_param, N):
+  test_worker_param = {}
+  for worker in test_worker:
+    test_worker_param[worker] = user_param[worker]
+
+  sorted_user_param = dict(sorted(test_worker_param.items(), key=lambda x: x[1], reverse=True))
+  top_workers = list(sorted_user_param.keys())[:N]
+  return top_workers
+  
+
 
 
 def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth):
@@ -35,10 +72,14 @@ def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth)
     var_std_th = np.std(list_var_th)
     acc_std.append(acc_std_th)
     var_std.append(var_std_th)
+    if th == 0:
+      acc_head = list_acc_th
+    if th == len(threshold)-1:
+      acc_tail = list_acc_th
   print(acc)
 
     
-  return acc, var, tp, acc_std, var_std
+  return acc, var, tp, acc_std, var_std,  acc_head, acc_tail
 
 
 

@@ -25,19 +25,12 @@ batch_df = pd.read_csv("batch_100.csv", sep = ",")
 label_df = label_df.rename(columns={'Unnamed: 0': 'id'})
 label_df = label_df.set_index('id')
 
-with open('input_data.pickle', 'rb') as f:
+with open('input_data_no_spam.pickle', 'rb') as f:
   input_data = pickle.load(f)
   input_df = input_data['input_df']
   worker_list = input_data['worker_list']
   task_list = input_data['task_list']
 
-spam_worker_list = [
- 
-  'AK9U0LQROU5LW',
-  'A2CN9J57643499'
-]
-for worker in spam_worker_list:
-  worker_list.remove(worker)
 
 threshold = list([i / 100 for i in range(50, 81)])
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
@@ -62,16 +55,13 @@ full_user_param = params[1]
 
 
 # Assignable taskのみをサンプリング
-while True:
-    sample = devide_sample(task_list, worker_list, label_df)
-    qualify_task = sample['qualify_task']
-    test_task = sample['test_task']
-    test_worker = sample['test_worker']
-    if assignable_check(threshold, input_df, full_item_param, full_user_param, test_worker, test_task) == True:
-        break
-    else:
-        break
 
+sample = devide_sample(task_list, worker_list, label_df)
+qualify_task = sample['qualify_task']
+test_task = sample['test_task']
+test_worker = sample['test_worker']
+
+print('worker_list_size:', len(worker_list))
 print('qualify_task size:', len(qualify_task))
 print('test_task size:', len(test_task))
 

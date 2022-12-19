@@ -1,0 +1,17 @@
+
+
+(1)Assignable taskだけ
+(2)qualificatio: testの比率を変える
+(3)margin
+
+
+[normal]
+(1) off
+(2) 40:60
+(3) 0
+
+
+[Assignable]
+(1) on
+(2) 60:40
+(3) th/6

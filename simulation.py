@@ -56,18 +56,18 @@ def result_plot_1(threshold, result_dic, ay, bbox):
     top = np.array(result_dic['top'])
     AA = np.array(result_dic['AA'])
     random = np.array(result_dic['random'])
-    full_irt = np.array(result_dic['full_irt'])
+    PI = np.array(result_dic['PI'])
 
     ours_std = np.array(result_dic['ours_std'])
     top_std = np.array(result_dic['top_std'])
     random_std = np.array(result_dic['random_std'])
-    full_irt_std = np.array(result_dic['full_irt_std'])
+    PI_std = np.array(result_dic['PI_std'])
     AA_std = np.array(result_dic['AA_std'])
     ax.plot(x, ours, color='red', label='IRT(DI)')
     ax.plot(x, top, color='blue', label='TOP')
     ax.plot(x, AA, color='cyan', label='AA')
     ax.plot(x, random, color='green', label='RANDOM')
-    ax.plot(x, full_irt, color='purple', label='IRT(PI)')
+    ax.plot(x, PI, color='purple', label='IRT(PI)')
     if ay == 'accuracy':
         ax.plot(x, x, color='orange', linestyle="dashed")
 
@@ -76,7 +76,7 @@ def result_plot_1(threshold, result_dic, ay, bbox):
     plt.fill_between(x, top - top_std, top + top_std, facecolor='b', alpha=a)
     plt.fill_between(x, AA - AA_std, AA + AA_std, facecolor='cyan', alpha=a)
     plt.fill_between(x, random - random_std, random + random_std, facecolor='g', alpha=a)
-    plt.fill_between(x, full_irt - full_irt_std, full_irt + full_irt_std, facecolor='purple', alpha=a)
+    plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
     return plt
 
@@ -92,19 +92,19 @@ def result_plot_2(threshold, result_dic, ay, bbox):
     x = np.array(threshold)
     
     ours = np.array(result_dic['ours'])
-    full_irt = np.array(result_dic['full_irt'])
+    PI = np.array(result_dic['PI'])
 
     ours_std = np.array(result_dic['ours_std'])
-    full_irt_std = np.array(result_dic['full_irt_std'])
+    PI_std = np.array(result_dic['PI_std'])
     
     ax.plot(x, ours, color='red', label='ours')
-    ax.plot(x, full_irt, color='purple', label='IRT')
+    ax.plot(x, PI, color='purple', label='IRT')
     if ay == 'accuracy':
         ax.plot(x, x, color='orange', linestyle="dashed")
     print(x)
     a = 0.05
     plt.fill_between(x, ours - ours_std, ours + ours_std, facecolor='r', alpha=a)
-    plt.fill_between(x, full_irt - full_irt_std, full_irt + full_irt_std, facecolor='purple', alpha=a)
+    plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
     return plt
 
@@ -117,13 +117,15 @@ def var_acc_plot(var, acc):
     var = list(var)
     acc = list(acc)
     # 推移をプロット
-    
+    '''
     plt.rcParams["font.size"] = 18
     fig = plt.figure() #親グラフと子グラフを同時に定義
     ax = fig.add_subplot()
     ax.set_xlabel('variance')
     ax.set_ylabel('accuracy')
     ax.plot(var, acc, color='red', label='ours')
+    '''
+    
     
     return var, acc
 
@@ -169,4 +171,7 @@ def welldone_count(threshold, assign_dic, user_param, item_param):
         if OnePLM(b, theta) >= threshold:
             count += 1
     return count
+
+def has_duplicates(seq):
+    return len(seq) != len(set(seq))
 

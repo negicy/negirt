@@ -72,7 +72,6 @@ while True:
     else:
         break
 
-
 print('qualify_task size:', len(qualify_task))
 print('test_task size:', len(test_task))
 

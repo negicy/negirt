@@ -25,12 +25,20 @@ batch_df = pd.read_csv("batch_100.csv", sep = ",")
 label_df = label_df.rename(columns={'Unnamed: 0': 'id'})
 label_df = label_df.set_index('id')
 
-with open('input_data.pickle', 'rb') as f:
+with open('input_data_no_spam.pickle', 'rb') as f:
   input_data = pickle.load(f)
   input_df = input_data['input_df']
   worker_list = input_data['worker_list']
   task_list = input_data['task_list']
 
+spam_list = [
+  #'ALSF1M6V28URB',
+  #'A303MN1VOKQG5I',
+  #'AK9U0LQROU5LW',
+  #'A2CN9J57643499'
+]
+for spam in spam_list:
+  worker_list.remove(spam)
 
 ours_acc_allth = []
 ours_var_allth = [] 
@@ -49,8 +57,8 @@ random_acc_allth = []
 random_var_allth = []
 random_tp_allth = []
 
-full_irt_acc_allth = []
-full_irt_var_allth = []
+PI_acc_allth = []
+PI_var_allth = []
 PI_tp_allth = []
 PI_margin_allth = []
 
@@ -81,14 +89,7 @@ params = run_girth_rasch(q_data, task_list, worker_list)
 full_item_param = params[0]
 full_user_param = params[1]
 
-spam_worker_list = [
- 
-  'AK9U0LQROU5LW',
-  'A2CN9J57643499'
-]
-#for worker in spam_worker_list:
-  #worker_list.remove(worker)
-
+print(len(worker_list))
 '''
 イテレーション
 '''
@@ -115,8 +116,8 @@ for iteration in range(0, iteration_time):
   random_var_perth = []
   random_tp_perth = []
 
-  full_irt_acc_perth = []
-  full_irt_var_perth = []
+  PI_acc_perth = []
+  PI_var_perth = []
   PI_tp_perth = []
   PI_margin_perth = []
 
@@ -136,7 +137,7 @@ for iteration in range(0, iteration_time):
   ours_output =  make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
   ours_candidate = ours_output[0]
   user_param = ours_output[5]
-  top_result = ours_output[6]
+
   DI_item_param = ours_output[4]
 
   top_candidate = top_worker_assignment(threshold, input_df, test_worker, qualify_task, test_task)
@@ -145,18 +146,17 @@ for iteration in range(0, iteration_time):
   AA_candidate = AA_output[0]
   AA_top_workers_dict = AA_output[1]
 
-  full_output = make_candidate_all(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
-  full_irt_candidate = full_output[0]
+  PI_output = make_candidate_all(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
+  PI_candidate = PI_output[0]
   
   PI_noise1 = make_candidate_PI_noise(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
-  PI_noise1_candidate = full_output[0]
+  PI_noise1_candidate = PI_output[0]
 
-  for th in top_result:
-    top_assignment_allth[th].append(top_result[th])
+
 
   # 保存用
   ours_output_alliter[iteration] = ours_output
-  full_output_alliter[iteration] = full_output
+  full_output_alliter[iteration] = PI_output
 
   # worker_c_th = {th: {task: [workers]}}
   for th in ours_candidate:
@@ -174,9 +174,6 @@ for iteration in range(0, iteration_time):
     for task in test_task:
       if task not in DI_assign_dic_opt.keys():
         DI_assign_dic_opt[task] = random.choice(top_workers)
-    
-    # print('DI size:', len(DI_assign_dic_opt))
-
     
     # print(len(assign_dic_opt.keys()))
     if th in [0.5, 0.6, 0.7, 0.8]:
@@ -201,7 +198,7 @@ for iteration in range(0, iteration_time):
       DI_margin = (DI_item_param[task] - full_item_param[task])**2
       
       DI_margin_sum += DI_margin
-      # print(full_item_param[task], full_user_param[worker], full_user_param[worker] - full_item_param[task], input_df[worker][task])
+
     DI_mse = math.sqrt(DI_margin_sum / len(DI_assign_dic_opt))
     # print(DI_margin_mean)
     # 割当て結果分散を求める
@@ -219,9 +216,7 @@ for iteration in range(0, iteration_time):
   ours_tp_allth.append(ours_tp_perth)
   DI_margin_allth.append(DI_margin_perth)
 
-  
   for candidate_dic in top_candidate.values():
-
     index = 0
     top_assign_dic = {}
     for task in candidate_dic:
@@ -254,15 +249,14 @@ for iteration in range(0, iteration_time):
         AA_assign_dic_opt[task] = worker
         
     if th in [0.5, 0.6, 0.7, 0.8]:
-      # welldone_dist[th] += welldone_count(th, AA_assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
-      # 割当て候補人数を数える
+        # 割当て候補人数を数える
       # worker_with_task['AA'] += len(assign_dic_opt[th])
       worker_with_task_list = []
       for worker_set in AA_candidate[th].values():
         for worker in worker_set:
           if worker not in worker_with_task_list:
             worker_with_task_list.append(worker)
-
+      print('重複チェック:', has_duplicates(worker_with_task_list))
       worker_with_task['AA'][th] += len(worker_with_task_list)
     
     AA_top_workers_list = list(AA_top_workers_dict)
@@ -282,9 +276,17 @@ for iteration in range(0, iteration_time):
   AA_acc_allth.append(AA_acc_perth)
   AA_var_allth.append(AA_var_perth)
   AA_tp_allth.append(AA_tp_perth)
+
+  for th in PI_candidate:
+    candidate_dic = PI_candidate[th]
+    PI_assign_dic_opt_A = {}
+    PI_assign_dic_opt_NA = {}
+    PI_assign_dic_opt = {}
+
+    PI_assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
   
-  for th in full_irt_candidate:
-    candidate_dic = full_irt_candidate[th]
+  for th in PI_candidate:
+    candidate_dic = PI_candidate[th]
     PI_assign_dic_opt = {}
 
     PI_assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
@@ -316,13 +318,13 @@ for iteration in range(0, iteration_time):
     var = task_variance(PI_assign_dic_opt, test_worker)
     tp = calc_tp(PI_assign_dic_opt, test_worker)
     
-    full_irt_acc_perth.append(acc)
-    full_irt_var_perth.append(var)
+    PI_acc_perth.append(acc)
+    PI_var_perth.append(var)
     PI_tp_perth.append(tp)
     PI_margin_perth.append(PI_margin_mean)
 
-  full_irt_acc_allth.append(full_irt_acc_perth)
-  full_irt_var_allth.append(full_irt_var_perth)
+  PI_acc_allth.append(PI_acc_perth)
+  PI_var_allth.append(PI_var_perth)
   PI_tp_allth.append(PI_tp_perth)
   PI_margin_allth.append(PI_margin_perth)
   
@@ -400,11 +402,11 @@ random_tp = [0] * len(threshold)
 random_acc_std = []
 random_var_std = []
 
-full_irt_acc = [0] * len(threshold)
-full_irt_var = [0] * len(threshold)
+PI_acc = [0] * len(threshold)
+PI_var = [0] * len(threshold)
 PI_tp = [0] * len(threshold)
-full_acc_std = []
-full_var_std = []
+PI_acc_std = []
+PI_var_std = []
 PI_margin_result = [0] * len(threshold) 
 
 PI_noise1_acc = [0] * len(threshold)
@@ -497,7 +499,6 @@ for th in range(0, len(threshold)):
   # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
   list_acc_th = []
   list_var_th = []
-  
   for i in range(0, iteration_time):
     #
     if AA_acc_allth[i][th] != "null":
@@ -568,10 +569,10 @@ if th == len(threshold)-1:
   random_acc_tail = list_acc_th
 
 for th in range(0, len(threshold)):
-  full_irt_acc_sum = 0
-  full_irt_var_sum = 0
-  full_irt_acc_num = 0
-  full_irt_var_num = 0
+  PI_acc_sum = 0
+  PI_var_sum = 0
+  PI_acc_num = 0
+  PI_var_num = 0
   PI_tp_sum = 0
   PI_margin_sum_th = 0
   # thresholdごとのacc, varのリスト, 標準偏差の計算に使う
@@ -579,27 +580,31 @@ for th in range(0, len(threshold)):
   list_var_th = []
   for i in range(0, iteration_time):
     #
-    if full_irt_acc_allth[i][th] != "null":
-      full_irt_acc_sum += full_irt_acc_allth[i][th]
+    if PI_acc_allth[i][th] != "null":
+      PI_acc_sum += PI_acc_allth[i][th]
       list_acc_th.append(random_acc_allth[i][th])
-      full_irt_acc_num += 1
-    if full_irt_var_allth[i][th] != "null":
-      full_irt_var_sum += full_irt_var_allth[i][th]
-      list_var_th.append(full_irt_var_allth[i][th])
-      full_irt_var_num += 1
+      PI_acc_num += 1
+    if PI_var_allth[i][th] != "null":
+      PI_var_sum += PI_var_allth[i][th]
+      list_var_th.append(PI_var_allth[i][th])
+      PI_var_num += 1
     PI_tp_sum += PI_tp_allth[i][th]
     PI_margin_sum_th += PI_margin_allth[i][th]
  
-  full_irt_acc[th] = full_irt_acc_sum / full_irt_acc_num
-  full_irt_var[th] = full_irt_var_sum / full_irt_var_num
+  PI_acc[th] = PI_acc_sum / PI_acc_num
+  PI_var[th] = PI_var_sum / PI_var_num
   PI_tp[th] = PI_tp_sum / iteration_time
   PI_margin_result[th] = PI_margin_sum_th / iteration_time
   # 標準偏差を計算
+
   acc_std = np.std(list_acc_th)
   var_std = np.std(list_var_th)
-  full_acc_std.append(acc_std)
-  full_var_std.append(var_std)
+  PI_acc_std.append(acc_std)
+  PI_var_std.append(var_std)
 
+'''
+可視化
+'''
 for th in range(0, len(threshold)):
   PI_noise1_acc_sum = 0
   PI_noise1_var_sum = 0
@@ -627,8 +632,6 @@ for th in range(0, len(threshold)):
 
   # 標準偏差を計算
 
-  
-
 '''
 可視化
 '''
@@ -636,7 +639,6 @@ for th in range(0, len(threshold)):
 for th in top_assignment_allth:
   res = top_assignment_allth[th]
   print(th, len(res), np.mean(res))
-
 
 '''
 # 割当て結果保存:
@@ -646,9 +648,9 @@ now = datetime.datetime.now()
 result = {
   'ours_output': ours_output_alliter, 'full_output': full_output_alliter, 
   'ours_acc': ours_acc_allth, 'top_acc': top_acc_allth, 
-  'random_acc': random_acc_allth, 'full_irt_acc': full_irt_acc_allth,
+  'random_acc': random_acc_allth, 'PI_acc': PI_acc_allth,
   'ours_var': ours_var_allth, 'top_var': top_var_allth, 
-  'random_var': random_var_allth, 'full_irt_var': full_irt_var_allth,
+  'random_var': random_var_allth, 'PI_var': PI_var_allth,
   'welldone_dist': welldone_dist, 
   'ours_acc_head': ours_acc_head, 'AA_acc_head': AA_acc_head,
   'ours_acc_tail': ours_acc_tail, 'AA_acc_tail': AA_acc_tail
@@ -664,7 +666,6 @@ with open(filename, 'wb') as f:
 for th in welldone_dist:
   welldone_dist[th] = welldone_dist[th] / iteration_time
 
-
 # 割当て成功数ヒストグラム
 plt.rcParams["font.size"] = 18
 fig =  plt.figure()
@@ -678,8 +679,6 @@ plt.show()
 
 # タスクのあるワーカ人数をヒストグラムで
 # iteration間の平均を求める
-
-
 
 num_worker = [[], []]
 for th in [0.5, 0.6, 0.7, 0.8]:
@@ -715,13 +714,13 @@ plt.show()
 # 推移をプロット
 
 result_acc_dic = {
-  'ours': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'full_irt': full_irt_acc,
-  'ours_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'full_irt_std': full_acc_std
+  'ours': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': PI_acc,
+  'ours_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': PI_acc_std
   }
 
 result_var_dic = {
-  'ours': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'full_irt': full_irt_var,
-  'ours_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'full_irt_std': full_var_std
+  'ours': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'PI': PI_var,
+  'ours_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': PI_var_std
 }
 
 result_plot_1(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400)).show()
@@ -732,11 +731,37 @@ ours_trade = tp_acc_plot(ours_tp, ours_acc)
 AA_trade = tp_acc_plot(AA_tp, AA_acc)
 top_trade = tp_acc_plot(top_tp, top_acc)
 random_trade = tp_acc_plot(random_tp, random_acc)
-PI_trade = tp_acc_plot(PI_tp, full_irt_acc)
+PI_trade = tp_acc_plot(PI_tp, PI_acc)
 PI_noise1_trade = tp_acc_plot(PI_noise1_tp, PI_noise1_acc)
 
 # top_trade = var_acc_plot(top_var, top_acc)
 # random_trade = var_acc_plot(random_var, random_acc)
+
+plt.rcParams["font.size"] = 22
+fig = plt.figure() #親グラフと子グラフを同時に定義
+ax = fig.add_subplot()
+ax.set_xlabel('Working Opportunity')
+ax.set_ylabel('accuracy')
+ax.set_xlim(0, 30)
+
+bbox=(0.2750, 0.400)
+ax.plot(ours_trade[0], ours_trade[1], color='red', label='IRT')
+ax.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
+ax.plot(top_trade[0], top_trade[1], color='blue', label='TOP')
+ax.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
+ax.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
+ax.plot(PI_noise1_trade[0], PI_noise1_trade[1], color='orange', label='IRT(PI0.5)')
+fig.legend(bbox_to_anchor=bbox, loc='upper left')
+plt.show()
+
+
+# トレードオフのグラフ
+ours_trade = var_acc_plot(ours_var, ours_acc)
+AA_trade = var_acc_plot(AA_var, AA_acc)
+top_trade = var_acc_plot(top_var, top_acc)
+random_trade = var_acc_plot(random_var, random_acc)
+PI_trade = var_acc_plot(PI_var, PI_acc)
+PI_noise1_trade = var_acc_plot(PI_noise1_var, PI_noise1_acc)
 
 plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義

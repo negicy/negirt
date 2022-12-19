@@ -19,28 +19,22 @@ batch_df = pd.read_csv("batch_100.csv", sep = ",")
 label_df = label_df.rename(columns={'Unnamed: 0': 'id'})
 label_df = label_df.set_index('id')
 
-with open('input_data.pickle', 'rb') as f:
+with open('input_data_no_spam.pickle', 'rb') as f:
   input_data = pickle.load(f)
   input_df = input_data['input_df']
   worker_list = input_data['worker_list']
   task_list = input_data['task_list']
 
-ours_acc_allth = []
-ours_var_allth = [] 
-ours_tp_allth = []
+spam_list = [
+  #'ALSF1M6V28URB',
+  #'A303MN1VOKQG5I',
+  #'AK9U0LQROU5LW',
+  #'A3S2AUQWI7XWT4'
+]
+for spam in spam_list:
+  worker_list.remove(spam)
+print(len(worker_list))
 
-top_acc_allth = []
-top_var_allth = []
-
-AA_acc_allth = []
-AA_var_allth = []
-AA_tp_allth = []
-
-
-random_acc_allth = []
-random_var_allth = []
-full_irt_acc_allth = []
-full_irt_var_allth = []
 
 threshold = list([i / 100 for i in range(50, 81)])
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)

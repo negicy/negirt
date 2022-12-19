@@ -189,10 +189,12 @@ def task_variance(assign_dic, test_workers):
 
 def calc_tp(assign_dic, test_worker):
   count_dic = {}
+  # print(f'assign_dic: {assign_dic}')
   for tw in test_worker:
-    count_dic[tw] = 0
-  for aw in assign_dic.values():
-    count_dic[aw] += 1
+    assign_worker_list = list(assign_dic.values())
+    workload = assign_worker_list.count(tw)
+    count_dic[tw] = workload
+
   # 最大のvalueを調べる
   max_num =  max(list(count_dic.values()))
   return max_num

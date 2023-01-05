@@ -24,11 +24,9 @@ ours_acc = results['ours_acc']
 ours_var = results['ours_var']
 ours_tp = results['ours_tp']
 
-
 top_acc = results['top_acc']
 top_var = results['top_var']
 top_tp = results['top_tp']
-
 
 AA_acc = results['AA_acc']
 AA_var = results['AA_var']
@@ -89,11 +87,8 @@ plt.ylabel('Number of workers with tasks')
 plt.xticks([1.15, 2.15, 3.15, 4.15], label_x)
 fig.legend(bbox_to_anchor=(0.15, 0.250), loc='upper left')
 plt.show()
+
 '''
-
-
-
-
 
 # 推移をプロット
 

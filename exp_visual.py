@@ -14,6 +14,7 @@ from survey import *
 from make_candidate import *
 
 path = os.getcwd()
+
 '''
 Real DATA
 '''
@@ -32,12 +33,7 @@ with open('input_data_no_spam.pickle', 'rb') as f:
   worker_list = input_data['worker_list']
   task_list = input_data['task_list']
 
-spam_list = [
-  #'ALSF1M6V28URB',
-  #'A303MN1VOKQG5I',
-  #'AK9U0LQROU5LW',
-  #'A2CN9J57643499'
-]
+
 for spam in spam_list:
   worker_list.remove(spam)
 
@@ -66,7 +62,6 @@ PI_margin_allth = []
 PI_noise1_acc_allth = []
 PI_noise1_var_allth = []
 PI_noise1_tp_allth = []
-
 
 threshold = list([i / 100 for i in range(50, 81)])
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
@@ -457,7 +452,6 @@ for th in range(0, len(threshold)):
 可視化
 
 '''
-
   # 標準偏差を計算
 
 '''

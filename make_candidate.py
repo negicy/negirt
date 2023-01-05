@@ -32,7 +32,7 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
 
   for i in qualify_task:
     # qualification taskの真のラベル
-    category = label_df['true_label'][i]
+    category = label_df['estimate_label'][i]
     category_dic[category]['b'].append(item_param[i])
 
   for category in category_dic:
@@ -71,7 +71,8 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
   for th in threshold:
     # margin = th / 5
     if th < 0.525:
-      margin = 0.320
+      margin = 3.20
+      margin = 0.310
     
     elif th <= 0.55:
       #margin = th/1.60

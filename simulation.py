@@ -3,6 +3,31 @@ import matplotlib.pyplot as plt
 from operator import itemgetter
 from irt_method import *
 
+'''
+def sample_category(task_list, test_size, label_df):
+  # すべてのカテゴリがバランスよく含まれるようにする
+  qualify_task = []
+  category_name = ['Technology&Science', 'Economy', 'Businness', 'Health']
+  for category in category_name:
+    # categoryのタスクをN個選ぶ
+    i = 0
+    size_per_category = test_size / len(category_name)
+    
+    for task in task_list:
+      category_of_task = label_df['true_label'][task]
+
+      if category_of_task == category:
+       
+        i += 1
+        # print(category, category_of_task, i)
+        qualify_task.append(task)
+        if i == size_per_category:
+          break
+          
+  return qualify_task
+'''
+
+
 # ワーカとタスクを分離
 def devide_sample(task_list, worker_list, label_df):
   output = {}
@@ -10,6 +35,7 @@ def devide_sample(task_list, worker_list, label_df):
 
   task_list_shuffle = random.sample(task_list, len(task_list))
   qualify_task = task_list_shuffle[:n]
+  #qualify_task = sample_category(task_list, n, label_df)
   test_task = list(set(task_list) - set(qualify_task))
 
   #print(len(qualify_task))
@@ -145,6 +171,36 @@ def result_plot_2(threshold, result_dic, ay, bbox):
     a = 0.05
     plt.fill_between(x, ours - ours_std, ours + ours_std, facecolor='r', alpha=a)
     plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
+    fig.legend(bbox_to_anchor=bbox, loc='upper left')
+    return plt
+
+
+def result_plot_no_std(threshold, result_dic, ay, bbox):
+    
+    # 推移をプロット
+    plt.rcParams["font.size"] = 24
+    fig = plt.figure() #親グラフと子グラフを同時に定義
+    ax = fig.add_subplot()
+    ax.set_xlabel('threshold')
+    ax.set_ylabel(ay)
+    x = np.array(threshold)
+    
+    ours = np.array(result_dic['ours'])
+    top = np.array(result_dic['top'])
+    AA = np.array(result_dic['AA'])
+    random = np.array(result_dic['random'])
+    PI = np.array(result_dic['PI'])
+
+    ax.plot(x, ours, color='red', label='IRT(DI)')
+    ax.plot(x, top, color='blue', label='TOP')
+    ax.plot(x, AA, color='cyan', label='AA')
+    ax.plot(x, random, color='green', label='RANDOM')
+    ax.plot(x, PI, color='purple', label='IRT(PI)')
+    if ay == 'accuracy':
+        ax.plot(x, x, color='orange', linestyle="dashed")
+
+    a = 0.05
+
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
     return plt
 

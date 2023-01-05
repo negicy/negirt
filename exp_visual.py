@@ -455,6 +455,7 @@ for th in range(0, len(threshold)):
 
 '''
 可視化
+
 '''
 
   # 標準偏差を計算
@@ -477,10 +478,12 @@ import datetime
 now = datetime.datetime.now()
 result = {
   'ours_output': ours_output_alliter, 'full_output': full_output_alliter, 
-  'ours_acc': ours_acc_allth, 'top_acc': top_acc_allth, 
-  'random_acc': random_acc_allth, 'PI_acc': PI_acc_allth,
-  'ours_var': ours_var_allth, 'top_var': top_var_allth, 
-  'random_var': random_var_allth, 'PI_var': PI_var_allth,
+  'ours_acc': ours_acc, 'top_acc': top_acc, 
+  'random_acc': random_acc, 'PI_acc': PI_acc, 'AA_acc': AA_acc,
+  'ours_var': ours_var, 'top_var': top_var,  'AA_var': AA_var,
+  'random_var': random_var, 'PI_var': PI_var,
+  'ours_tp': ours_tp, 'PI_tp': PI_tp, 'AA_tp': AA_tp, 
+  'random_tp': random_tp, 'top_tp': top_tp,
   'welldone_dist': welldone_dist, 
   'ours_acc_head': ours_acc_head, 'AA_acc_head': AA_acc_head,
   'ours_acc_tail': ours_acc_tail, 'AA_acc_tail': AA_acc_tail

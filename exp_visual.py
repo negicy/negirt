@@ -87,7 +87,7 @@ full_user_param = params[1]
 '''
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 10
+iteration_time = 40
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")
@@ -650,8 +650,8 @@ result = {
 
 # 結果データの保存
 filename = "result/result_{0:%Y%m%d_%H%M%S}.pickle".format(now)
-with open(filename, 'wb') as f:
-    pickle.dump(result, f)
+#with open(filename, 'wb') as f:
+#    pickle.dump(result, f)
 
 
 for th in welldone_dist:
@@ -736,15 +736,15 @@ fig = plt.figure() #親グラフと子グラフを同時に定義
 ax1 = fig.add_subplot()
 ax1.set_xlabel('Working Opportunity')
 ax1.set_ylabel('accuracy')
-ax1.set_xlim(0, 0.3)
+ax1.set_xlim(0, 30)
 
 bbox=(0.2750, 0.400)
 ax1.plot(ours_trade[0], ours_trade[1], color='red', label='IRT')
 ax1.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
 ax1.plot(top_trade[0], top_trade[1], color='blue', label='TOP')
 ax1.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
-# ax1.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
-# ax1.plot(PI_noise1_trade[0], PI_noise1_trade[1], color='orange', label='IRT(PI0.5)')
+ax1.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
+#ax1.plot(PI_noise1_trade[0], PI_noise1_trade[1], color='orange', label='IRT(PI0.5)')
 fig.legend(bbox_to_anchor=bbox, loc='upper left')
 plt.show()
 

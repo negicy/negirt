@@ -41,8 +41,6 @@ def flatten(assign_dic, worker_list, i):
     #print('====-!====!====!=====')
     #print(assign_dic[worker], assign_dic[pre_worker], i)
  
-  
- 
   return assign_dic
 
    

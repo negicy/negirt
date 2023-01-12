@@ -34,8 +34,7 @@ with open('input_data_no_spam.pickle', 'rb') as f:
   task_list = input_data['task_list']
 
 
-for spam in spam_list:
-  worker_list.remove(spam)
+
 
 ours_acc_allth = []
 ours_var_allth = [] 
@@ -63,8 +62,16 @@ PI_noise1_acc_allth = []
 PI_noise1_var_allth = []
 PI_noise1_tp_allth = []
 
+PI_all_assign_dic_alliter = {}
+DI_all_assign_dic_alliter = {}
+
 threshold = list([i / 100 for i in range(50, 81)])
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
+
+for th in threshold:
+  PI_all_assign_dic_alliter[th]  = {}
+  DI_all_assign_dic_alliter[th]  = {}
+
 ours_output_alliter = {}
 full_output_alliter = {}
 
@@ -85,13 +92,12 @@ params = run_girth_rasch(q_data, task_list, worker_list)
 full_item_param = params[0]
 full_user_param = params[1]
 
-print(len(worker_list))
 '''
 イテレーション
 '''
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 200
+iteration_time = 10
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")
@@ -180,6 +186,8 @@ for iteration in range(0, iteration_time):
     
     # 割り当て結果の精度を求める
     acc = accuracy(DI_assign_dic_opt, input_df)
+    DI_all_assign_dic_alliter[th][iteration] = []
+    DI_all_assign_dic_alliter[th][iteration].append(DI_assign_dic_opt)
     # print("DI assignment", th, acc, len(assign_dic_opt))
     
     DI_margin_sum = 0
@@ -300,6 +308,8 @@ for iteration in range(0, iteration_time):
     
     # 割当て結果の精度を求める
     acc = accuracy(PI_assign_dic_opt, input_df)
+    PI_all_assign_dic_alliter[th][iteration] = []
+    PI_all_assign_dic_alliter[th][iteration].append(PI_assign_dic_opt)
    
     PI_margin_sum = 0
     for task in PI_assign_dic_opt:
@@ -321,8 +331,6 @@ for iteration in range(0, iteration_time):
   PI_var_allth.append(PI_var_perth)
   PI_tp_allth.append(PI_tp_perth)
   PI_margin_allth.append(PI_margin_perth)
-  
-
   
   for th in range(0, len(threshold)):
     assign_dic = random_assignment(test_task, test_worker)
@@ -486,8 +494,8 @@ result = {
 
 # 結果データの保存
 filename = "result/result_{0:%Y%m%d_%H%M%S}.pickle".format(now)
-with open(filename, 'wb') as f:
-    pickle.dump(result, f)
+#with open(filename, 'wb') as f:
+#  pickle.dump(result, f)
 
 
 for th in welldone_dist:
@@ -524,10 +532,10 @@ label_x = ['0.5', '0.6', '0.7', '0.8']
 plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義
 # 1つ目の棒グラフ
-plt.bar(x1, y_ours, color='blue', width=0.3, label='DI', align="center")
+#plt.bar(x1, y_ours, color='blue', width=0.3, label='DI', align="center")
 
 # 2つ目の棒グラフ
-plt.bar(x2, y_AA, color='coral', width=0.3, label='AA', align="center")
+#plt.bar(x2, y_AA, color='coral', width=0.3, label='AA', align="center")
 
 # 凡例
 plt.xlabel('threshold')
@@ -535,7 +543,7 @@ plt.ylabel('Number of workers with tasks')
 # X軸の目盛りを置換
 plt.xticks([1.15, 2.15, 3.15, 4.15], label_x)
 fig.legend(bbox_to_anchor=(0.15, 0.250), loc='upper left')
-plt.show()
+#plt.show()
 
 # 推移をプロット
 
@@ -615,5 +623,6 @@ x = np.array(threshold)
 
 ax.plot(x, DI_margin_result, color='red', label='IRT(DI)')
 ax.plot(x, PI_margin_result, color='purple', label='IRT(PI)')
-plt.show()
+#plt.show()
 
+check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_alliter, DI_all_assign_dic_alliter, full_user_param, full_item_param)

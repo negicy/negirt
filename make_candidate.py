@@ -14,6 +14,7 @@ from test_make_candidate import *
 def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):
   # ワーカ候補の辞書
   worker_c_th = {}
+  
   qualify_dic = {}
 
   for qt in qualify_task:
@@ -83,14 +84,18 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
       margin = 0.270
 
     elif th <= 0.63:
-      mergin = th/2.5
+      mergin = th/2.7
+    
+    elif th <= 0.65:
+      mergin = th/2.65
+
     elif th <= 0.67:
-      margin = 0.245
+      margin = 0.255
     else:
       margin = 0.20
     # margin = th/4.0
-  
-    
+ 
+    #margin = th / 1.8
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == True:
@@ -135,7 +140,6 @@ def make_candidate_PI_noise(threshold, input_df, full_item_param, full_user_para
           prob = OnePLM(beta, theta)
           # print(prob)
           # prob = TwoPLM(alpha, beta, theta, d=1.7)
-
           # workerの正解率がthresholdより大きければ
           if prob >= th - margin:
             # ワーカーを候補リストに代入

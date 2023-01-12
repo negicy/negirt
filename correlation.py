@@ -105,12 +105,11 @@ for iteration in range(0, iteration_time):
   sorted_skill_rate = dict(sorted(skill_rate_dic.items(), key=lambda x: x[1], reverse=True))
   sorted_item_param = dict(sorted(full_item_param.items(), key=lambda x: x[1], reverse=True))
   sorted_user_param = dict(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
-  
-
 
   print(sorted_skill_rate)
   print(sorted_item_param)
   print(sorted_user_param)
+
 
 bins=np.linspace(-3, 3, 30)
 x = list(sorted_user_param.values())

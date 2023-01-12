@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from operator import itemgetter
 from irt_method import *
 
-'''
+
 def sample_category(task_list, test_size, label_df):
   # すべてのカテゴリがバランスよく含まれるようにする
   qualify_task = []
@@ -17,30 +17,58 @@ def sample_category(task_list, test_size, label_df):
       category_of_task = label_df['true_label'][task]
 
       if category_of_task == category:
-       
         i += 1
-        # print(category, category_of_task, i)
+        #print(category, category_of_task, task)
         qualify_task.append(task)
         if i == size_per_category:
           break
           
   return qualify_task
-'''
+
+def sample_category_one(task_list, test_size, label_df):
+    # すべてのカテゴリがバランスよく含まれるようにする
+    qualify_task = []
+    category_name = ['Technology&Science', 'Economy', 'Businness', 'Health']
+    size_per_category = 5
+    for category in category_name:
+      # categoryのタスクをN個選ぶ
+      i = 0
+      
+      for task in task_list:
+        category_of_task = label_df['true_label'][task]
+
+        if category_of_task == category:
+          i += 1
+          #print(category, category_of_task, task)
+          qualify_task.append(task)
+          if i == size_per_category:
+            break
+    j = 0
+    for task in task_list:
+      if task not in qualify_task:
+        qualify_task.append(task)
+        j += 1
+        if j >= (test_size - len(category_name) * size_per_category):
+          break
+            
+    return qualify_task
 
 
 # ワーカとタスクを分離
 def devide_sample(task_list, worker_list, label_df):
   output = {}
   n = 40
-
   task_list_shuffle = random.sample(task_list, len(task_list))
-  qualify_task = task_list_shuffle[:n]
-  #qualify_task = sample_category(task_list, n, label_df)
+  print(task_list_shuffle[0])
+  # mode-1:
+  qualify_task = random.sample(task_list, n)
+  # mode-2:
+  #qualify_task = sample_category(task_list_shuffle, n, label_df)
   test_task = list(set(task_list) - set(qualify_task))
-
+  print(len(test_task), len(qualify_task))
   #print(len(qualify_task))
   output['qualify_task'] = qualify_task
-  output['test_task'] = test_task
+  output['test_task'] = test_task 
   output['test_worker'] = random.sample(worker_list, 20)
 
   return output
@@ -64,8 +92,6 @@ def sort_test_worker(test_worker, user_param, N):
   sorted_user_param = dict(sorted(test_worker_param.items(), key=lambda x: x[1], reverse=True))
   top_workers = list(sorted_user_param.keys())[:N]
   return top_workers
-  
-
 
 def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth):
   acc = [0] * len(threshold)
@@ -103,7 +129,6 @@ def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth)
       acc_tail = list_acc_th
   print(acc)
 
-    
   return acc, var, tp, acc_std, var_std,  acc_head, acc_tail
 
 
@@ -270,4 +295,98 @@ def welldone_count(threshold, assign_dic, user_param, item_param):
 
 def has_duplicates(seq):
     return len(seq) != len(set(seq))
+
+
+def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_alliter, DI_all_assign_dic_alliter, full_user_param, full_item_param):
+  # threshold
+  # worker, task, 正誤(PI, DI)
+  PI_res_dic = {}
+  DI_res_dic = {}
+  thres = 0.5
+  full_user_param_sorted = dict(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
+  worker_list_sorted = list(full_user_param_sorted.keys())
+
+
+  for th in [0.5, 0.6, 0.7, 0.8]:
+      count_pi_over_true = 0
+      count_pi_under_true = 0
+      count_pi_over_false = 0
+      count_pi_under_false = 0
+
+      count_di_over_true = 0
+      count_di_under_true = 0
+      count_di_over_false = 0
+      count_di_under_false = 0
+
+      pi_margin = 0
+      di_margin = 0
+      print('=================')
+      for iter in range(0, iteration_time):
+          #print('===============')
+          PI_assign_dic = PI_all_assign_dic_alliter[th][iter][0]
+          DI_assign_dic = DI_all_assign_dic_alliter[th][iter][0]
+          for task in PI_assign_dic:
+              PI_res_dic[task] = {}
+              pi_worker = PI_assign_dic[task]
+              pi_worker_rank = worker_list_sorted.index(pi_worker)
+              pi_res = input_df[pi_worker][task]
+              # pi_skill = full_user_param[pi_worker]
+              PI_res_dic[task][pi_worker_rank] = pi_res
+
+              if full_user_param[pi_worker] < full_item_param[task] and pi_res == 1:
+                  count_pi_under_true += 1
+                  pi_margin  += full_item_param[task]
+              if full_user_param[pi_worker] < full_item_param[task] and pi_res == 0:
+                  count_pi_under_false += 1
+                  pi_margin  += full_item_param[task]
+                  
+              if full_user_param[pi_worker] > full_item_param[task] and pi_res == 1:
+                  count_pi_over_true += 1 
+              if full_user_param[pi_worker] > full_item_param[task] and pi_res == 0:
+                  count_pi_over_false += 1
+
+              DI_res_dic[task] = {}
+              di_worker = DI_assign_dic[task]
+              di_worker_rank = worker_list_sorted.index(di_worker)
+              di_res = input_df[di_worker][task]
+              DI_res_dic[task][di_worker_rank] = di_res
+              if full_user_param[di_worker] < full_item_param[task] and di_res == 1:
+                  count_di_under_true += 1
+                  di_margin += full_item_param[task]
+              if full_user_param[di_worker] < full_item_param[task] and di_res == 0:
+                  count_di_under_false += 1
+                  di_margin += full_item_param[task]
+              if full_user_param[di_worker] > full_item_param[task] and di_res == 1:
+                  count_di_over_true += 1 
+              if full_user_param[di_worker] > full_item_param[task] and di_res == 0:
+                  count_di_over_false += 1
+          
+          pi_margin_mean = pi_margin / (count_pi_under_false + count_pi_under_true)
+          di_margin_mean = di_margin / (count_di_under_false + count_di_under_true)
+          # print(pi_margin_mean)
+          #print(di_margin_mean)
+
+
+      print('PI', th)
+      print(count_pi_over_true/iteration_time, count_pi_over_false/iteration_time)
+      print(count_pi_under_true/iteration_time, count_pi_under_false/iteration_time)
+
+      print('DI', th)
+      print(count_di_over_true/iteration_time, count_di_over_false/iteration_time)
+      print(count_di_under_true/iteration_time, count_di_under_false/iteration_time)
+
+#誰も解けないタスクの数を数える: カテゴリごとに
+def count_nc_task(label_df, worker_list, task_list, full_item_param, full_user_param):
+  can_be_solved = []
+  for task in full_item_param:
+    for worker in worker_list:
+      if full_user_param[worker] >= full_item_param[task]:
+        can_be_solved.append(task)
+        break
+  
+  nc_task = list(set(task_list) - set(can_be_solved))
+  print(nc_task)
+  return nc_task
+
+
 

@@ -2,7 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from operator import itemgetter
 from irt_method import *
-
+'''
+Businness 31
+Economy 36
+Technology&Science 23
+Health 10
+'''
 
 def sample_category(task_list, test_size, label_df):
   # すべてのカテゴリがバランスよく含まれるようにする
@@ -24,34 +29,6 @@ def sample_category(task_list, test_size, label_df):
           break
           
   return qualify_task
-
-def sample_category_one(task_list, test_size, label_df):
-    # すべてのカテゴリがバランスよく含まれるようにする
-    qualify_task = []
-    category_name = ['Technology&Science', 'Economy', 'Businness', 'Health']
-    size_per_category = 5
-    for category in category_name:
-      # categoryのタスクをN個選ぶ
-      i = 0
-      
-      for task in task_list:
-        category_of_task = label_df['true_label'][task]
-
-        if category_of_task == category:
-          i += 1
-          #print(category, category_of_task, task)
-          qualify_task.append(task)
-          if i == size_per_category:
-            break
-    j = 0
-    for task in task_list:
-      if task not in qualify_task:
-        qualify_task.append(task)
-        j += 1
-        if j >= (test_size - len(category_name) * size_per_category):
-          break
-            
-    return qualify_task
 
 
 # ワーカとタスクを分離
@@ -387,6 +364,20 @@ def count_nc_task(label_df, worker_list, task_list, full_item_param, full_user_p
   nc_task = list(set(task_list) - set(can_be_solved))
   print(nc_task)
   return nc_task
+
+def calc_parameter_fit(test_task, test_worker, full_item_param, full_user_param, input_df):
+  tp = 0
+  fn = 0
+  for tt in test_task:
+    item_param = full_item_param[tt]
+    for worker in test_worker:
+      worker_param = full_user_param[worker]
+      if worker_param >= item_param and input_df[worker][tt] == 1:
+        tp += 1
+      if worker_param < item_param and input_df[worker][tt] == 0:
+        fn += 1
+  
+  return tp/len(test_task)
 
 
 

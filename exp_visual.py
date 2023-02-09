@@ -34,8 +34,6 @@ with open('input_data_no_spam.pickle', 'rb') as f:
   task_list = input_data['task_list']
 
 
-
-
 ours_acc_allth = []
 ours_var_allth = [] 
 ours_tp_allth = []
@@ -89,15 +87,20 @@ for qt in qualify_task:
 
 q_data = np.array(list(qualify_dic.values()))
 params = run_girth_rasch(q_data, task_list, worker_list)
+
 full_item_param = params[0]
 full_user_param = params[1]
+
+b_tt_list = []
+num_fit_param = 0
+NA_count_list = []
 
 '''
 イテレーション
 '''
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 10
+iteration_time = 200
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")
@@ -132,11 +135,17 @@ for iteration in range(0, iteration_time):
   test_task = sample['test_task']
   test_worker = sample['test_worker']
 
-
+  # test_taskの平均難易度調べる
+  for tt in test_task:
+    b_tt_list.append(full_item_param[tt])
+  
+  # test_taskのパラメータ一致度調べる
+  num_fit_param += calc_parameter_fit(test_task, test_worker, full_item_param, full_user_param, input_df)
+  
   # 各手法でのワーカ候補作成
   ours_output =  DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task)
   ours_candidate = ours_output[0]
-  user_param = ours_output[5]
+  DI_user_param = ours_output[5]
 
   DI_item_param = ours_output[4]
 
@@ -160,17 +169,30 @@ for iteration in range(0, iteration_time):
     candidate_dic = ours_candidate[th]
     
     DI_assign_dic_opt = {}
-    DI_assigned = optim_assignment(candidate_dic, test_worker, test_task, user_param)
+    DI_assigned = optim_assignment(candidate_dic, test_worker, test_task, DI_user_param)
 
     for worker in DI_assigned:
       for task in DI_assigned[worker]:
         DI_assign_dic_opt[task] = worker
     # print('th'+str(th)+'assignment size'+str(len(assign_dic_opt)))
     # NA タスクをランダム割当て
-    top_workers = sort_test_worker(test_worker, user_param, N=5)
+    top_workers = sort_test_worker(test_worker, DI_user_param, N=5)
+    test_worker_sorted_dict = dict(sorted(DI_user_param.items(), key=lambda x: x[1], reverse=True))
+    test_worker_sorted_list = list(test_worker_sorted_dict.keys())
+    best_worker = test_worker_sorted_list[0]
+
     for task in test_task:
       if task not in DI_assign_dic_opt.keys():
         DI_assign_dic_opt[task] = random.choice(top_workers)
+    '''
+    for task in test_task:
+      if task not in DI_assign_dic_opt.keys():
+        if DI_item_param[task] > DI_user_param[best_worker]:
+          DI_assign_dic_opt[task] = random.choice(test_worker)
+        else:
+          DI_assign_dic_opt[task] = random.choice(top_workers)
+    '''
+
     
     # print(len(assign_dic_opt.keys()))
     if th in [0.5, 0.6, 0.7, 0.8]:
@@ -279,15 +301,18 @@ for iteration in range(0, iteration_time):
   AA_var_allth.append(AA_var_perth)
   AA_tp_allth.append(AA_tp_perth)
 
- # =======|PIのタスク割当て|=======
-  for th in PI_candidate:
+  #  =======|PIのタスク割当て|=======
+  
+  '''
+    for th in PI_candidate:
     candidate_dic = PI_candidate[th]
     PI_assign_dic_opt_A = {}
     PI_assign_dic_opt_NA = {}
     PI_assign_dic_opt = {}
 
     PI_assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
-  
+  '''
+  NA_count = 0
   for th in PI_candidate:
     candidate_dic = PI_candidate[th]
     PI_assign_dic_opt = {}
@@ -301,11 +326,19 @@ for iteration in range(0, iteration_time):
 
     # NA タスクをランダム割当て
     top_workers = sort_test_worker(test_worker, full_user_param, N=5)
+    test_worker_sorted_dict = dict(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
+    test_worker_sorted_list = list(test_worker_sorted_dict.keys())
+    best_worker = test_worker_sorted_list[0]
     for task in test_task:
       if task not in PI_assign_dic_opt.keys():
-        PI_assign_dic_opt[task] = random.choice(top_workers)
+        # もしthreshold = 0.5でも割当て不可なら
+        if full_item_param[task] > full_user_param[best_worker]:
+          PI_assign_dic_opt[task] = random.choice(test_worker)
+          
+        else:
+          PI_assign_dic_opt[task] = random.choice(top_workers)
+      NA_count += 1
 
-    
     # 割当て結果の精度を求める
     acc = accuracy(PI_assign_dic_opt, input_df)
     PI_all_assign_dic_alliter[th][iteration] = []
@@ -326,7 +359,7 @@ for iteration in range(0, iteration_time):
     PI_var_perth.append(var)
     PI_tp_perth.append(tp)
     PI_margin_perth.append(PI_margin_mean)
-
+  NA_count_list.append(NA_count)
   PI_acc_allth.append(PI_acc_perth)
   PI_var_allth.append(PI_var_perth)
   PI_tp_allth.append(PI_tp_perth)
@@ -494,8 +527,8 @@ result = {
 
 # 結果データの保存
 filename = "result/result_{0:%Y%m%d_%H%M%S}.pickle".format(now)
-#with open(filename, 'wb') as f:
-#  pickle.dump(result, f)
+with open(filename, 'wb') as f:
+  pickle.dump(result, f)
 
 
 for th in welldone_dist:
@@ -509,7 +542,7 @@ ax = fig.add_subplot(1, 1, 1)
 ax.set_xlabel('threshold')
 ax.set_ylabel('rate of successful assignments')
 ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.5, color='forestgreen')
-plt.show()
+#plt.show()
 
 # タスクのあるワーカ人数をヒストグラムで
 # iteration間の平均を求める
@@ -625,4 +658,9 @@ ax.plot(x, DI_margin_result, color='red', label='IRT(DI)')
 ax.plot(x, PI_margin_result, color='purple', label='IRT(PI)')
 #plt.show()
 
+mean_b_tt = np.mean(b_tt_list)
+print("平均テストタスク難易度", mean_b_tt)
 check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_alliter, DI_all_assign_dic_alliter, full_user_param, full_item_param)
+
+print(num_fit_param/iteration_time)
+print(np.mean(NA_count_list)/len(threshold))

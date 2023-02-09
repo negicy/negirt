@@ -12,7 +12,7 @@ from simulation import *
 from survey import *
 from make_candidate import *
 
-filename = 'result/result_20221220_212327.pickle'
+filename = 'result/result_20230112_174737.pickle'
 
 with open(filename, 'rb') as p:
     results = pickle.load(p)

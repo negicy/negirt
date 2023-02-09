@@ -14,7 +14,6 @@ from test_make_candidate import *
 def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):
   # ワーカ候補の辞書
   worker_c_th = {}
-  
   qualify_dic = {}
 
   for qt in qualify_task:
@@ -33,7 +32,7 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
 
   for i in qualify_task:
     # qualification taskの真のラベル
-    category = label_df['estimate_label'][i]
+    category = label_df['true_label'][i]
     category_dic[category]['b'].append(item_param[i])
 
   for category in category_dic:
@@ -68,37 +67,43 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
 
 def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
   worker_c_th = {}
+  #params = run_girth_rasch(q_data, task_list, tetst_worker)
 
   for th in threshold:
     # margin = th / 5
     if th < 0.525:
-      margin = 3.20
-      margin = 0.310
+      margin = 0.375
     
     elif th <= 0.55:
       #margin = th/1.60
       # margin = 2.25
       #margin = th/2.55
-      margin = 0.31
+      margin = 0.360
     elif th <= 0.60:
-      margin = 0.270
+      margin = 0.275
+      margin = 0.32
 
     elif th <= 0.63:
       mergin = th/2.7
+      margin = 0.285
     
     elif th <= 0.65:
       mergin = th/2.65
 
     elif th <= 0.67:
       margin = 0.255
+      margin = 0.26
+    elif th <= 0.75:
+      margin = 0.2
     else:
-      margin = 0.20
+      margin = 0.22
     # margin = th/4.0
  
-    #margin = th / 1.8
+    margin = th / 4.3
+    #margin = 0
     worker_c = {}
     for task in test_task:
-      if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == True:
+      if task_assignable_check(th, full_item_param, full_user_param, test_worker, task) == True:
         # Aタスク
         worker_c[task] = []
         beta = full_item_param[task]

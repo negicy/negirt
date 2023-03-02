@@ -154,6 +154,7 @@ for iteration in range(0, iteration_time):
   AA_output = AA_make_candidate(threshold, input_df, test_worker, qualify_task, test_task)
   AA_candidate = AA_output[0]
   AA_top_workers_dict = AA_output[1]
+  AA_worker_rate = AA_output[2]
 
   PI_output = PI_make_candidate(threshold, input_df, full_item_param, full_user_param, test_worker, test_task)
   PI_candidate = PI_output[0]
@@ -176,22 +177,24 @@ for iteration in range(0, iteration_time):
         DI_assign_dic_opt[task] = worker
     # print('th'+str(th)+'assignment size'+str(len(assign_dic_opt)))
     # NA タスクをランダム割当て
-    top_workers = sort_test_worker(test_worker, DI_user_param, N=5)
+    DI_top_workers = sort_test_worker(test_worker, DI_user_param, N=5)
     test_worker_sorted_dict = dict(sorted(DI_user_param.items(), key=lambda x: x[1], reverse=True))
     test_worker_sorted_list = list(test_worker_sorted_dict.keys())
     best_worker = test_worker_sorted_list[0]
+    DI_sub_workers = extract_sub_worker_irt(test_worker, test_task, DI_item_param, DI_user_param)
 
     for task in test_task:
       if task not in DI_assign_dic_opt.keys():
-        DI_assign_dic_opt[task] = random.choice(top_workers)
-    '''
+        DI_assign_dic_opt[task] = random.choice(DI_top_workers)
+  
     for task in test_task:
       if task not in DI_assign_dic_opt.keys():
-        if DI_item_param[task] > DI_user_param[best_worker]:
-          DI_assign_dic_opt[task] = random.choice(test_worker)
+        # 正解確率50%のワーカが一人もいない場合：
+        #if DI_item_param[task] > DI_user_param[best_worker]:
+        if len(DI_sub_workers[task]) > 0:
+          DI_assign_dic_opt[task] = random.choice(DI_sub_workers[task][:5])
         else:
-          DI_assign_dic_opt[task] = random.choice(top_workers)
-    '''
+          DI_assign_dic_opt[task] = random.choice(test_worker)
 
     
     # print(len(assign_dic_opt.keys()))
@@ -283,10 +286,19 @@ for iteration in range(0, iteration_time):
       print('重複チェック:', has_duplicates(worker_with_task_list))
       worker_with_task['AA'][th] += len(worker_with_task_list)
     
-    AA_top_workers_list = list(AA_top_workers_dict)
+    AA_sub_workers = extract_sub_worker_AA(AA_worker_rate)
+    AA_top_workers = list(AA_top_workers_dict)
+
     for task in test_task:
       if task not in AA_assign_dic_opt.keys():
-        AA_assign_dic_opt[task] = random.choice(AA_top_workers_list[:5])
+        #if AA_top_workers[0] > 0.5:
+          #AA_assign_dic_opt[task] = random.choice(AA_top_workers[:5])
+        if len(AA_sub_workers) > 0:
+          AA_assign_dic_opt[task] = random.choice(AA_sub_workers[:5])   
+        else:
+          AA_assign_dic_opt[task] = random.choice(test_worker)
+
+
     # print('割当てサイズ', len(AA_assign_dic_opt))
      # 割り当て結果の精度を求める
     acc = accuracy(AA_assign_dic_opt, input_df)
@@ -302,7 +314,6 @@ for iteration in range(0, iteration_time):
   AA_tp_allth.append(AA_tp_perth)
 
   #  =======|PIのタスク割当て|=======
-  
   '''
     for th in PI_candidate:
     candidate_dic = PI_candidate[th]
@@ -318,25 +329,27 @@ for iteration in range(0, iteration_time):
     PI_assign_dic_opt = {}
 
     PI_assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
-  
+    
     for worker in PI_assigned:
       for task in PI_assigned[worker]:
         PI_assign_dic_opt[task] = worker
     # print(th, len(assign_dic_opt))
 
     # NA タスクをランダム割当て
-    top_workers = sort_test_worker(test_worker, full_user_param, N=5)
+    PI_top_workers = sort_test_worker(test_worker, full_user_param, N=5)
     test_worker_sorted_dict = dict(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
     test_worker_sorted_list = list(test_worker_sorted_dict.keys())
     best_worker = test_worker_sorted_list[0]
+    PI_sub_workers = extract_sub_worker_irt(test_worker, test_task, full_item_param, full_user_param)
     for task in test_task:
       if task not in PI_assign_dic_opt.keys():
         # もしthreshold = 0.5でも割当て不可なら
-        if full_item_param[task] > full_user_param[best_worker]:
-          PI_assign_dic_opt[task] = random.choice(test_worker)
-          
+        #if full_item_param[task] > full_user_param[best_worker]:
+        if len(PI_sub_workers[task]) > 0:
+          PI_assign_dic_opt[task] = random.choice(PI_sub_workers[task][:5])
         else:
-          PI_assign_dic_opt[task] = random.choice(top_workers)
+          PI_assign_dic_opt[task] = random.choice(test_worker)
+  
       NA_count += 1
 
     # 割当て結果の精度を求める
@@ -359,6 +372,7 @@ for iteration in range(0, iteration_time):
     PI_var_perth.append(var)
     PI_tp_perth.append(tp)
     PI_margin_perth.append(PI_margin_mean)
+
   NA_count_list.append(NA_count)
   PI_acc_allth.append(PI_acc_perth)
   PI_var_allth.append(PI_var_perth)
@@ -419,7 +433,6 @@ PI_margin_result = [0] * len(threshold)
 PI_noise1_acc = [0] * len(threshold)
 PI_noise1_var = [0] * len(threshold)
 PI_noise1_tp = [0] * len(threshold)
-
 
 ours_result = combine_iteration(threshold, iteration_time, ours_acc_allth, ours_var_allth, ours_tp_allth)
 ours_acc = ours_result[0]

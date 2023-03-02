@@ -12,34 +12,39 @@ from simulation import *
 from survey import *
 from make_candidate import *
 
-filename = 'result/result_20230112_174737.pickle'
+filename = 'result/result_20220920_163709.pickle'
 
 with open(filename, 'rb') as p:
     results = pickle.load(p)
 
+print(results['full_output'][0])
 welldone_dist = results['welldone_dist']
 iteration_time = 5
 
 ours_acc = results['ours_acc']
 ours_var = results['ours_var']
-ours_tp = results['ours_tp']
+#ours_tp = results['ours_tp']
 
 top_acc = results['top_acc']
 top_var = results['top_var']
-top_tp = results['top_tp']
+#top_tp = results['top_tp']
 
-AA_acc = results['AA_acc']
-AA_var = results['AA_var']
-AA_tp = results['AA_tp']
+#AA_acc = results['AA_acc']
+#AA_var = results['AA_var']
+#AA_tp = results['AA_tp']
 
 random_acc = results['random_acc']
 random_var = results['random_var']
-random_tp = results['random_tp']
+#random_tp = results['random_tp']
 
+'''
 PI_acc = results['PI_acc']
 PI_var = results['PI_var']
 PI_tp = results['PI_tp']
-
+'''
+full_irt_acc = results['full_irt_acc']
+full_irt_var = results['full_irt_var']
+#full_irt__tp = results['full_irt_tp']
 
 
 threshold = list([i / 100 for i in range(50, 81)])

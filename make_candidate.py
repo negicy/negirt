@@ -70,35 +70,6 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
   #params = run_girth_rasch(q_data, task_list, tetst_worker)
 
   for th in threshold:
-    # margin = th / 5
-    if th < 0.525:
-      margin = 0.375
-    
-    elif th <= 0.55:
-      #margin = th/1.60
-      # margin = 2.25
-      #margin = th/2.55
-      margin = 0.360
-    elif th <= 0.60:
-      margin = 0.275
-      margin = 0.32
-
-    elif th <= 0.63:
-      mergin = th/2.7
-      margin = 0.285
-    
-    elif th <= 0.65:
-      mergin = th/2.65
-
-    elif th <= 0.67:
-      margin = 0.255
-      margin = 0.26
-    elif th <= 0.75:
-      margin = 0.2
-    else:
-      margin = 0.22
-    # margin = th/4.0
- 
     margin = th / 4.3
     #margin = 0
     worker_c = {}
@@ -217,7 +188,7 @@ def AA_make_candidate(threshold, input_df, test_worker, q_task, test_task):
         if worker_rate[worker] >= th:
           AA_candidate_dic[th][task].append(worker)
   
-  return AA_candidate_dic, top_workers_dict
+  return AA_candidate_dic, top_workers_dict, worker_rate
 
 # random assignment
 def random_assignment(test_task, test_worker):
@@ -225,3 +196,36 @@ def random_assignment(test_task, test_worker):
   for task in test_task:
     assign_dic[task] = random.choice(test_worker)
   return assign_dic
+
+def extract_sub_worker_irt(test_worker, test_task, item_param, user_param):
+  sub_worker = {}
+  sorted_worker_dict = dict(sorted(user_param.items(), key=lambda x: x[1], reverse=True))
+  sorted_worker_list = list(sorted_worker_dict.keys())
+
+  sorted_test_worker = []
+  for worker in sorted_worker_list:
+    if worker in test_worker:
+      sorted_test_worker.append(worker)
+
+  for task in test_task:
+    sub_worker[task] = []
+    beta = item_param[task]
+    for worker in sorted_test_worker:
+      theta = user_param[worker]
+      prob = OnePLM(beta, theta)
+      if prob > 0.5:
+          # ワーカーを候補リストに代入
+          sub_worker[task].append(worker)
+    
+  
+  return sub_worker
+  
+def extract_sub_worker_AA(worker_rate):
+    sub_worker = []
+    sorted_workers_dict = dict(sorted(worker_rate.items(), key=lambda x: x[1], reverse=True))
+    sorted_worker_list = list(sorted_workers_dict.keys())
+    for worker in sorted_worker_list:
+      if worker_rate[worker] > 0.5:
+        sub_worker.append(worker)
+      
+      return sub_worker

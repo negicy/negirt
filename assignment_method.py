@@ -37,13 +37,8 @@ def flatten(assign_dic, worker_list, i):
     
     if i > 1:
       flatten(assign_dic, worker_list, i-1)
-
-    #print('====-!====!====!=====')
-    #print(assign_dic[worker], assign_dic[pre_worker], i)
  
   return assign_dic
-
-   
 
 def optim_assignment(worker_c, test_worker, test_task, user_param):
   # (1) ワーカを能力が低い順にソート
@@ -82,8 +77,6 @@ def optim_assignment(worker_c, test_worker, test_task, user_param):
       assign_dic = flatten(assign_dic, worker_list, i)
     
   return assign_dic
-
-
 
 
 def assignment(worker_c, test_worker):
@@ -162,8 +155,6 @@ def accuracy(assign_dic, input_df, inspecter="OFF"):
     if inspecter == "ON":
       print("Hello")
 
-  # print(task_num)
-  # print(score, task_num)
   if task_num > 0:
     acc = score/task_num
   # assign_dicが空の場合

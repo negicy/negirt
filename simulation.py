@@ -10,6 +10,16 @@ Health 10
 '''
 
 def sample_category(task_list, test_size, label_df):
+  """_summary_
+
+  Args:
+      task_list (_type_): _description_
+      test_size (_type_): _description_
+      label_df (_type_): _description_
+
+  Returns:
+      _type_: _description_
+  """
   # すべてのカテゴリがバランスよく含まれるようにする
   qualify_task = []
   category_name = ['Technology&Science', 'Economy', 'Businness', 'Health']
@@ -215,15 +225,6 @@ def var_acc_plot(var, acc):
     var = list(var)
     acc = list(acc)
     # 推移をプロット
-    '''
-    plt.rcParams["font.size"] = 18
-    fig = plt.figure() #親グラフと子グラフを同時に定義
-    ax = fig.add_subplot()
-    ax.set_xlabel('variance')
-    ax.set_ylabel('accuracy')
-    ax.plot(var, acc, color='red', label='ours')
-    '''
-    
     
     return var, acc
 

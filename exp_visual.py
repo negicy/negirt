@@ -77,7 +77,6 @@ top_assignment_allth = {}
 for th in threshold:
   top_assignment_allth[th] = []
   
-
 # 承認タスクとテストタスクを分離
 # PIでのパラメータ推定
 qualify_task = task_list
@@ -196,7 +195,7 @@ for iteration in range(0, iteration_time):
         else:
           DI_assign_dic_opt[task] = random.choice(test_worker)
 
-    
+
     # print(len(assign_dic_opt.keys()))
     if th in [0.5, 0.6, 0.7, 0.8]:
       welldone_dist[th] += welldone_count(th, DI_assign_dic_opt, full_user_param, full_item_param) / len(test_task) 
@@ -314,16 +313,6 @@ for iteration in range(0, iteration_time):
   AA_tp_allth.append(AA_tp_perth)
 
   #  =======|PIのタスク割当て|=======
-  '''
-    for th in PI_candidate:
-    candidate_dic = PI_candidate[th]
-    PI_assign_dic_opt_A = {}
-    PI_assign_dic_opt_NA = {}
-    PI_assign_dic_opt = {}
-
-    PI_assigned = optim_assignment(candidate_dic, test_worker, test_task, full_user_param)
-  '''
-  NA_count = 0
   for th in PI_candidate:
     candidate_dic = PI_candidate[th]
     PI_assign_dic_opt = {}
@@ -350,7 +339,6 @@ for iteration in range(0, iteration_time):
         else:
           PI_assign_dic_opt[task] = random.choice(test_worker)
   
-      NA_count += 1
 
     # 割当て結果の精度を求める
     acc = accuracy(PI_assign_dic_opt, input_df)
@@ -373,7 +361,6 @@ for iteration in range(0, iteration_time):
     PI_tp_perth.append(tp)
     PI_margin_perth.append(PI_margin_mean)
 
-  NA_count_list.append(NA_count)
   PI_acc_allth.append(PI_acc_perth)
   PI_var_allth.append(PI_var_perth)
   PI_tp_allth.append(PI_tp_perth)
@@ -395,7 +382,7 @@ for iteration in range(0, iteration_time):
   random_tp_allth.append(random_tp_perth)
 
 '''
-結果の計算
+割当て結果の計算
 '''
 
 ours_acc = [0] * len(threshold)
@@ -504,7 +491,6 @@ for th in range(0, len(threshold)):
 
 '''
 可視化
-
 '''
   # 標準偏差を計算
 
@@ -524,15 +510,22 @@ for th in top_assignment_allth:
 '''
 import datetime
 now = datetime.datetime.now()
+
+# 実験結果を再現できるようにデータを保存
+'''
+(1)DI,PI,AA,TOP,RANDOMのacc, var, tpの全iterationの平均値
+(2)タスクのあるワーカの人数
+(3)割り当ての結果正解していたワーカの数
+'''
 result = {
-  'ours_output': ours_output_alliter, 'full_output': full_output_alliter, 
+ 
   'ours_acc': ours_acc, 'top_acc': top_acc, 
   'random_acc': random_acc, 'PI_acc': PI_acc, 'AA_acc': AA_acc,
   'ours_var': ours_var, 'top_var': top_var,  'AA_var': AA_var,
   'random_var': random_var, 'PI_var': PI_var,
   'ours_tp': ours_tp, 'PI_tp': PI_tp, 'AA_tp': AA_tp, 
   'random_tp': random_tp, 'top_tp': top_tp,
-  'welldone_dist': welldone_dist, 
+  'welldone_dist': welldone_dist, 'worker_with_task': worker_with_task,
   'ours_acc_head': ours_acc_head, 'AA_acc_head': AA_acc_head,
   'ours_acc_tail': ours_acc_tail, 'AA_acc_tail': AA_acc_tail
 }
@@ -568,10 +561,8 @@ w = 0.4
 y_ours = num_worker[0]
 y_AA = num_worker[1]
 
-
 x1 = [1, 2, 3, 4]
 x2 = [1.3, 2.3, 3.3, 4.3]
-
 
 # 少なくとも1つ以上のタスクを与えられたワーカのヒストグラム
 label_x = ['0.5', '0.6', '0.7', '0.8']
@@ -641,7 +632,6 @@ random_trade = var_acc_plot(random_var, random_acc)
 PI_trade = var_acc_plot(PI_var, PI_acc)
 
 
-plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義
 ax1 = fig.add_subplot()
 ax1.set_xlabel('Working Opportunity')

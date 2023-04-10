@@ -97,6 +97,7 @@ NA_count_list = []
 '''
 イテレーション
 '''
+print(len(worker_list))
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
 iteration_time = 200

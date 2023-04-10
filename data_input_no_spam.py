@@ -8,6 +8,8 @@ label_df = label_df.rename(columns={'Unnamed: 0': 'id'})
 label_df = label_df.set_index('id')
 
 # origin_id: max(prob_dic)のdict作成
+
+# batch_100.csv の17, 59, 88, 100列目がspam
 task_dic = {}
 for k in range(0, 100):
   task_id = "q"+str(k+1)
@@ -35,3 +37,5 @@ print(input_df)
 input_data = {'input_df': input_df, 'worker_list': worker_list, 'task_list': task_list}
 with open('input_data_no_spam.pickle', 'wb') as f:
     pickle.dump(input_data, f)
+
+

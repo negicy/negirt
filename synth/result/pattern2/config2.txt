@@ -1,4 +1,0 @@
-
-Aimodel dist: 0.05
-iteration: 100
-margin = th/20

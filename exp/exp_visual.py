@@ -10,7 +10,6 @@ import scikit_posthocs as sp
 from assignment_method import *
 from irt_method import *
 from simulation import *
-from survey import *
 from make_candidate import *
 
 path = os.getcwd()
@@ -131,7 +130,7 @@ for iteration in range(0, iteration_time):
   PI_noise1_var_perth = []
   PI_noise1_tp_perth = []
   
-  sample = devide_sample(task_list, worker_list, label_df)
+  sample = devide_sample(task_list, worker_list)
   qualify_task = sample['qualify_task']
   test_task = sample['test_task']
   test_worker = sample['test_worker']
@@ -527,15 +526,18 @@ result = {
   'random_tp': random_tp, 'top_tp': top_tp,
   'welldone_dist': welldone_dist, 'worker_with_task': worker_with_task,
   'ours_acc_head': ours_acc_head, 'AA_acc_head': AA_acc_head,
-  'ours_acc_tail': ours_acc_tail, 'AA_acc_tail': AA_acc_tail
+  'ours_acc_tail': ours_acc_tail, 'AA_acc_tail': AA_acc_tail,
+  'ours_acc_std': ours_acc_std, 'top_acc_std': top_acc_std, 'AA_acc_std': AA_acc_std,
+  'random_acc_std': random_acc_std, 'PI_acc_std': PI_acc_std,
+  'ours_var_std': ours_var_std, 'top_var_std': top_var_std, 'AA_var_std': AA_var_std,
+  'random_var_std': random_var_std, 'PI_var_std': PI_var_std
+
 }
 
-
 # 結果データの保存
-filename = "result/result_{0:%Y%m%d_%H%M%S}.pickle".format(now)
+filename = "results/result_{0:%Y%m%d_%H%M%S}.pickle".format(now)
 with open(filename, 'wb') as f:
   pickle.dump(result, f)
-
 
 for th in welldone_dist:
   welldone_dist[th] = welldone_dist[th] / iteration_time
@@ -569,10 +571,9 @@ label_x = ['0.5', '0.6', '0.7', '0.8']
 plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義
 # 1つ目の棒グラフ
-#plt.bar(x1, y_ours, color='blue', width=0.3, label='DI', align="center")
-
+plt.bar(x1, y_ours, color='blue', width=0.3, label='DI', align="center")
 # 2つ目の棒グラフ
-#plt.bar(x2, y_AA, color='coral', width=0.3, label='AA', align="center")
+plt.bar(x2, y_AA, color='coral', width=0.3, label='AA', align="center")
 
 # 凡例
 plt.xlabel('threshold')
@@ -638,14 +639,14 @@ ax1.set_xlabel('Working Opportunity')
 ax1.set_ylabel('accuracy')
 ax1.set_xlim(0, 30)
 
-bbox=(0.2750, 0.400)
+bbox=(0.3750, 0.400)
 ax1.plot(ours_trade[0], ours_trade[1], color='red', label='IRT')
 ax1.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
 ax1.plot(top_trade[0], top_trade[1], color='blue', label='TOP')
 ax1.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
 ax1.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
 # ax1.plot(PI_noise1_trade[0], PI_noise1_trade[1], color='orange', label='IRT(PI0.5)')
-fig.legend(bbox_to_anchor=bbox, loc='upper left')
+fig.legend(bbox_to_anchor=bbox, loc='lower right')
 plt.show()
 
 

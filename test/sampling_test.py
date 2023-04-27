@@ -1,10 +1,6 @@
 import sys, os
 import numpy as np
-import pickle
-import pandas as pd
 import random
-import scipy
-import scikit_posthocs as sp
 import string
 import unittest
 sys.path.append('../exp')

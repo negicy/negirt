@@ -9,43 +9,47 @@ import scikit_posthocs as sp
 from assignment_method import *
 from irt_method import *
 from simulation import *
-from survey import *
 from make_candidate import *
 
-filename = 'result/result_20220920_163709.pickle'
+filename = 'results/result_20230427_023928.pickle'
 
 with open(filename, 'rb') as p:
     results = pickle.load(p)
 
-print(results['full_output'][0])
+
 welldone_dist = results['welldone_dist']
-iteration_time = 5
+iteration_time = 200
 
 ours_acc = results['ours_acc']
 ours_var = results['ours_var']
-#ours_tp = results['ours_tp']
+ours_tp = results['ours_tp']
+ours_acc_std = results['ours_acc_std']
+ours_var_std = results['ours_var_std']
 
 top_acc = results['top_acc']
 top_var = results['top_var']
-#top_tp = results['top_tp']
+top_tp = results['top_tp']
+top_acc_std = results['top_acc_std']
+top_var_std = results['top_var_std']
 
-#AA_acc = results['AA_acc']
-#AA_var = results['AA_var']
-#AA_tp = results['AA_tp']
+AA_acc = results['AA_acc']
+AA_var = results['AA_var']
+AA_tp = results['AA_tp']
+AA_acc_std = results['AA_acc_std']
+AA_var_std = results['AA_var_std']
 
 random_acc = results['random_acc']
 random_var = results['random_var']
-#random_tp = results['random_tp']
+random_tp = results['random_tp']
+random_acc_std = results['random_acc_std']
+random_var_std = results['random_var_std']
 
-'''
+
 PI_acc = results['PI_acc']
 PI_var = results['PI_var']
 PI_tp = results['PI_tp']
-'''
-full_irt_acc = results['full_irt_acc']
-full_irt_var = results['full_irt_var']
-#full_irt__tp = results['full_irt_tp']
-
+PI_acc_std = results['PI_acc_std']
+PI_var_std = results['PI_var_std']
 
 threshold = list([i / 100 for i in range(50, 81)])
 
@@ -53,16 +57,18 @@ threshold = list([i / 100 for i in range(50, 81)])
 for th in welldone_dist:
   welldone_dist[th] = welldone_dist[th] / iteration_time
 
-plt.rcParams["font.size"] = 18
+plt.rcParams["font.size"] = 22
 fig =  plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 
 ax.set_xlabel('threshold')
-ax.set_ylabel('number of successful assignments')
+ax.set_ylabel('rate of successful assignments')
 ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.4)
 plt.show()
 
-'''
+# タスクのあるワーカのヒストグラム
+worker_with_task = results['worker_with_task']
+
 num_worker = [[], []]
 for th in [0.5, 0.6, 0.7, 0.8]:
   num_worker[0].append(worker_with_task['ours'][th] / iteration_time)
@@ -93,22 +99,23 @@ plt.xticks([1.15, 2.15, 3.15, 4.15], label_x)
 fig.legend(bbox_to_anchor=(0.15, 0.250), loc='upper left')
 plt.show()
 
-'''
+
 
 # 推移をプロット
 
 result_acc_dic = {
   'ours': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': PI_acc,
+  'ours_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': PI_acc_std
 
   }
 
 result_var_dic = {
   'ours': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'PI': PI_var,
-
+  'ours_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': PI_var_std
 }
 
-result_plot_no_std(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400)).show()
-result_plot_no_std(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
+result_plot_1(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400)).show()
+result_plot_1(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
 
 # トレードオフのグラフ
 ours_trade = tp_acc_plot(ours_tp, ours_acc)
@@ -127,7 +134,7 @@ ax.set_xlabel('Working Opportunity')
 ax.set_ylabel('accuracy')
 ax.set_xlim(0, 30)
 
-bbox=(0.2750, 0.400)
+bbox=(0.4750, 0.400)
 ax.plot(ours_trade[0], ours_trade[1], color='red', label='IRT')
 ax.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
 ax.plot(top_trade[0], top_trade[1], color='blue', label='TOP')

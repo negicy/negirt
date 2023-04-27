@@ -9,7 +9,6 @@ import random
 from scipy.stats import norm
 from irt_method import *
 from simulation import * 
-from test_make_candidate import *
 
 def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):
   # ワーカ候補の辞書
@@ -37,8 +36,7 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
 
   for category in category_dic:
     category_dic[category]['mb'] = np.mean(category_dic[category]['b'])
- 
-  print(test_DI_make_candidate(q_data, qualify_task))
+
 
   for th in threshold:
     candidate_count = 0

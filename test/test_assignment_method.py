@@ -7,10 +7,10 @@ import girth
 import random
 import scipy
 import scikit_posthocs as sp
-from assignment_method import *
-from irt_method import *
-from simulation import *
-from survey import *
+from old.assignment_method import *
+from old.irt_method import *
+from old.simulation import *
+from scrap.survey import *
 import datetime
 now = datetime.datetime.now()
 import csv

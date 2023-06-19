@@ -1,6 +1,6 @@
 import sys, os
-from assignment_method import *
-from irt_method import *
+from old.assignment_method import *
+from old.irt_method import *
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
-from irt_method import *
+from old.irt_method import *
 import sys, os
-from assignment_method import *
+from old.assignment_method import *
 import numpy as np
 import pandas as pd
 import girth

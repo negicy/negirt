@@ -4,7 +4,7 @@ import random
 import string
 import unittest
 sys.path.append('../exp')
-from simulation import *
+from old.simulation import *
 
 # ランダム文字列(workerID, taskID)を生成する関数
 def random_string(length):

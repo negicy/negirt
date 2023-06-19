@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from operator import itemgetter
-from irt_method import *
+from old.irt_method import *
 '''
 Businness 31
 Economy 36

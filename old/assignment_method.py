@@ -21,9 +21,8 @@ def check_empty(dic):
   for i in dic.values():
     if len(i) == 0:
       return 1
+    
 # アルゴリズム
-
-
 def flatten(assign_dic, worker_list, i):
   worker = worker_list[i]
   pre_worker =  worker_list[i-1]

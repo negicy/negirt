@@ -7,9 +7,9 @@ import pandas as pd
 import girth
 import random
 import scipy
-from assignment_method import *
-from irt_method import *
-from simulation import *
+from old.assignment_method import *
+from old.irt_method import *
+from old.simulation import *
 
 path = os.getcwd()
 

@@ -109,7 +109,7 @@ NA_count_list = []
 print(len(worker_list))
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 20
+iteration_time = 100
 worker_with_task = {
     "ours": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},
     "AA": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},
@@ -532,6 +532,7 @@ for th in range(0, len(threshold)):
 可視化
 """
 
+# パラメータの関係と正誤の関係
 PI_res_dic = {}
 DI_res_dic = {}
 thres = 0.5
@@ -596,7 +597,7 @@ for th in [0.5, 0.6, 0.7, 0.8]:
 
             if full_user_param[di_worker] > full_item_param[task] and di_res == 1:
                 count_di_over_true += 1
-                
+
             if full_user_param[di_worker] > full_item_param[task] and di_res == 0:
                 count_di_over_false += 1
 
@@ -612,7 +613,7 @@ for th in [0.5, 0.6, 0.7, 0.8]:
     print("DI", th)
     print(count_di_over_true / iteration_time, count_di_over_false / iteration_time)
     print(count_di_under_true / iteration_time, count_di_under_false / iteration_time)
-    print('worker人数増加:', len(worker_di_under_true) / iteration_time)
+    print("worker人数増加:", len(worker_di_under_true) / iteration_time)
 
 
 pi_df = pd.DataFrame(data=PI_res_dic)
@@ -784,8 +785,17 @@ ax.plot(top_trade[0], top_trade[1], color="blue", label="TOP")
 ax.plot(random_trade[0], random_trade[1], color="green", label="RANDOM")
 ax.plot(PI_trade[0], PI_trade[1], color="purple", label="IRT(PI)")
 fig.legend(bbox_to_anchor=bbox, loc="upper left")
-#plt.show()
+plt.show()
 
+th_list = []
+for i in range(0, len(ours_trade[1])):
+    if ours_trade[1][i] > PI_trade[1][i]:
+        acc = ours_trade[1][i]
+        index = ours_acc.index(acc)
+        th_list.append(threshold[index])
+
+print("DI>PIとなったときのthresholdは:")
+print(th_list)
 
 # トレードオフのグラフ
 ours_trade = var_acc_plot(ours_var, ours_acc)
@@ -809,7 +819,7 @@ ax1.plot(random_trade[0], random_trade[1], color="green", label="RANDOM")
 ax1.plot(PI_trade[0], PI_trade[1], color="purple", label="IRT(PI)")
 # ax1.plot(PI_noise1_trade[0], PI_noise1_trade[1], color='orange', label='IRT(PI0.5)')
 fig.legend(bbox_to_anchor=bbox, loc="lower right")
-#plt.show()
+plt.show()
 
 
 # 推移をプロット

@@ -2,4 +2,6 @@ result_csv/
 result/
 __pycache__/
 .DS_Store
+*.log
+*.pyc
 

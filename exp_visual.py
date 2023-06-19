@@ -553,7 +553,6 @@ ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.5, color='f
 
 # タスクのあるワーカ人数をヒストグラムで
 # iteration間の平均を求める
-
 num_worker = [[], []]
 for th in [0.5, 0.6, 0.7, 0.8]:
   num_worker[0].append(worker_with_task['ours'][th] / iteration_time)
@@ -608,7 +607,6 @@ PI_trade = tp_acc_plot(PI_tp, PI_acc)
 # top_trade = var_acc_plot(top_var, top_acc)
 # random_trade = var_acc_plot(random_var, random_acc)
 
-plt.rcParams["font.size"] = 22
 fig = plt.figure() #親グラフと子グラフを同時に定義
 ax = fig.add_subplot()
 ax.set_xlabel('Working Opportunity')
@@ -616,14 +614,13 @@ ax.set_ylabel('accuracy')
 ax.set_xlim(0, 30)
 
 bbox=(0.2750, 0.400)
-ax.plot(ours_trade[0], ours_trade[1], color='red', label='IRT')
+ax.plot(ours_trade[0], ours_trade[1], color='red', label='IRT(DI)')
 ax.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
 ax.plot(top_trade[0], top_trade[1], color='blue', label='TOP')
 ax.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
 ax.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
 fig.legend(bbox_to_anchor=bbox, loc='upper left')
 plt.show()
-
 
 # トレードオフのグラフ
 ours_trade = var_acc_plot(ours_var, ours_acc)
@@ -632,7 +629,6 @@ top_trade = var_acc_plot(top_var, top_acc)
 random_trade = var_acc_plot(random_var, random_acc)
 PI_trade = var_acc_plot(PI_var, PI_acc)
 
-
 fig = plt.figure() #親グラフと子グラフを同時に定義
 ax1 = fig.add_subplot()
 ax1.set_xlabel('Working Opportunity')
@@ -640,7 +636,7 @@ ax1.set_ylabel('accuracy')
 ax1.set_xlim(0, 30)
 
 bbox=(0.2750, 0.400)
-ax1.plot(ours_trade[0], ours_trade[1], color='red', label='IRT')
+ax1.plot(ours_trade[0], ours_trade[1], color='red', label='IRT(DI)')
 ax1.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
 ax1.plot(top_trade[0], top_trade[1], color='blue', label='TOP')
 ax1.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
@@ -648,7 +644,6 @@ ax1.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
 # ax1.plot(PI_noise1_trade[0], PI_noise1_trade[1], color='orange', label='IRT(PI0.5)')
 fig.legend(bbox_to_anchor=bbox, loc='upper left')
 plt.show()
-
 
 # 推移をプロット
 plt.rcParams["font.size"] = 22

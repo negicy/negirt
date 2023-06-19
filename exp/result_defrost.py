@@ -11,7 +11,7 @@ from irt_method import *
 from simulation import *
 from make_candidate import *
 
-filename = 'results/result_20230427_023928.pickle'
+filename = 'results/result_20230613_132227.pickle'
 
 with open(filename, 'rb') as p:
     results = pickle.load(p)

@@ -139,17 +139,10 @@ import matplotlib.pyplot as plt
 import random
 
 def ai_model(actual_b, dist):
-<<<<<<< HEAD
-    b_norm = norm.rvs(loc=actual_b, scale=dist, size=100)
-   
-    ai_accuracy = list(b_norm).count(actual_b) / len(b_norm)
-    # print(ai_accuracy)
-=======
     b_norm = norm.rvs(loc=actual_b, scale=dist, size=1000)
-    print(b_norm)
+    #print(b_norm)
     ai_accuracy = list(b_norm).count(actual_b) / len(b_norm)
-    print(ai_accuracy)
->>>>>>> 302163cfebbc0c96fbb2aa557af05097bd01415f
+    #print(ai_accuracy)
     return random.choice(b_norm)
 
 
@@ -192,11 +185,7 @@ def make_candidate(threshold, input_df, worker_list, test_worker, qualify_task, 
       for worker in test_worker:
         # workerの正答確率prob
         actual_b = full_item_param[task]
-<<<<<<< HEAD
-        ai_b = ai_model(actual_b, dist=1.0)
-=======
         ai_b = ai_model(actual_b, dist=0.01)
->>>>>>> 302163cfebbc0c96fbb2aa557af05097bd01415f
      
         theta = est_user_param[worker]
         prob = OnePLM(ai_b, theta)
@@ -240,11 +229,7 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
 
   for th in threshold:
     # margin = th / 5
-<<<<<<< HEAD
-    margin = 0
-=======
     margin = th/20
->>>>>>> 302163cfebbc0c96fbb2aa557af05097bd01415f
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == True:

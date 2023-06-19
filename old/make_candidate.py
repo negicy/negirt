@@ -7,8 +7,8 @@ import statistics
 from girth import twopl_mml, onepl_mml, rasch_mml, ability_mle
 import random
 from scipy.stats import norm
-from old.irt_method import *
-from old.simulation import * 
+from irt_method import *
+from simulation import * 
 from test.test_make_candidate import *
 
 def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):

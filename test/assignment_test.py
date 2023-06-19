@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import sys
 sys.path.append('../exp')
-from old.assignment_method import *
+from assignment_method import *
 
 
 class TestAssignment(unittest.TestCase):

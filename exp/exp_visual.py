@@ -7,10 +7,10 @@ import girth
 import random
 import scipy
 import scikit_posthocs as sp
-from old.assignment_method import *
-from old.irt_method import *
-from old.simulation import *
-from old.make_candidate import *
+from assignment_method import *
+from irt_method import *
+from simulation import *
+from make_candidate import *
 
 path = os.getcwd()
 
@@ -100,7 +100,7 @@ NA_count_list = []
 print(len(worker_list))
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 200
+iteration_time = 40
 worker_with_task = {'ours': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}, 'AA': {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0}}
 for iteration in range(0, iteration_time):
   print('============|', iteration, "|===============")

@@ -7,11 +7,11 @@ import girth
 import random
 import scipy
 import scikit_posthocs as sp
-from old.assignment_method import *
-from old.irt_method import *
-from old.simulation import *
+from assignment_method import *
+from irt_method import *
+from simulation import *
 
-from old.make_candidate import *
+from make_candidate import *
 import datetime
 now = datetime.datetime.now()
 

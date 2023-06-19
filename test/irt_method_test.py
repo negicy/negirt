@@ -10,7 +10,7 @@ import unittest
 import sys
 sys.path.append('../exp')
 
-from old.irt_method import *
+from irt_method import *
 
 #label_df = pd.read_csv("label_df.csv", sep = ",")
 #batch_df = pd.read_csv("batch_100.csv", sep = ",")

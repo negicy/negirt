@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from girth.synthetic import create_synthetic_irt_dichotomous
 from girth import twopl_mml, onepl_mml, ability_mle
-from old.assignment_method import *
+from assignment_method import *
 
 label_df = pd.read_csv("label_df.csv", sep = ",")
 input_df = pd.read_csv("input.csv", sep = ",")

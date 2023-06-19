@@ -6,11 +6,11 @@ import pandas as pd
 import random
 import scipy
 import scikit_posthocs as sp
-from old.assignment_method import *
-from old.irt_method import *
-from old.simulation import *
+from assignment_method import *
+from irt_method import *
+from simulation import *
 from scrap.survey import *
-from old.make_candidate import *
+from make_candidate import *
 
 filename = 'result/result_20220920_163709.pickle'
 

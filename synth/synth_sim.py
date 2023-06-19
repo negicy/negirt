@@ -7,9 +7,9 @@ import girth
 import random
 import scipy
 import scikit_posthocs as sp
-from old.assignment_method import *
-from old.irt_method import *
-from old.simulation import *
+from assignment_method import *
+from irt_method import *
+from simulation import *
 # from survey import *ttrr333232
 
 # 1. worker list, task listをsynthデータで代替する

@@ -10,16 +10,6 @@ Health 10
 '''
 
 def sample_category(task_list, test_size, label_df):
-  """_summary_
-
-  Args:
-      task_list (_type_): _description_
-      test_size (_type_): _description_
-      label_df (_type_): _description_
-
-  Returns:
-      _type_: _description_
-  """
   # すべてのカテゴリがバランスよく含まれるようにする
   qualify_task = []
   category_name = ['Technology&Science', 'Economy', 'Businness', 'Health']
@@ -42,7 +32,7 @@ def sample_category(task_list, test_size, label_df):
 
 
 # ワーカとタスクを分離
-def devide_sample(task_list, worker_list):
+def devide_sample(task_list, worker_list, label_df):
   output = {}
   n = 40
   task_list_shuffle = random.sample(task_list, len(task_list))
@@ -118,55 +108,9 @@ def combine_iteration(threshold, iteration_time, acc_allth, var_allth, tp_allth)
 
   return acc, var, tp, acc_std, var_std,  acc_head, acc_tail
 
-def histgram_worker_with_task(worker_with_task,iteration_time):
-  num_worker = [[], []]
-  for th in [0.5, 0.6, 0.7, 0.8]:
-    num_worker[0].append(worker_with_task['ours'][th] / iteration_time)
-    num_worker[1].append(worker_with_task['AA'][th] / iteration_time)
-  w = 0.4
-  y_ours = num_worker[0]
-  y_AA = num_worker[1]
 
-  x1 = [1, 2, 3, 4]
-  x2 = [1.3, 2.3, 3.3, 4.3]
 
-  # 少なくとも1つ以上のタスクを与えられたワーカのヒストグラム
-  label_x = ['0.5', '0.6', '0.7', '0.8']
-  plt.rcParams["font.size"] = 22
-  fig = plt.figure() #親グラフと子グラフを同時に定義
-  # 1つ目の棒グラフ
-  plt.bar(x1, y_ours, color='blue', width=0.3, label='DI', align="center")
-  # 2つ目の棒グラフ
-  plt.bar(x2, y_AA, color='coral', width=0.3, label='AA', align="center")
-
-  # 凡例
-  plt.xlabel('threshold')
-  plt.ylabel('Number of workers with tasks')
-  # X軸の目盛りを置換
-  plt.xticks([1.15, 2.15, 3.15, 4.15], label_x)
-  fig.legend(bbox_to_anchor=(0.15, 0.250), loc='upper left')
-   
-  return plt
-
-def histgram_welldone(welldone_dist, iteration_time):
-  for th in welldone_dist:
-    welldone_dist[th] = welldone_dist[th] / iteration_time
-
-  # 割当て成功数ヒストグラム
-  plt.rcParams["font.size"] = 18
-  fig =  plt.figure()
-  ax = fig.add_subplot(1, 1, 1)
-
-  ax.set_xlabel('threshold')
-  ax.set_ylabel('rate of successful assignments')
-  ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.5, color='forestgreen')
-  return plt
-   
-   
-   
-   
-
-def result_plot_acc_var(threshold, result_dic, ay, bbox):
+def result_plot_1(threshold, result_dic, ay, bbox):
     
     # 推移をプロット
     plt.rcParams["font.size"] = 24
@@ -176,18 +120,18 @@ def result_plot_acc_var(threshold, result_dic, ay, bbox):
     ax.set_ylabel(ay)
     x = np.array(threshold)
     
-    DI = np.array(result_dic['DI'])
+    ours = np.array(result_dic['ours'])
     top = np.array(result_dic['top'])
     AA = np.array(result_dic['AA'])
     random = np.array(result_dic['random'])
     PI = np.array(result_dic['PI'])
 
-    DI_std = np.array(result_dic['DI_std'])
+    ours_std = np.array(result_dic['ours_std'])
     top_std = np.array(result_dic['top_std'])
     random_std = np.array(result_dic['random_std'])
     PI_std = np.array(result_dic['PI_std'])
     AA_std = np.array(result_dic['AA_std'])
-    ax.plot(x, DI, color='red', label='IRT(DI)')
+    ax.plot(x, ours, color='red', label='IRT(DI)')
     ax.plot(x, top, color='blue', label='TOP')
     ax.plot(x, AA, color='cyan', label='AA')
     ax.plot(x, random, color='green', label='RANDOM')
@@ -196,7 +140,7 @@ def result_plot_acc_var(threshold, result_dic, ay, bbox):
         ax.plot(x, x, color='orange', linestyle="dashed")
 
     a = 0.05
-    plt.fill_between(x, DI - DI_std, DI + DI_std, facecolor='r', alpha=a)
+    plt.fill_between(x, ours - ours_std, ours + ours_std, facecolor='r', alpha=a)
     plt.fill_between(x, top - top_std, top + top_std, facecolor='b', alpha=a)
     plt.fill_between(x, AA - AA_std, AA + AA_std, facecolor='cyan', alpha=a)
     plt.fill_between(x, random - random_std, random + random_std, facecolor='g', alpha=a)
@@ -204,46 +148,35 @@ def result_plot_acc_var(threshold, result_dic, ay, bbox):
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
     return plt
 
-def result_plot_tradeoff(result_tp_dic, result_acc_dic):
-  # トレードオフのグラフ
-  DI_tp = np.array(result_tp_dic['DI'])
-  top_tp = np.array(result_tp_dic['top'])
-  AA_tp = np.array(result_tp_dic['AA'])
-  random_tp = np.array(result_tp_dic['random'])
-  PI_tp = np.array(result_tp_dic['PI'])
 
-  DI_acc = np.array(result_acc_dic['DI'])
-  top_acc = np.array(result_acc_dic['top'])
-  AA_acc = np.array(result_acc_dic['AA'])
-  random_acc = np.array(result_acc_dic['random'])
-  PI_acc = np.array(result_acc_dic['PI'])
+def result_plot_2(threshold, result_dic, ay, bbox):
+    
+    # 推移をプロット
+    plt.rcParams["font.size"] = 22
+    fig = plt.figure() #親グラフと子グラフを同時に定義
+    ax = fig.add_subplot()
+    ax.set_xlabel('threshold')
+    ax.set_ylabel(ay)
+    x = np.array(threshold)
+    
+    ours = np.array(result_dic['ours'])
+    PI = np.array(result_dic['PI'])
 
-  DI_trade = tp_acc_plot(DI_tp, DI_acc)
-  AA_trade = tp_acc_plot(AA_tp, AA_acc)
-  top_trade = tp_acc_plot(top_tp, top_acc)
-  random_trade = tp_acc_plot(random_tp, random_acc)
-  PI_trade = tp_acc_plot(PI_tp, PI_acc)
+    ours_std = np.array(result_dic['ours_std'])
+    PI_std = np.array(result_dic['PI_std'])
+    
+    ax.plot(x, ours, color='red', label='ours')
+    ax.plot(x, PI, color='purple', label='IRT')
+    if ay == 'accuracy':
+        ax.plot(x, x, color='orange', linestyle="dashed")
+    print(x)
+    a = 0.05
+    plt.fill_between(x, ours - ours_std, ours + ours_std, facecolor='r', alpha=a)
+    plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
+    fig.legend(bbox_to_anchor=bbox, loc='upper left')
+    return plt
 
-  # top_trade = var_acc_plot(top_var, top_acc)
-  # random_trade = var_acc_plot(random_var, random_acc)
 
-  plt.rcParams["font.size"] = 22
-  fig = plt.figure() #親グラフと子グラフを同時に定義
-  ax = fig.add_subplot()
-  ax.set_xlabel('Working Opportunity')
-  ax.set_ylabel('accuracy')
-  ax.set_xlim(0, 30)
-
-  bbox=(0.2750, 0.400)
-  ax.plot(DI_trade[0], DI_trade[1], color='red', label='IRT(DI)')
-  ax.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
-  ax.plot(top_trade[0], top_trade[1], color='blue', label='TOP')
-  ax.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
-  ax.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
-  fig.legend(bbox_to_anchor=bbox, loc='upper left')
-  #plt.show()
-  return plt
-   
 def result_plot_no_std(threshold, result_dic, ay, bbox):
     
     # 推移をプロット
@@ -282,6 +215,15 @@ def var_acc_plot(var, acc):
     var = list(var)
     acc = list(acc)
     # 推移をプロット
+    '''
+    plt.rcParams["font.size"] = 18
+    fig = plt.figure() #親グラフと子グラフを同時に定義
+    ax = fig.add_subplot()
+    ax.set_xlabel('variance')
+    ax.set_ylabel('accuracy')
+    ax.plot(var, acc, color='red', label='ours')
+    '''
+    
     
     return var, acc
 

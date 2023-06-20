@@ -1,6 +1,6 @@
 result_csv/
 result/
-exp/result/
+exp/results/
 __pycache__/
 .DS_Store
 *.log

@@ -37,7 +37,6 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
   for category in category_dic:
     category_dic[category]['mb'] = np.mean(category_dic[category]['b'])
 
-
   for th in threshold:
     candidate_count = 0
     worker_c = {}
@@ -61,7 +60,6 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
     worker_c_th[th] = worker_c
 
   return worker_c_th, test_worker, qualify_task, test_task, DI_item_param, user_param
-
 
 def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
   worker_c_th = {}
@@ -88,7 +86,6 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
     worker_c_th[th] = worker_c
 
   return worker_c_th, full_item_param, full_user_param
-
 
 def make_candidate_PI_noise(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
   worker_c_th = {}
@@ -156,7 +153,6 @@ def top_make_cabdidate(threshold, input_df, test_worker, q_task, test_task):
      
   return top_worker_dic
 
-
 # Average Accuracy Assignment
 def AA_make_candidate(threshold, input_df, test_worker, q_task, test_task):
 
@@ -214,7 +210,6 @@ def extract_sub_worker_irt(test_worker, test_task, item_param, user_param):
       if prob > 0.5:
           # ワーカーを候補リストに代入
           sub_worker[task].append(worker)
-    
   
   return sub_worker
   

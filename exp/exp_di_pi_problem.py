@@ -21,6 +21,7 @@ Real DATA
 """
 データ準備
 """
+
 label_df = pd.read_csv("label_df.csv", sep=",")
 batch_df = pd.read_csv("batch_100.csv", sep=",")
 label_df = label_df.rename(columns={"Unnamed: 0": "id"})
@@ -31,7 +32,6 @@ with open("input_data_no_spam.pickle", "rb") as f:
     input_df = input_data["input_df"]
     worker_list = input_data["worker_list"]
     task_list = input_data["task_list"]
-
 
 ours_acc_allth = []
 ours_var_allth = []
@@ -64,6 +64,7 @@ DI_all_assign_dic_alliter = {}
 
 # 0.5, 0.51,...,0.80
 threshold = list([i / 100 for i in range(50, 81)])
+threshold=[0.5, 0.6, 0.7, 0.8]
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
 
 for th in threshold:
@@ -109,7 +110,7 @@ NA_count_list = []
 print(len(worker_list))
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 100
+iteration_time = 10
 worker_with_task = {
     "ours": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},
     "AA": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},
@@ -485,7 +486,6 @@ top_var_std = top_result[4]
 top_acc_head = top_result[5]
 top_acc_tail = top_result[6]
 
-
 AA_result = combine_iteration(
     threshold, iteration_time, AA_acc_allth, AA_var_allth, AA_tp_allth
 )
@@ -497,7 +497,6 @@ AA_acc_std = AA_result[3]
 AA_var_std = AA_result[4]
 AA_acc_head = AA_result[5]
 AA_acc_tail = AA_result[6]
-
 
 random_result = combine_iteration(
     threshold, iteration_time, random_acc_allth, random_var_allth, random_tp_allth
@@ -527,98 +526,42 @@ for th in range(0, len(threshold)):
     # acc, var, tpの平均を計算
     PI_margin_result[th] = PI_margin_sum_th / iteration_time
 
-
 """
 可視化
 """
-
 # パラメータの関係と正誤の関係
-PI_res_dic = {}
-DI_res_dic = {}
-thres = 0.5
+res = check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_alliter, DI_all_assign_dic_alliter, full_user_param, full_item_param)
+PI_res_dic = res[0]
+DI_res_dic = res[1]
 
-for th in [0.5, 0.6, 0.7, 0.8]:
-    count_pi_over_true = 0
-    count_pi_under_true = 0
-    count_pi_over_false = 0
-    count_pi_under_false = 0
+# ヒストグラム描画: 横軸: threshold, 縦軸: θ < bで正答したタスク数
+DI_ut_task = []
+PI_ut_task = []
+DI_ot_task = []
+PI_ot_task = []
+ind = np.array([0.5, 0.6, 0.7, 0.8])
+for th in ind:
+    DI_ut_task.append(DI_res_dic[th][1])
+    PI_ut_task.append(PI_res_dic[th][1])
+    DI_ot_task.append(DI_res_dic[th][0])
+    PI_ot_task.append(PI_res_dic[th][0])
 
-    count_di_over_true = 0
-    count_di_under_true = 0
-    count_di_over_false = 0
-    count_di_under_false = 0
+width = 0.0275       # the width of the bars: can also be len(x) sequence
+fig, ax = plt.subplots()
 
-    worker_di_under_true = []
+p1 = ax.bar(ind - width/2, DI_ot_task, width, color='red')
+p2 = ax.bar(ind - width/2, DI_ut_task, width, bottom=DI_ot_task, color='orange')
 
-    pi_margin = 0
-    di_margin = 0
-    print("=================")
-    for iter in range(0, iteration_time):
-        print("===============")
-        PI_assign_dic = PI_all_assign_dic_alliter[th][iter][0]
-        DI_assign_dic = DI_all_assign_dic_alliter[th][iter][0]
-        for task in PI_assign_dic:
-            PI_res_dic[task] = {}
-            pi_worker = PI_assign_dic[task]
-            pi_worker_rank = worker_list_sorted.index(pi_worker)
-            pi_res = input_df[pi_worker][task]
-            # pi_skill = full_user_param[pi_worker]
-            PI_res_dic[task][pi_worker_rank] = pi_res
+p3 = ax.bar(ind + width/2, PI_ot_task, width,  color='purple')
+p4 = ax.bar(ind + width/2, PI_ut_task, width, bottom=PI_ot_task, color='violet')
 
-            if full_user_param[pi_worker] < full_item_param[task] and pi_res == 1:
-                count_pi_under_true += 1
-                pi_margin += full_item_param[task]
+plt.ylabel('Number of tasks')
+plt.title('Number of correctly answered task by DI, PI')
+plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
+plt.yticks(np.arange(0, 51, 5))
+#ßplt.legend((p1[0], p2[0]), ('Men', 'Women'))
 
-            if full_user_param[pi_worker] < full_item_param[task] and pi_res == 0:
-                count_pi_under_false += 1
-                pi_margin += full_item_param[task]
-
-            if full_user_param[pi_worker] > full_item_param[task] and pi_res == 1:
-                count_pi_over_true += 1
-
-            if full_user_param[pi_worker] > full_item_param[task] and pi_res == 0:
-                count_pi_over_false += 1
-
-            DI_res_dic[task] = {}
-            di_worker = DI_assign_dic[task]
-            di_worker_rank = worker_list_sorted.index(di_worker)
-            di_res = input_df[di_worker][task]
-            DI_res_dic[task][di_worker_rank] = di_res
-
-            if full_user_param[di_worker] < full_item_param[task] and di_res == 1:
-                count_di_under_true += 1
-                di_margin += full_item_param[task]
-                if di_worker not in worker_di_under_true:
-                    worker_di_under_true.append(di_worker)
-
-            if full_user_param[di_worker] < full_item_param[task] and di_res == 0:
-                count_di_under_false += 1
-                di_margin += full_item_param[task]
-
-            if full_user_param[di_worker] > full_item_param[task] and di_res == 1:
-                count_di_over_true += 1
-
-            if full_user_param[di_worker] > full_item_param[task] and di_res == 0:
-                count_di_over_false += 1
-
-        pi_margin_mean = pi_margin / (count_pi_under_false + count_pi_under_true)
-        di_margin_mean = di_margin / (count_di_under_false + count_di_under_true)
-        print(pi_margin_mean)
-        print(di_margin_mean)
-
-    print("PI", th)
-    print(count_pi_over_true / iteration_time, count_pi_over_false / iteration_time)
-    print(count_pi_under_true / iteration_time, count_pi_under_false / iteration_time)
-
-    print("DI", th)
-    print(count_di_over_true / iteration_time, count_di_over_false / iteration_time)
-    print(count_di_under_true / iteration_time, count_di_under_false / iteration_time)
-    print("worker人数増加:", len(worker_di_under_true) / iteration_time)
-
-
-pi_df = pd.DataFrame(data=PI_res_dic)
-di_df = pd.DataFrame(data=DI_res_dic)
-
+plt.show()
 
 # 標準偏差を計算
 """
@@ -627,7 +570,6 @@ di_df = pd.DataFrame(data=DI_res_dic)
 - success assignment rate
 - 正解率，分散，トレードオフ
 """
-
 for th in top_assignment_allth:
     res = top_assignment_allth[th]
     print(th, len(res), np.mean(res))
@@ -684,166 +626,31 @@ filename = "results/result_{0:%Y%m%d_%H%M%S}.pickle".format(now)
 with open(filename, "wb") as f:
     pickle.dump(result, f)
 
-for th in welldone_dist:
-    welldone_dist[th] = welldone_dist[th] / iteration_time
+# タスクのあるワーカ人数をヒストグラムで
+histgram_worker_with_task(worker_with_task, iteration_time)
 
 # 割当て成功数ヒストグラム
-plt.rcParams["font.size"] = 18
-fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
+histgram_welldone(welldone_dist, iteration_time)
 
-ax.set_xlabel("threshold")
-ax.set_ylabel("rate of successful assignments")
-ax.bar(
-    ["0.5", "0.6", "0.7", "0.8"], welldone_dist.values(), width=0.5, color="forestgreen"
-)
-# plt.show()
-
-# タスクのあるワーカ人数をヒストグラムで
-# iteration間の平均を求める
-
-num_worker = [[], []]
-for th in [0.5, 0.6, 0.7, 0.8]:
-    num_worker[0].append(worker_with_task["ours"][th] / iteration_time)
-    num_worker[1].append(worker_with_task["AA"][th] / iteration_time)
-w = 0.4
-y_ours = num_worker[0]
-y_AA = num_worker[1]
-
-x1 = [1, 2, 3, 4]
-x2 = [1.3, 2.3, 3.3, 4.3]
-
-# 少なくとも1つ以上のタスクを与えられたワーカのヒストグラム
-label_x = ["0.5", "0.6", "0.7", "0.8"]
-plt.rcParams["font.size"] = 22
-fig = plt.figure()  # 親グラフと子グラフを同時に定義
-# 1つ目の棒グラフ
-plt.bar(x1, y_ours, color="blue", width=0.3, label="DI", align="center")
-# 2つ目の棒グラフ
-plt.bar(x2, y_AA, color="coral", width=0.3, label="AA", align="center")
-
-# 凡例
-plt.xlabel("threshold")
-plt.ylabel("Number of workers with tasks")
-# X軸の目盛りを置換
-plt.xticks([1.15, 2.15, 3.15, 4.15], label_x)
-fig.legend(bbox_to_anchor=(0.15, 0.250), loc="upper left")
-# plt.show()
-
+# パラメータと結果正誤の関係
 # 推移をプロット
 
 result_acc_dic = {
-    "ours": ours_acc,
-    "top": top_acc,
-    "AA": AA_acc,
-    "random": random_acc,
-    "PI": PI_acc,
-    "ours_std": ours_acc_std,
-    "top_std": top_acc_std,
-    "AA_std": AA_acc_std,
-    "random_std": random_acc_std,
-    "PI_std": PI_acc_std,
-}
+  'DI': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': PI_acc,
+  'DI_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': PI_acc_std
+  }
 
 result_var_dic = {
-    "ours": ours_var,
-    "top": top_var,
-    "AA": AA_var,
-    "random": random_var,
-    "PI": PI_var,
-    "ours_std": ours_var_std,
-    "top_std": top_var_std,
-    "AA_std": AA_var_std,
-    "random_std": random_var_std,
-    "PI_std": PI_var_std,
+  'DI': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'PI': PI_var,
+  'DI_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': PI_var_std
 }
 
-result_plot_1(threshold, result_acc_dic, ay="accuracy", bbox=(0.150, 0.400)).show()
-result_plot_1(threshold, result_var_dic, ay="variance", bbox=(0.150, 0.800)).show()
+result_tp_dic = {
+  'DI': ours_tp, 'top': top_tp, 'AA': AA_tp, 'random': random_tp, 'PI': PI_tp
+}
 
-# トレードオフのグラフ
-ours_trade = tp_acc_plot(ours_tp, ours_acc)
-AA_trade = tp_acc_plot(AA_tp, AA_acc)
-top_trade = tp_acc_plot(top_tp, top_acc)
-random_trade = tp_acc_plot(random_tp, random_acc)
-PI_trade = tp_acc_plot(PI_tp, PI_acc)
+result_plot_acc_var(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400)).show()
+result_plot_acc_var(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
+result_plot_tradeoff(result_tp_dic, result_acc_dic).show()
+result_plot_tradeoff(result_var_dic, result_acc_dic).show()
 
-# top_trade = var_acc_plot(top_var, top_acc)
-# random_trade = var_acc_plot(random_var, random_acc)
-
-plt.rcParams["font.size"] = 22
-fig = plt.figure()  # 親グラフと子グラフを同時に定義
-ax = fig.add_subplot()
-ax.set_xlabel("Working Opportunity")
-ax.set_ylabel("accuracy")
-ax.set_xlim(0, 30)
-
-bbox = (0.2750, 0.400)
-ax.plot(ours_trade[0], ours_trade[1], color="red", label="IRT")
-ax.plot(AA_trade[0], AA_trade[1], color="cyan", label="AA")
-ax.plot(top_trade[0], top_trade[1], color="blue", label="TOP")
-ax.plot(random_trade[0], random_trade[1], color="green", label="RANDOM")
-ax.plot(PI_trade[0], PI_trade[1], color="purple", label="IRT(PI)")
-fig.legend(bbox_to_anchor=bbox, loc="upper left")
-plt.show()
-
-th_list = []
-for i in range(0, len(ours_trade[1])):
-    if ours_trade[1][i] > PI_trade[1][i]:
-        acc = ours_trade[1][i]
-        index = ours_acc.index(acc)
-        th_list.append(threshold[index])
-
-print("DI>PIとなったときのthresholdは:")
-print(th_list)
-
-# トレードオフのグラフ
-ours_trade = var_acc_plot(ours_var, ours_acc)
-AA_trade = var_acc_plot(AA_var, AA_acc)
-top_trade = var_acc_plot(top_var, top_acc)
-random_trade = var_acc_plot(random_var, random_acc)
-PI_trade = var_acc_plot(PI_var, PI_acc)
-
-
-fig = plt.figure()  # 親グラフと子グラフを同時に定義
-ax1 = fig.add_subplot()
-ax1.set_xlabel("Working Opportunity")
-ax1.set_ylabel("accuracy")
-ax1.set_xlim(0, 30)
-
-bbox = (0.3750, 0.400)
-ax1.plot(ours_trade[0], ours_trade[1], color="red", label="IRT")
-ax1.plot(AA_trade[0], AA_trade[1], color="cyan", label="AA")
-ax1.plot(top_trade[0], top_trade[1], color="blue", label="TOP")
-ax1.plot(random_trade[0], random_trade[1], color="green", label="RANDOM")
-ax1.plot(PI_trade[0], PI_trade[1], color="purple", label="IRT(PI)")
-# ax1.plot(PI_noise1_trade[0], PI_noise1_trade[1], color='orange', label='IRT(PI0.5)')
-fig.legend(bbox_to_anchor=bbox, loc="lower right")
-plt.show()
-
-
-# 推移をプロット
-plt.rcParams["font.size"] = 22
-fig = plt.figure()  # 親グラフと子グラフを同時に定義
-ax = fig.add_subplot()
-ax.set_xlabel("threshold")
-ax.set_ylabel("margin")
-x = np.array(threshold)
-
-ax.plot(x, DI_margin_result, color="red", label="IRT(DI)")
-ax.plot(x, PI_margin_result, color="purple", label="IRT(PI)")
-# plt.show()
-
-mean_b_tt = np.mean(b_tt_list)
-print("平均テストタスク難易度", mean_b_tt)
-check_result_parameter_matrix(
-    iteration_time,
-    input_df,
-    PI_all_assign_dic_alliter,
-    DI_all_assign_dic_alliter,
-    full_user_param,
-    full_item_param,
-)
-
-print(num_fit_param / iteration_time)
-print(np.mean(NA_count_list) / len(threshold))

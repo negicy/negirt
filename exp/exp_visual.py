@@ -32,7 +32,6 @@ with open('input_data_no_spam.pickle', 'rb') as f:
   worker_list = input_data['worker_list']
   task_list = input_data['task_list']
 
-
 ours_acc_allth = []
 ours_var_allth = [] 
 ours_tp_allth = []
@@ -261,7 +260,6 @@ for iteration in range(0, iteration_time):
   top_var_allth.append(top_var_perth)
   top_tp_allth.append(top_tp_perth)
 
-
   # =======|AAのタスク割り当て|=======
   for th in AA_candidate:
     candidate_dic = AA_candidate[th]
@@ -485,7 +483,6 @@ for th in range(0, len(threshold)):
     PI_margin_sum_th += PI_margin_allth[i][th]
   # acc, var, tpの平均を計算
   PI_margin_result[th] = PI_margin_sum_th / iteration_time
-
 
 '''
 可視化

@@ -40,7 +40,6 @@ def sample_category(task_list, test_size, label_df):
           
   return qualify_task
 
-
 # ワーカとタスクを分離
 def devide_sample(task_list, worker_list):
   output = {}
@@ -162,9 +161,6 @@ def histgram_welldone(welldone_dist, iteration_time):
   ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.5, color='forestgreen')
   return plt
    
-   
-   
-   
 
 def result_plot_acc_var(threshold, result_dic, ay, bbox):
     
@@ -187,11 +183,11 @@ def result_plot_acc_var(threshold, result_dic, ay, bbox):
     random_std = np.array(result_dic['random_std'])
     PI_std = np.array(result_dic['PI_std'])
     AA_std = np.array(result_dic['AA_std'])
-    ax.plot(x, DI, color='red', label='IRT(DI)')
-    ax.plot(x, top, color='blue', label='TOP')
-    ax.plot(x, AA, color='cyan', label='AA')
-    ax.plot(x, random, color='green', label='RANDOM')
-    ax.plot(x, PI, color='purple', label='IRT(PI)')
+    ax.plot(x, DI, color='red', marker='s', label='IRT(DI)')
+    ax.plot(x, top, color='blue', marker='s', label='TOP')
+    ax.plot(x, AA, color='cyan',  marker='s', label='AA')
+    ax.plot(x, random, color='green', marker='s', label='RANDOM')
+    ax.plot(x, PI, color='purple', marker='s', label='IRT(PI)')
     if ay == 'accuracy':
         ax.plot(x, x, color='orange', linestyle="dashed")
 
@@ -235,11 +231,11 @@ def result_plot_tradeoff(result_tp_dic, result_acc_dic):
   ax.set_xlim(0, 30)
 
   bbox=(0.2750, 0.400)
-  ax.plot(DI_trade[0], DI_trade[1], color='red', label='IRT(DI)')
-  ax.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
-  ax.plot(top_trade[0], top_trade[1], color='blue', label='TOP')
-  ax.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
-  ax.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
+  ax.plot(DI_trade[0], DI_trade[1], color='red', marker='s', label='IRT(DI)')
+  ax.plot(AA_trade[0], AA_trade[1], color='cyan', marker='s', label='AA')
+  ax.plot(top_trade[0], top_trade[1], color='blue', marker='s', label='TOP')
+  ax.plot(random_trade[0], random_trade[1], color='green', marker='s', label='RANDOM')
+  ax.plot(PI_trade[0], PI_trade[1], color='purple', marker='s', label='IRT(PI)')
   fig.legend(bbox_to_anchor=bbox, loc='upper left')
   #plt.show()
   return plt
@@ -260,7 +256,7 @@ def result_plot_no_std(threshold, result_dic, ay, bbox):
     random = np.array(result_dic['random'])
     PI = np.array(result_dic['PI'])
 
-    ax.plot(x, ours, color='red', label='IRT(DI)')
+    ax.plot(x, ours, color='red', marker='s', label='IRT(DI)')
     ax.plot(x, top, color='blue', label='TOP')
     ax.plot(x, AA, color='cyan', label='AA')
     ax.plot(x, random, color='green', label='RANDOM')
@@ -272,7 +268,6 @@ def result_plot_no_std(threshold, result_dic, ay, bbox):
 
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
     return plt
-
 
 def var_acc_plot(var, acc):
     # ソート
@@ -298,18 +293,6 @@ def tp_acc_plot(tp, acc):
        
         acc_reverse.append(acc)
 
-   
-    # 推移をプロット
-    '''
-    
-    plt.rcParams["font.size"] = 18
-    fig = plt.figure() #親グラフと子グラフを同時に定義
-    ax = fig.add_subplot()
-    ax.set_xlabel('TP')
-    ax.set_ylabel('accuracy')
-    ax.plot(tp, acc, color='red', label='ours')
-    '''
-    
     return tp, acc_reverse
 
 # 実際の能力 > 実際の難易度だった割当ての度数分布thresholdごとに
@@ -331,7 +314,6 @@ def welldone_count(threshold, assign_dic, user_param, item_param):
 def has_duplicates(seq):
     return len(seq) != len(set(seq))
 
-
 def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_alliter, DI_all_assign_dic_alliter, full_user_param, full_item_param):
   # threshold
   # worker, task, 正誤(PI, DI)
@@ -341,8 +323,9 @@ def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_al
   full_user_param_sorted = dict(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
   worker_list_sorted = list(full_user_param_sorted.keys())
 
-
   for th in [0.5, 0.6, 0.7, 0.8]:
+      PI_res_dic[th] = {}
+      DI_res_dic[th] = {}
       count_pi_over_true = 0
       count_pi_under_true = 0
       count_pi_over_false = 0
@@ -398,17 +381,26 @@ def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_al
           
           pi_margin_mean = pi_margin / (count_pi_under_false + count_pi_under_true)
           di_margin_mean = di_margin / (count_di_under_false + count_di_under_true)
-          # print(pi_margin_mean)
-          #print(di_margin_mean)
-
 
       print('PI', th)
-      print(count_pi_over_true/iteration_time, count_pi_over_false/iteration_time)
-      print(count_pi_under_true/iteration_time, count_pi_under_false/iteration_time)
+      PI_ot_mean = count_pi_over_true/iteration_time
+      PI_ut_mean = count_pi_under_true/iteration_time
+      PI_of_mean = count_pi_over_false/iteration_time
+      PI_uf_mean = count_pi_under_false/iteration_time
+      PI_res_dic[th] = [PI_ot_mean, PI_ut_mean, PI_of_mean, PI_uf_mean]
+      print(PI_ot_mean, PI_of_mean)
+      print(PI_ut_mean, PI_uf_mean)
 
       print('DI', th)
-      print(count_di_over_true/iteration_time, count_di_over_false/iteration_time)
-      print(count_di_under_true/iteration_time, count_di_under_false/iteration_time)
+      DI_ot_mean = count_di_over_true/iteration_time
+      DI_ut_mean = count_di_under_true/iteration_time
+      DI_of_mean = count_di_over_false/iteration_time
+      DI_uf_mean = count_di_under_false/iteration_time
+      DI_res_dic[th] = [DI_ot_mean, DI_ut_mean, DI_of_mean, DI_uf_mean]
+      print(DI_ot_mean, DI_of_mean)
+      print(DI_ut_mean, DI_uf_mean)
+
+  return PI_res_dic, DI_res_dic
 
 #誰も解けないタスクの数を数える: カテゴリごとに
 def count_nc_task(label_df, worker_list, task_list, full_item_param, full_user_param):

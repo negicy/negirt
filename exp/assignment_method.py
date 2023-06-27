@@ -154,12 +154,14 @@ def accuracy(assign_dic, input_df, inspecter="OFF"):
       score += 1
     if inspecter == "ON":
       print("Hello")
-
+  acc = score/task_num
+  '''
   if task_num > 0:
     acc = score/task_num
   # assign_dicが空の場合
   else:
     acc = "null"
+  '''
   return acc
 
 # 各ワーカーの割り当てタスク数数える
@@ -173,7 +175,7 @@ def task_variance(assign_dic, test_workers):
   # 担当タスク数の分散を数える
   count_list = list(count_dic.values())
 
-  v = np.var(count_list)
+  v = np.std(count_list)
   return v
 
 def calc_tp(assign_dic, test_worker):

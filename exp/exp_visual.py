@@ -180,9 +180,11 @@ for iteration in range(0, iteration_time):
     best_worker = test_worker_sorted_list[0]
     DI_sub_workers = extract_sub_worker_irt(test_worker, test_task, DI_item_param, DI_user_param)
 
+    '''
     for task in test_task:
       if task not in DI_assign_dic_opt.keys():
         DI_assign_dic_opt[task] = random.choice(DI_top_workers)
+    '''
   
     for task in test_task:
       if task not in DI_assign_dic_opt.keys():

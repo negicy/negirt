@@ -33,6 +33,22 @@ with open("input_data_no_spam.pickle", "rb") as f:
     worker_list = input_data["worker_list"]
     task_list = input_data["task_list"]
 
+
+# 各ワーカーの全体正解率
+skill_rate_dic = {}
+for w in worker_list:
+    correct = 0
+    task_num = 0
+    for i in task_list:
+      task_num += 1
+      if input_df[w][i] == 1:
+        correct += 1
+    skill_rate_dic[w] = (correct / task_num)
+
+for w in skill_rate_dic.keys():
+    if skill_rate_dic[w] < 0.2:
+        worker_list.remove(w)
+
 ours_acc_allth = []
 ours_var_allth = []
 ours_tp_allth = []
@@ -110,7 +126,7 @@ NA_count_list = []
 print(len(worker_list))
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 10
+iteration_time = 100
 worker_with_task = {
     "ours": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},
     "AA": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},
@@ -200,19 +216,22 @@ for iteration in range(0, iteration_time):
                 DI_assign_dic_opt[task] = worker
         # print('th'+str(th)+'assignment size'+str(len(assign_dic_opt)))
         # NA タスクをランダム割当て
+        '''
         DI_top_workers = sort_test_worker(test_worker, DI_user_param, N=5)
         test_worker_sorted_dict = dict(
             sorted(DI_user_param.items(), key=lambda x: x[1], reverse=True)
         )
-        test_worker_sorted_list = list(test_worker_sorted_dict.keys())
-        best_worker = test_worker_sorted_list[0]
+        '''
+        #test_worker_sorted_list = list(test_worker_sorted_dict.keys())
+        #best_worker = test_worker_sorted_list[0]
         DI_sub_workers = extract_sub_worker_irt(
             test_worker, test_task, DI_item_param, DI_user_param
         )
-
+        '''
         for task in test_task:
             if task not in DI_assign_dic_opt.keys():
                 DI_assign_dic_opt[task] = random.choice(DI_top_workers)
+        '''
 
         for task in test_task:
             if task not in DI_assign_dic_opt.keys():

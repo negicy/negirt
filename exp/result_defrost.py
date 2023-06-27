@@ -11,7 +11,7 @@ from irt_method import *
 from simulation import *
 from make_candidate import *
 
-filename = 'results/result_20230613_132227.pickle'
+filename = 'results/result_20230627_223606.pickle'
 
 with open(filename, 'rb') as p:
     results = pickle.load(p)
@@ -114,8 +114,8 @@ result_var_dic = {
   'ours_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': PI_var_std
 }
 
-result_plot_1(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400)).show()
-result_plot_1(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
+result_plot_acc_var(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400)).show()
+result_plot_acc_var(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
 
 # トレードオフのグラフ
 ours_trade = tp_acc_plot(ours_tp, ours_acc)

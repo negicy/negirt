@@ -36,8 +36,10 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
 
   for category in category_dic:
     category_dic[category]['mb'] = np.mean(category_dic[category]['b'])
-
+  
   for th in threshold:
+    margin = 0
+ 
     candidate_count = 0
     worker_c = {}
     for task in test_task:
@@ -53,7 +55,7 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
         prob = OnePLM(beta, theta)
 
         # workerの正解率がthresholdより大きければ
-        if prob >= th:
+        if prob >= th + margin:
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
 
@@ -66,8 +68,9 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
   #params = run_girth_rasch(q_data, task_list, tetst_worker)
 
   for th in threshold:
-    margin = th / 4.3
-    #margin = 0
+   
+    
+    margin = th/4.2
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th, full_item_param, full_user_param, test_worker, task) == True:

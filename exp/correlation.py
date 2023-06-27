@@ -10,7 +10,7 @@ import scikit_posthocs as sp
 from assignment_method import *
 from irt_method import *
 from simulation import *
-from scrap.survey import *
+#from scrap.survey import *
 
 path = os.getcwd()
 
@@ -45,8 +45,18 @@ full_output_alliter = {}
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
 iteration_time = 1
-# 各ワーカーの全体正解率
-skill_rate_dic = {}
+# 各タスクのーの全体正解率
+item_rate_dic = {}
+
+for i in task_list:
+  correct = 0
+  worker_num = 0
+  for w in worker_list:
+    worker_num += 1
+    if input_df[w][i] == 1:
+      correct += 1
+  item_rate_dic[i] = (correct / worker_num)
+
 # 各ワーカーの全体正解率
 skill_rate_dic = {}
 for w in worker_list:
@@ -58,9 +68,10 @@ for w in worker_list:
       correct += 1
   skill_rate_dic[w] = (correct / task_num)
 
+
 for iteration in range(0, iteration_time):
 
-  sample = devide_sample(task_list, worker_list, label_df)
+  sample = devide_sample(task_list, worker_list)
   qualify_task = sample['qualify_task']
   test_task = sample['test_task']
   test_worker = sample['test_worker']
@@ -85,21 +96,29 @@ for iteration in range(0, iteration_time):
 
   item_param = params[0]
   full_item_param = {}
-  for item in item_param:
+  item_rate_list = []
+  beta_list = []
+  for item in item_rate_dic:
+    beta_list.append(item_param[item])
+    item_rate_list.append(item_rate_dic[item])
     full_item_param[item] = item_param[item]
 
   full_user_param = params[1]
   print(full_item_param)
-  rate_list = []
+  skill_rate_list = []
   theta_list = []
 
   for worker in skill_rate_dic:
-    rate_list.append(skill_rate_dic[worker])
+    skill_rate_list.append(skill_rate_dic[worker])
     theta_list.append(full_user_param[worker])
   
   plt.rcParams["font.size"] = 22
   fig = plt.figure() #親グラフと子グラフを同時に定義
-  plt.scatter(theta_list, rate_list, color='blue', label='ours')
+  plt.scatter( beta_list, item_rate_list, color='blue', label='ours')
+  plt.show()
+
+  fig = plt.figure() #親グラフと子グラフを同時に定義
+  plt.scatter(theta_list, skill_rate_list, color='blue', label='ours')
   plt.show()
 
   sorted_skill_rate = dict(sorted(skill_rate_dic.items(), key=lambda x: x[1], reverse=True))

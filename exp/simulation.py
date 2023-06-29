@@ -415,19 +415,31 @@ def count_nc_task(label_df, worker_list, task_list, full_item_param, full_user_p
   print(nc_task)
   return nc_task
 
-def calc_parameter_fit(test_task, test_worker, full_item_param, full_user_param, input_df):
-  tp = 0
-  fn = 0
-  for tt in test_task:
-    item_param = full_item_param[tt]
-    for worker in test_worker:
-      worker_param = full_user_param[worker]
-      if worker_param >= item_param and input_df[worker][tt] == 1:
-        tp += 1
-      if worker_param < item_param and input_df[worker][tt] == 0:
-        fn += 1
+def calc_parameter_fit(task_list, worker_list, item_param, user_param, input_df):
+  # 残差
+  z_sum = 0
+  z_list = []
+  for task in task_list:
+    #print(item_param)
+    b = item_param[task]
+    #z_per_task = 0
+    for worker in worker_list:
+      theta = user_param[worker]
+      response = input_df[worker][task]
+      z_sum += response - OnePLM(b, theta)
+      z_list.append(np.abs(response - OnePLM(b, theta)))
+      #print(response, OnePLM(b, theta), response - OnePLM(b, theta))
+    #z_per_task = z_per_task / len(worker_list)
+    #z_sum += z_per_task
   
-  return tp/len(test_task)
+  
+  #z = z_sum / (len(task_list)*len(worker_list))
+  z = np.mean(z_list)
+  #print(z_list)
+  
+  return z
+
+
 
 
 

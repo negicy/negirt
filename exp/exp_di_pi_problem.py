@@ -102,7 +102,7 @@ for qt in qualify_task:
     qualify_dic[qt] = list(input_df.T[qt])
 
 q_data = np.array(list(qualify_dic.values()))
-params = run_girth_rasch(q_data, task_list, worker_list)
+params = run_girth_twopl(q_data, task_list, worker_list)
 
 full_item_param = params[0]
 full_user_param = params[1]
@@ -126,7 +126,7 @@ NA_count_list = []
 print(len(worker_list))
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 100
+iteration_time = 200
 worker_with_task = {
     "ours": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},
     "AA": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},

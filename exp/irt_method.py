@@ -92,9 +92,9 @@ def run_girth_twopl(data, task_list, worker_list):
 
     for k in range(len(task_list)):
         task_id = task_list[k]
-        item_param[task_id] = {}
-        item_param[task_id]['a'] = discrimination_estimates[k]
-        item_param[task_id]['b'] = difficulty_estimates[k]
+        item_param[task_id] = difficulty_estimates[k]
+        #item_param[task_id]['a'] = discrimination_estimates[k]
+        #item_param[task_id]['b'] = difficulty_estimates[k]
     for j in range(len(worker_list)):
         worker_id = worker_list[j]
         user_param[worker_id] = abilitiy_estimates[j] 

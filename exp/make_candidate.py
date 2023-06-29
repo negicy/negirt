@@ -14,13 +14,13 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
   # ワーカ候補の辞書
   worker_c_th = {}
   qualify_dic = {}
-
+  
   for qt in qualify_task:
     qualify_dic[qt] = list(input_df.T[qt])
 
   q_data = np.array(list(qualify_dic.values()))
   # raschモデルでパラメータ推定
-  params = run_girth_rasch(q_data, qualify_task, worker_list)
+  params = run_girth_twopl(q_data, qualify_task, worker_list)
   item_param = params[0]
   user_param = params[1]
 
@@ -37,9 +37,12 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
   for category in category_dic:
     category_dic[category]['mb'] = np.mean(category_dic[category]['b'])
   
+  margin = calc_parameter_fit(qualify_task, worker_list, item_param, user_param, input_df)
+  print('DI残差:', margin)
   for th in threshold:
-    margin = 0
- 
+    #margin = 0
+    #margin = th/5 
+    
     candidate_count = 0
     worker_c = {}
     for task in test_task:
@@ -55,7 +58,7 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
         prob = OnePLM(beta, theta)
 
         # workerの正解率がthresholdより大きければ
-        if prob >= th + margin:
+        if prob >= th:
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
 
@@ -66,11 +69,16 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
 def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
   worker_c_th = {}
   #params = run_girth_rasch(q_data, task_list, tetst_worker)
-
+  task_list = list(full_item_param.keys())
+  worker_list = list(full_user_param.keys())
+  #margin = calc_parameter_fit(task_list, worker_list, full_item_param, full_user_param, input_df)
+  #print('PI残差:', margin)
   for th in threshold:
    
     
-    margin = th/4.2
+    #margin = th/5
+    margin = 0
+    
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th, full_item_param, full_user_param, test_worker, task) == True:
@@ -83,7 +91,7 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
           prob = OnePLM(beta, theta)
 
           # workerの正解率がthresholdより大きければ
-          if prob >= th + margin:
+          if prob >= th:
             # ワーカーを候補リストに代入
             worker_c[task].append(worker)
     worker_c_th[th] = worker_c
@@ -115,7 +123,7 @@ def make_candidate_PI_noise(threshold, input_df, full_item_param, full_user_para
           # print(prob)
           # prob = TwoPLM(alpha, beta, theta, d=1.7)
           # workerの正解率がthresholdより大きければ
-          if prob >= th - margin:
+          if prob >= th + margin:
             # ワーカーを候補リストに代入
             worker_c[task].append(worker)
          

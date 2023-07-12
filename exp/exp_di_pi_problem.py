@@ -102,7 +102,7 @@ for qt in qualify_task:
     qualify_dic[qt] = list(input_df.T[qt])
 
 q_data = np.array(list(qualify_dic.values()))
-params = run_girth_twopl(q_data, task_list, worker_list)
+params = run_girth_rasch(q_data, task_list, worker_list)
 
 full_item_param = params[0]
 full_user_param = params[1]
@@ -582,6 +582,38 @@ plt.yticks(np.arange(0, 51, 5))
 
 plt.show()
 
+res = check_result_parameter_variance(iteration_time, PI_all_assign_dic_alliter, DI_all_assign_dic_alliter, full_user_param, full_item_param)
+PI_over_mean  = res[0]
+PI_under_mean = res[1]
+DI_over_mean = res[2]
+DI_under_mean = res[3]
+
+ind = [i for i in range(1, 21)]
+width = 0.5      # the width of the bars: can also be len(x) sequence
+
+for th in threshold:
+    fig, ax = plt.subplots()
+    #th = 0.5
+    p1 = ax.bar(ind, DI_over_mean[th], width, color='red')
+    p2 = ax.bar(ind, DI_under_mean[th], width, bottom=DI_over_mean[th], color='orange')
+
+    #p3 = ax.bar(ind + width/2, PI_ot_task, width,  color='purple')
+    #p4 = ax.bar(ind + width/2, PI_ut_task, width, bottom=PI_ot_task, color='violet')
+
+    plt.ylabel('Number of tasks')
+    plt.title('Number of assigned each workers when threshold is '+str(th))
+    #plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
+    plt.yticks(np.arange(0,  10, 1))
+
+    fig, ax = plt.subplots()
+
+    p3 = ax.bar(ind, PI_over_mean[th], width,  color='purple')
+    p4 = ax.bar(ind, PI_under_mean[th], width, bottom=PI_over_mean[th], color='violet')
+
+    plt.ylabel('Number of tasks')
+    plt.title('Number of assigned each workers when threshold is '+str(th))
+    #plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
+    plt.yticks(np.arange(0,  10, 1))
 # 標準偏差を計算
 """
 タスク割り当て結果の可視化

@@ -319,9 +319,11 @@ def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_al
   # worker, task, 正誤(PI, DI)
   PI_res_dic = {}
   DI_res_dic = {}
-  thres = 0.5
+  #thres = 0.5
   full_user_param_sorted = dict(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
   worker_list_sorted = list(full_user_param_sorted.keys())
+  full_user_param_sorted = dict(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
+  
 
   for th in [0.5, 0.6, 0.7, 0.8]:
       PI_res_dic[th] = {}
@@ -402,6 +404,78 @@ def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_al
 
   return PI_res_dic, DI_res_dic
 
+'''
+(1) ワーカをスキル順にソート
+(2) 各ワーカについて，ワーカのスキルがタスクの難易度より高い割当ての度数を計算, イテレーション間の平均を求める
+(3) 各ワーカについて，ワーカのスキルがタスクの難易度より低い割当ての度数を計算, イテレーション間の平均を求める
+'''
+def check_result_parameter_variance(iteration_time, PI_all_assign_dic_alliter, DI_all_assign_dic_alliter, full_user_param, full_item_param):
+  # worker, task, 正誤(PI, DI)
+  PI_res_dic = {}
+  DI_res_dic = {}
+  PI_over = {}
+  PI_under = {}
+  DI_over = {}
+  DI_under = {}
+  PI_over_mean = {}
+  PI_under_mean = {}
+  DI_over_mean = {}
+  DI_under_mean = {}
+  full_user_param_sorted = dict(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
+  worker_list_sorted = list(full_user_param_sorted.keys())
+  worker_size = 20
+  for th in [0.5, 0.6, 0.7, 0.8]:
+      PI_over[th] = [0]*worker_size
+      PI_under[th] = [0]*worker_size
+      DI_over[th] = [0]*worker_size
+      DI_under[th] = [0]*worker_size
+
+      for iter in range(0, iteration_time):
+          PI_assign_dic = PI_all_assign_dic_alliter[th][iter][0]
+          DI_assign_dic = DI_all_assign_dic_alliter[th][iter][0]
+          
+          test_worker = list(PI_assign_dic.values()) + list(DI_assign_dic.values())
+          test_worker = list(set(test_worker))
+          test_task = PI_assign_dic.keys()
+          test_task = list(set(test_task))
+
+          sorted_test_worker = []
+          for worker in worker_list_sorted:
+            if worker in test_worker:
+              sorted_test_worker.append(worker)
+
+          for task in test_task:
+              PI_res_dic[task] = {}
+              # taskを割り当てられたワーカ
+              PI_worker = PI_assign_dic[task]
+              # ワーカのスキル順位
+              PI_worker_rank = sorted_test_worker.index(PI_worker)
+
+              if full_user_param[PI_worker] < full_item_param[task]:
+                  PI_under[th][PI_worker_rank] += 1
+                          
+              if full_user_param[PI_worker] >= full_item_param[task]:
+                  PI_over[th][PI_worker_rank] += 1
+              
+              DI_res_dic[task] = {}
+              # taskを割り当てられたワーカ
+              DI_worker = DI_assign_dic[task]
+              # ワーカのスキル順位
+              DI_worker_rank = sorted_test_worker.index(DI_worker)
+
+              if full_user_param[DI_worker] < full_item_param[task]:
+                  DI_under[th][DI_worker_rank] += 1
+                          
+              if full_user_param[DI_worker] >= full_item_param[task]:
+                  DI_over[th][DI_worker_rank] += 1
+      # iteration_time間の平均を求める
+      PI_over_mean[th] = [x / iteration_time for x in PI_over[th]]
+      PI_under_mean[th] = [x / iteration_time for x in PI_under[th]]
+      DI_over_mean[th] = [x / iteration_time for x in DI_over[th]]
+      DI_under_mean[th] = [x / iteration_time for x in DI_under[th]]
+  
+  return PI_over_mean, PI_under_mean, DI_over_mean, DI_under_mean
+
 #誰も解けないタスクの数を数える: カテゴリごとに
 def count_nc_task(label_df, worker_list, task_list, full_item_param, full_user_param):
   can_be_solved = []
@@ -438,8 +512,4 @@ def calc_parameter_fit(task_list, worker_list, item_param, user_param, input_df)
   #print(z_list)
   
   return z
-
-
-
-
 

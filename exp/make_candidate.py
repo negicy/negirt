@@ -20,7 +20,7 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
 
   q_data = np.array(list(qualify_dic.values()))
   # raschモデルでパラメータ推定
-  params = run_girth_twopl(q_data, qualify_task, worker_list)
+  params = run_girth_rasch(q_data, qualify_task, worker_list)
   item_param = params[0]
   user_param = params[1]
 
@@ -38,10 +38,10 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
     category_dic[category]['mb'] = np.mean(category_dic[category]['b'])
   
   margin = calc_parameter_fit(qualify_task, worker_list, item_param, user_param, input_df)
-  print('DI残差:', margin)
+
   for th in threshold:
     #margin = 0
-    #margin = th/5 
+    #margin = th/4.3
     
     candidate_count = 0
     worker_c = {}
@@ -76,8 +76,8 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
   for th in threshold:
    
     
-    #margin = th/5
-    margin = 0
+    margin = th/4.3
+    #margin = 0
     
     worker_c = {}
     for task in test_task:
@@ -91,7 +91,7 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
           prob = OnePLM(beta, theta)
 
           # workerの正解率がthresholdより大きければ
-          if prob >= th:
+          if prob >= th+margin:
             # ワーカーを候補リストに代入
             worker_c[task].append(worker)
     worker_c_th[th] = worker_c

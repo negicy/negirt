@@ -92,7 +92,9 @@ for iteration in range(0, iteration_time):
   # t_worker = worker_list
   # q_data = np.array(list(qualify_dic.values()))
 
-  params = run_girth_rasch(q_data, task_list, worker_list)
+  #params = run_girth_rasch(q_data, task_list, worker_list)
+  # teoplによる推定
+  params = run_girth_twopl(q_data, task_list, worker_list)
 
   item_param = params[0]
   full_item_param = {}
@@ -130,7 +132,7 @@ for iteration in range(0, iteration_time):
   print(sorted_user_param)
 
 
-bins=np.linspace(-3, 3, 30)
+bins=np.linspace(-4, 4, 30)
 x = list(sorted_user_param.values())
 y = list(sorted_item_param.values())
 # fig3 = plt.figure()

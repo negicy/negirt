@@ -79,7 +79,7 @@ PI_all_assign_dic_alliter = {}
 DI_all_assign_dic_alliter = {}
 
 # 0.5, 0.51,...,0.80
-threshold = list([i / 100 for i in range(50, 81)])
+#threshold = list([i / 100 for i in range(50, 81)])
 threshold=[0.5, 0.6, 0.7, 0.8]
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
 

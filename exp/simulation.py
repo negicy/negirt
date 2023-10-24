@@ -230,7 +230,7 @@ def result_plot_tradeoff(result_tp_dic, result_acc_dic):
   ax.set_ylabel('accuracy')
   ax.set_xlim(0, 15)
 
-  bbox=(0.2750, 0.400)
+  bbox=(0.4250, 0.400)
   ax.plot(DI_trade[0], DI_trade[1], color='red', marker='s', label='IRT(DI)')
   ax.plot(AA_trade[0], AA_trade[1], color='cyan', marker='s', label='AA')
   ax.plot(top_trade[0], top_trade[1], color='blue', marker='s', label='TOP')

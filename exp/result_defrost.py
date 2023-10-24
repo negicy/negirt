@@ -11,7 +11,7 @@ from irt_method import *
 from simulation import *
 from make_candidate import *
 
-filename = 'results/result_20230627_223606.pickle'
+filename = 'results/result_20230719_103944.pickle'
 
 with open(filename, 'rb') as p:
     results = pickle.load(p)
@@ -52,6 +52,7 @@ PI_acc_std = results['PI_acc_std']
 PI_var_std = results['PI_var_std']
 
 threshold = list([i / 100 for i in range(50, 81)])
+threshold =  [0.5, 0.6, 0.7, 0.8]
 
 
 for th in welldone_dist:
@@ -104,14 +105,14 @@ plt.show()
 # 推移をプロット
 
 result_acc_dic = {
-  'ours': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': PI_acc,
-  'ours_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': PI_acc_std
+  'DI': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': PI_acc,
+  'DI_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': PI_acc_std
 
   }
 
 result_var_dic = {
-  'ours': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'PI': PI_var,
-  'ours_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': PI_var_std
+  'DI': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'PI': PI_var,
+  'DI_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': PI_var_std
 }
 
 result_plot_acc_var(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400)).show()
@@ -132,7 +133,7 @@ fig = plt.figure() #親グラフと子グラフを同時に定義
 ax = fig.add_subplot()
 ax.set_xlabel('Working Opportunity')
 ax.set_ylabel('accuracy')
-ax.set_xlim(0, 30)
+ax.set_xlim(0, 55)
 
 bbox=(0.4750, 0.400)
 ax.plot(ours_trade[0], ours_trade[1], color='red', label='IRT')
@@ -170,3 +171,20 @@ fig.legend(bbox_to_anchor=bbox, loc='upper left')
 plt.show()
 
 
+result_acc_dic = {
+  'DI': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': PI_acc,
+  'DI_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': PI_acc_std
+  }
+
+result_var_dic = {
+  'DI': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'PI': PI_var,
+  'DI_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': PI_var_std
+}
+
+result_tp_dic = {
+  'DI': ours_tp, 'top': top_tp, 'AA': AA_tp, 'random': random_tp, 'PI': PI_tp
+}
+
+
+#result_plot_tradeoff(result_tp_dic, result_acc_dic).show()
+result_plot_tradeoff(result_var_dic, result_acc_dic).show()

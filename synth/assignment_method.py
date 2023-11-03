@@ -26,10 +26,6 @@ def flatten(assign_dic, worker_list, i):
  
   return assign_dic
 
-
-
-   
-
 def optim_assignment(worker_c, test_worker, test_task, user_param):
   # (1) ワーカを能力が低い順にソート
   worker_list = []
@@ -100,3 +96,14 @@ def task_variance(assign_dic, test_workers):
   v = np.var(count_list)
   return v
 
+def calc_tp(assign_dic, test_worker):
+  count_dic = {}
+  # print(f'assign_dic: {assign_dic}')
+  for tw in test_worker:
+    assign_worker_list = list(assign_dic.values())
+    workload = assign_worker_list.count(tw)
+    count_dic[tw] = workload
+
+  # 最大のvalueを調べる
+  max_num =  max(list(count_dic.values()))
+  return max_num

@@ -172,6 +172,7 @@ def make_candidate(threshold, input_df, worker_list, test_worker, qualify_task, 
   params = run_girth_rasch(q_data, qualify_task, worker_list)
   est_item_param = params[0]
   est_user_param = params[1]
+  DI_item_param = {}
 
   top_workers = sort_test_worker(test_worker, est_user_param)
 
@@ -186,6 +187,7 @@ def make_candidate(threshold, input_df, worker_list, test_worker, qualify_task, 
         # workerの正答確率prob
         actual_b = full_item_param[task]
         ai_b = ai_model(actual_b, dist=0.01)
+        DI_item_param[task] = ai_b
      
         theta = est_user_param[worker]
         prob = OnePLM(ai_b, theta)
@@ -200,7 +202,7 @@ def make_candidate(threshold, input_df, worker_list, test_worker, qualify_task, 
     
     worker_c_th[th] = worker_c
 
-  return worker_c_th, est_user_param
+  return worker_c_th, est_user_param, DI_item_param
 
 def task_assignable_check(th, item_param, user_param, test_worker, task):
   # sorted_full_user_param = list(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
@@ -229,7 +231,8 @@ def make_candidate_all(threshold, input_df, full_item_param, full_user_param, te
 
   for th in threshold:
     # margin = th / 5
-    margin = th/20
+    # margin = th/20
+    margin = 0
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th+margin, full_item_param, full_user_param, test_worker, task) == True:

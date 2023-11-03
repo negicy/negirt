@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 import matplotlib.pyplot as plt 
 
-worker_size = 500
-task_size = 1000
+worker_size = 50
+task_size = 100
 user_param = {}
 item_param = {}
 

@@ -3,7 +3,7 @@ import girth
 import pandas as pd
 import numpy as np
 import statistics
-from girth import twopl_mml, onepl_mml, rasch_mml, ability_mle
+from girth import twopl_mml, onepl_mml, rasch_mml, ability_mle, ability_map
 import random
 from scipy.stats import norm
 
@@ -84,7 +84,8 @@ def run_girth_twopl(data, task_list, worker_list):
     for i in range(len(task_list)):
         a_list.append(discrimination_estimates)
 
-    abilitiy_estimates = ability_mle(data, difficulty_estimates, a_list)
+    #abilitiy_estimates = ability_mle(data, difficulty_estimates, a_list)
+    abilitiy_estimates = ability_map(data, difficulty_estimates, a_list, options={'quadrature_bounds': (-4, 4)})
     # print(abilitiy_estimates)
 
     user_param = {}

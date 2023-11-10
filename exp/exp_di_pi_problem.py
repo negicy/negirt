@@ -102,7 +102,7 @@ for qt in qualify_task:
     qualify_dic[qt] = list(input_df.T[qt])
 
 q_data = np.array(list(qualify_dic.values()))
-params = run_girth_twopl(q_data, task_list, worker_list)
+params = run_girth_rasch(q_data, task_list, worker_list)
 
 full_item_param = params[0]
 full_user_param = params[1]
@@ -658,6 +658,7 @@ result_acc_dic = {
   'DI': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': PI_acc,
   'DI_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': PI_acc_std
   }
+
 
 result_var_dic = {
   'DI': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'PI': PI_var,

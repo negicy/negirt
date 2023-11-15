@@ -88,13 +88,12 @@ for iteration in range(0, iteration_time):
 
   q_data = np.array(list(qualify_dic.values()))
  
-
   # t_worker = worker_list
   # q_data = np.array(list(qualify_dic.values()))
 
   #params = run_girth_rasch(q_data, task_list, worker_list)
   # teoplによる推定
-  params = run_girth_twopl(q_data, task_list, worker_list)
+  params = run_girth_rasch(q_data, task_list, worker_list)
 
   item_param = params[0]
   full_item_param = {}
@@ -116,7 +115,7 @@ for iteration in range(0, iteration_time):
   
   plt.rcParams["font.size"] = 22
   fig = plt.figure() #親グラフと子グラフを同時に定義
-  plt.scatter( beta_list, item_rate_list, color='blue', label='ours')
+  plt.scatter(beta_list, item_rate_list, color='blue', label='ours')
   plt.show()
 
   fig = plt.figure() #親グラフと子グラフを同時に定義

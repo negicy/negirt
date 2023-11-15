@@ -4,7 +4,7 @@ import girth
 import pandas as pd
 import numpy as np
 import statistics
-from girth import twopl_mml, onepl_mml, rasch_mml, ability_mle
+from girth import twopl_mml, onepl_mml, rasch_mml, ability_mle, rasch_jml
 import random
 from scipy.stats import norm
 from irt_method import *
@@ -20,7 +20,7 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
 
   q_data = np.array(list(qualify_dic.values()))
   # raschモデルでパラメータ推定
-  params = run_girth_twopl(q_data, qualify_task, worker_list)
+  params = run_girth_rasch(q_data, qualify_task, worker_list)
   item_param = params[0]
   user_param = params[1]
 
@@ -41,7 +41,7 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
   print('DI残差:', margin)
   for th in threshold:
     #margin = 0
-    #margin = th/5 
+    margin = th/5 
     
     candidate_count = 0
     worker_c = {}
@@ -75,8 +75,7 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
   #print('PI残差:', margin)
   for th in threshold:
    
-    
-    #margin = th/5
+    #margin = th/4.2
     margin = 0
     
     worker_c = {}

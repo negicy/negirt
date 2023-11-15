@@ -3,7 +3,7 @@ import girth
 import pandas as pd
 import numpy as np
 import statistics
-from girth import twopl_mml, onepl_mml, rasch_mml, ability_mle, ability_map
+from girth import twopl_mml, onepl_mml, rasch_mml, ability_mle, ability_map, ability_eap, rasch_jml, onepl_jml
 import random
 from scipy.stats import norm
 
@@ -23,7 +23,8 @@ def TwoPLM_test(a, b, theta, d=1.7):
 
 # input: 01の2D-ndarray, 対象タスクのリスト, 対象ワーカーのリスト
 def run_girth_rasch(data, task_list, worker_list):
-    estimates = rasch_mml(data, 1)
+    options = {'quadrature_bounds': (-6, 6)}
+    estimates = rasch_jml(data, 1, options=options)
 
     # Unpack estimates(a, b)
     discrimination_estimates = estimates['Discrimination']

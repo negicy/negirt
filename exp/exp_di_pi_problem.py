@@ -102,7 +102,7 @@ for qt in qualify_task:
     qualify_dic[qt] = list(input_df.T[qt])
 
 q_data = np.array(list(qualify_dic.values()))
-params = run_girth_rasch(q_data, task_list, worker_list)
+params = run_girth_onepl(q_data, task_list, worker_list)
 
 full_item_param = params[0]
 full_user_param = params[1]

@@ -45,9 +45,39 @@ for w in worker_list:
         correct += 1
     skill_rate_dic[w] = (correct / task_num)
 
-for w in skill_rate_dic.keys():
-    if skill_rate_dic[w] < 0.2:
+
+with open("delete_item_list.pickle", "rb") as f:
+    delete_item_dict = pickle.load(f)
+    outfit_dict = list(delete_item_dict['outfit'].keys())
+    infit_dict = list(delete_item_dict['infit'].keys())
+
+print(infit_dict)
+
+non_fit_task_list = []
+for task in task_list:
+    if task in infit_dict[:20] or task in outfit_dict[:20]:
+        non_fit_task_list.append(task)
+
+        task_list.remove(task)
+        # input_df からtaskの行を削除
+        input_df = input_df.drop(task, axis=0)
+
+
+with open("delete_worker_list.pickle", "rb") as f:
+    delete_worker_dict = pickle.load(f)
+    worker_outfit_list = list(delete_worker_dict['outfit'].keys())
+    worker_infit_list = list(delete_worker_dict['infit'].keys())
+    print(worker_outfit_list)
+
+
+for w in worker_list:
+    if w in worker_outfit_list[:20] or w in worker_infit_list[:20]:
         worker_list.remove(w)
+        # input_df からwの列を削除
+        input_df = input_df.drop(w, axis=1)
+
+# PIの割り当て失敗したタスクidとその回数
+underfit_tasks = {}
 
 ours_acc_allth = []
 ours_var_allth = []
@@ -102,7 +132,7 @@ for qt in qualify_task:
     qualify_dic[qt] = list(input_df.T[qt])
 
 q_data = np.array(list(qualify_dic.values()))
-params = run_girth_onepl(q_data, task_list, worker_list)
+params = run_girth_rasch(q_data, task_list, worker_list)
 
 full_item_param = params[0]
 full_user_param = params[1]
@@ -124,9 +154,10 @@ NA_count_list = []
 イテレーション
 """
 print(len(worker_list))
+print(len(task_list))
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 200
+iteration_time = 100
 worker_with_task = {
     "ours": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},
     "AA": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},
@@ -558,24 +589,41 @@ DI_ut_task = []
 PI_ut_task = []
 DI_ot_task = []
 PI_ot_task = []
+PI_of_task = []
+DI_of_task = []
+PI_uf_task = []
+DI_uf_task = []
 ind = np.array([0.5, 0.6, 0.7, 0.8])
 for th in ind:
     DI_ut_task.append(DI_res_dic[th][1])
     PI_ut_task.append(PI_res_dic[th][1])
+
     DI_ot_task.append(DI_res_dic[th][0])
     PI_ot_task.append(PI_res_dic[th][0])
+
+    PI_of_task.append(PI_res_dic[th][2])
+    DI_of_task.append(DI_res_dic[th][2])
+
+    PI_uf_task.append(DI_res_dic[th][3])
+    DI_uf_task.append(DI_res_dic[th][3])
 
 width = 0.0275       # the width of the bars: can also be len(x) sequence
 fig, ax = plt.subplots()
 
-p1 = ax.bar(ind - width/2, DI_ot_task, width, color='red')
-p2 = ax.bar(ind - width/2, DI_ut_task, width, bottom=DI_ot_task, color='orange')
+'''
+p1 = ax.bar(ind - width/2, PI_ot_task, width, color='red')
+p2 = ax.bar(ind - width/2, PI_ut_task, width, bottom=DI_ot_task, color='orange')
 
-p3 = ax.bar(ind + width/2, PI_ot_task, width,  color='purple')
-p4 = ax.bar(ind + width/2, PI_ut_task, width, bottom=PI_ot_task, color='violet')
+p3 = ax.bar(ind + width/2, PI_of_task, width,  color='purple')
+p4 = ax.bar(ind + width/2, PI_uf_task, width, bottom=PI_ot_task, color='violet')
+'''
+
+p1 = ax.bar(ind - width/2, PI_ot_task, width, color='red')
+
+p3 = ax.bar(ind + width/2, PI_of_task, width,  color='purple')
 
 plt.ylabel('Number of tasks')
-plt.title('Number of correctly answered task by DI, PI')
+plt.title('Number of correctly answered task by PI')
 plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
 plt.yticks(np.arange(0, 51, 5))
 #ßplt.legend((p1[0], p2[0]), ('Men', 'Women'))

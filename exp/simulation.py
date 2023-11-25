@@ -43,7 +43,7 @@ def sample_category(task_list, test_size, label_df):
 # ワーカとタスクを分離
 def devide_sample(task_list, worker_list):
   output = {}
-  n = 40
+  n = 20
   task_list_shuffle = random.sample(task_list, len(task_list))
   print(task_list_shuffle[0])
   # mode-1:
@@ -228,7 +228,7 @@ def result_plot_tradeoff(result_tp_dic, result_acc_dic):
   ax = fig.add_subplot()
   ax.set_xlabel('Working Opportunity')
   ax.set_ylabel('accuracy')
-  ax.set_xlim(0, 15)
+  ax.set_xlim(0, 12)
 
   bbox=(0.2750, 0.400)
   ax.plot(DI_trade[0], DI_trade[1], color='red', marker='s', label='IRT(DI)')
@@ -317,6 +317,8 @@ def has_duplicates(seq):
 def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_alliter, DI_all_assign_dic_alliter, full_user_param, full_item_param):
   # threshold
   # worker, task, 正誤(PI, DI)
+  # PIの割り当て失敗したタスクidとその回数
+  underfit_tasks = {}
   PI_res_dic = {}
   DI_res_dic = {}
   thres = 0.5
@@ -379,8 +381,8 @@ def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_al
               if full_user_param[di_worker] > full_item_param[task] and di_res == 0:
                   count_di_over_false += 1
           
-          pi_margin_mean = pi_margin / (count_pi_under_false + count_pi_under_true)
-          di_margin_mean = di_margin / (count_di_under_false + count_di_under_true)
+          #pi_margin_mean = pi_margin / (count_pi_under_false + count_pi_under_true)
+          #di_margin_mean = di_margin / (count_di_under_false + count_di_under_true)
 
       print('PI', th)
       PI_ot_mean = count_pi_over_true/iteration_time

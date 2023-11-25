@@ -3,7 +3,7 @@ import girth
 import pandas as pd
 import numpy as np
 import statistics
-from girth import twopl_mml, onepl_mml, rasch_mml, ability_mle, ability_map, ability_eap, rasch_jml, onepl_jml
+from girth import twopl_mml, onepl_mml, rasch_mml, ability_mle, ability_map, ability_eap, rasch_jml, onepl_jml,rasch_conditional, onepl_jml
 import random
 from scipy.stats import norm
 
@@ -23,14 +23,16 @@ def TwoPLM_test(a, b, theta, d=1.7):
 
 # input: 01の2D-ndarray, 対象タスクのリスト, 対象ワーカーのリスト
 def run_girth_rasch(data, task_list, worker_list):
-    options = {'quadrature_bounds': (-6, 6)}
-    estimates = rasch_jml(data, 1, options=options)
+    #options = {'quadrature_bounds': (-6, 6), 'quadrature_n':10}
+    #ßprint(f"task size:{len(data)}")
+    options={'max_iteration':1000}
+    estimates = rasch_mml(data)
 
     # Unpack estimates(a, b)
     discrimination_estimates = estimates['Discrimination']
     difficulty_estimates = estimates['Difficulty']
 
-    abilitiy_estimates = ability_mle(data, difficulty_estimates, discrimination_estimates)
+    abilitiy_estimates = ability_map(data, difficulty_estimates, discrimination_estimates)
     # print(abilitiy_estimates)
 
     user_param = {}
@@ -91,17 +93,18 @@ def run_girth_twopl(data, task_list, worker_list):
 
     user_param = {}
     item_param = {}
+    discrimination_param = {}
 
     for k in range(len(task_list)):
         task_id = task_list[k]
         item_param[task_id] = difficulty_estimates[k]
-        #item_param[task_id]['a'] = discrimination_estimates[k]
+        discrimination_param[task_id] = discrimination_estimates[k]
         #item_param[task_id]['b'] = difficulty_estimates[k]
     for j in range(len(worker_list)):
         worker_id = worker_list[j]
         user_param[worker_id] = abilitiy_estimates[j] 
 
-    return item_param, user_param
+    return item_param, user_param, discrimination_param
   
 
 def ai_model(actual_b, dist):

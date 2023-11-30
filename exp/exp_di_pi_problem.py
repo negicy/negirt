@@ -63,18 +63,7 @@ for task in task_list:
         input_df = input_df.drop(task, axis=0)
 
 
-with open("delete_worker_list.pickle", "rb") as f:
-    delete_worker_dict = pickle.load(f)
-    worker_outfit_list = list(delete_worker_dict['outfit'].keys())
-    worker_infit_list = list(delete_worker_dict['infit'].keys())
-    print(worker_outfit_list)
 
-
-for w in worker_list:
-    if w in worker_outfit_list[:20] or w in worker_infit_list[:20]:
-        worker_list.remove(w)
-        # input_df からwの列を削除
-        input_df = input_df.drop(w, axis=1)
 
 # PIの割り当て失敗したタスクidとその回数
 underfit_tasks = {}
@@ -144,6 +133,22 @@ full_item_param_sorted = dict(
     sorted(full_user_param.items(), key=lambda x: x[1], reverse=True)
 )
 
+
+with open("delete_worker_list.pickle", "rb") as f:
+    delete_worker_dict = pickle.load(f)
+    worker_outfit_list = list(delete_worker_dict['outfit'].keys())
+    worker_infit_list = list(delete_worker_dict['infit'].keys())
+    print(worker_outfit_list)
+
+
+for w in worker_list:
+    if w in worker_outfit_list[:50] or w in worker_infit_list[:50]:
+        #if full_user_param[w] > 2.0:
+        worker_list.remove(w)
+        # input_df からwの列を削除
+        input_df = input_df.drop(w, axis=1)
+
+
 worker_list_sorted = list(full_user_param_sorted.keys())
 
 b_tt_list = []
@@ -194,6 +199,7 @@ for iteration in range(0, iteration_time):
     qualify_task = sample["qualify_task"]
     test_task = sample["test_task"]
     test_worker = sample["test_worker"]
+    
 
     # test_taskの平均難易度調べる
     for tt in test_task:
@@ -258,20 +264,22 @@ for iteration in range(0, iteration_time):
         DI_sub_workers = extract_sub_worker_irt(
             test_worker, test_task, DI_item_param, DI_user_param
         )
+        
         '''
         for task in test_task:
             if task not in DI_assign_dic_opt.keys():
                 DI_assign_dic_opt[task] = random.choice(DI_top_workers)
+        
         '''
-
         for task in test_task:
             if task not in DI_assign_dic_opt.keys():
                 # 正解確率50%のワーカが一人もいない場合：
                 # if DI_item_param[task] > DI_user_param[best_worker]:
                 if len(DI_sub_workers[task]) > 0:
-                    DI_assign_dic_opt[task] = random.choice(DI_sub_workers[task][:5])
+                    DI_assign_dic_opt[task] = random.choice(DI_sub_workers[task][:3])
                 else:
                     DI_assign_dic_opt[task] = random.choice(test_worker)
+        
 
         # print(len(assign_dic_opt.keys()))
         if th in [0.5, 0.6, 0.7, 0.8]:
@@ -372,7 +380,7 @@ for iteration in range(0, iteration_time):
                 # if AA_top_workers[0] > 0.5:
                 # AA_assign_dic_opt[task] = random.choice(AA_top_workers[:5])
                 if len(AA_sub_workers) > 0:
-                    AA_assign_dic_opt[task] = random.choice(AA_sub_workers[:5])
+                    AA_assign_dic_opt[task] = random.choice(AA_sub_workers[:3])
                 else:
                     AA_assign_dic_opt[task] = random.choice(test_worker)
 
@@ -419,7 +427,7 @@ for iteration in range(0, iteration_time):
                 # もしthreshold = 0.5でも割当て不可なら
                 # if full_item_param[task] > full_user_param[best_worker]:
                 if len(PI_sub_workers[task]) > 0:
-                    PI_assign_dic_opt[task] = random.choice(PI_sub_workers[task][:5])
+                    PI_assign_dic_opt[task] = random.choice(PI_sub_workers[task][:3])
                 else:
                     PI_assign_dic_opt[task] = random.choice(test_worker)
 
@@ -610,20 +618,19 @@ for th in ind:
 width = 0.0275       # the width of the bars: can also be len(x) sequence
 fig, ax = plt.subplots()
 
-'''
-p1 = ax.bar(ind - width/2, PI_ot_task, width, color='red')
-p2 = ax.bar(ind - width/2, PI_ut_task, width, bottom=DI_ot_task, color='orange')
 
-p3 = ax.bar(ind + width/2, PI_of_task, width,  color='purple')
-p4 = ax.bar(ind + width/2, PI_uf_task, width, bottom=PI_ot_task, color='violet')
-'''
+p1 = ax.bar(ind - width/2, DI_ot_task, width, color='red')
+p2 = ax.bar(ind - width/2, DI_ut_task, width, bottom=DI_ot_task, color='orange')
 
-p1 = ax.bar(ind - width/2, PI_ot_task, width, color='red')
+p3 = ax.bar(ind + width/2, PI_ot_task, width,  color='purple')
+p4 = ax.bar(ind + width/2, PI_ut_task, width, bottom=PI_ot_task, color='violet')
 
-p3 = ax.bar(ind + width/2, PI_of_task, width,  color='purple')
+
+#p1 = ax.bar(ind - width/2, PI_ot_task, width, color='red')
+#p3 = ax.bar(ind + width/2, PI_of_task, width,  color='purple')
 
 plt.ylabel('Number of tasks')
-plt.title('Number of correctly answered task by PI')
+plt.title('Number of correctly answered task by DI,PI')
 plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
 plt.yticks(np.arange(0, 51, 5))
 #ßplt.legend((p1[0], p2[0]), ('Men', 'Women'))

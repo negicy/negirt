@@ -93,8 +93,8 @@ for iteration in range(0, iteration_time):
 
   # params = run_girth_rasch(q_data, task_list, worker_list)
   # twoplによる推定
-  #params_twopl = run_girth_twopl(q_data, task_list, worker_list)
-  params_rasch = run_girth_rasch(q_data, task_list, worker_list)  
+  params_rasch = run_girth_twopl(q_data, task_list, worker_list)
+  #params_rasch = run_girth_rasch(q_data, task_list, worker_list)  
   item_param_onepl = params_rasch[0]
 
   PI_twopl = {}

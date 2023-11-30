@@ -43,7 +43,7 @@ def sample_category(task_list, test_size, label_df):
 # ワーカとタスクを分離
 def devide_sample(task_list, worker_list):
   output = {}
-  n = 20
+  n = 30
   task_list_shuffle = random.sample(task_list, len(task_list))
   print(task_list_shuffle[0])
   # mode-1:

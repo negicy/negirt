@@ -123,8 +123,8 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
   #params = run_girth_rasch(q_data, task_list, tetst_worker)
 
   for th in threshold:
-    margin = th / 4.3
-    #margin = 0
+    #margin = th / 4.3
+    margin = 0
     worker_c = {}
     for task in test_task:
       if task_assignable_check(th, full_item_param, full_user_param, test_worker, task) == True:

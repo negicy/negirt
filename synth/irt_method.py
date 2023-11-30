@@ -101,7 +101,6 @@ def run_girth_rasch(data, task_list, worker_list):
     print(discrimination_estimates)
     #print(difficulty_estimates)
 
-  
     abilitiy_estimates = ability_mle(data, difficulty_estimates, discrimination_estimates)
     # print(abilitiy_estimates)
 

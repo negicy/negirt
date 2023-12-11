@@ -46,19 +46,6 @@ for w in worker_list:
     skill_rate_dic[w] = (correct / task_num)
 
 
-with open("delete_item_list.pickle", "rb") as f:
-    delete_item_dict = pickle.load(f)
-    outfit_dict = list(delete_item_dict['outfit'].keys())
-    infit_dict = list(delete_item_dict['infit'].keys())
-
-non_fit_task_list = []
-for task in task_list:
-    if task in infit_dict[:20] or task in outfit_dict[:20]:
-        non_fit_task_list.append(task)
-        # task_list.remove(task)
-        # input_df からtaskの行を削除
-        # input_df = input_df.drop(task, axis=0)
-
 # PIの割り当て失敗したタスクidとその回数
 underfit_tasks = {}
 
@@ -92,7 +79,7 @@ PI_all_assign_dic_alliter = {}
 DI_all_assign_dic_alliter = {}
 
 # 0.5, 0.51,...,0.80
-threshold = list([i / 100 for i in range(50, 81)])
+# threshold = list([i / 100 for i in range(50, 81)])
 threshold=[0.5, 0.6, 0.7, 0.8]
 welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
 
@@ -128,21 +115,6 @@ full_item_param_sorted = dict(
     sorted(full_user_param.items(), key=lambda x: x[1], reverse=True)
 )
 
-
-with open("delete_worker_list.pickle", "rb") as f:
-    delete_worker_dict = pickle.load(f)
-    worker_outfit_list = list(delete_worker_dict['outfit'].keys())
-    worker_infit_list = list(delete_worker_dict['infit'].keys())
-    print(worker_outfit_list)
-
-'''
-for w in worker_list:
-    if w in worker_outfit_list[:50] or w in worker_infit_list[:50]:
-        #if full_user_param[w] > 2.0:
-        worker_list.remove(w)
-        # input_df からwの列を削除
-        input_df = input_df.drop(w, axis=1)
-'''
 
 worker_list_sorted = list(full_user_param_sorted.keys())
 
@@ -618,10 +590,10 @@ for th in threshold:
     keys = list(assigned_ot_ut.keys())
 
     # Plotting
-    plt.bar(keys, ot_values, color='blue', label='ot')
-    plt.bar(keys, ut_values, color='red', bottom=ot_values, label='ut')
+    plt.bar(keys, ot_values, color='purple', label='ot')
+    plt.bar(keys, ut_values, color='violet', bottom=ot_values, label='ut')
     plt.bar(keys, of_values, color='green', bottom=[v1 + v2 for v1, v2 in zip(ot_values, ut_values)], label='of')
-    plt.bar(keys, uf_values, color='yellow', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(ot_values, ut_values, of_values)], label='uf')
+    plt.bar(keys, uf_values, color='blue', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(ot_values, ut_values, of_values)], label='uf')
 
     # Labels and title
     plt.xlabel('Key')
@@ -649,10 +621,10 @@ for th in threshold:
 
     # Plotting
     # 積み上げグラフとして表示：4段
-    plt.bar(keys, ot_values, color='blue', label='ot')
-    plt.bar(keys, ut_values, color='red', bottom=ot_values, label='ut')
+    plt.bar(keys, ot_values, color='red', label='ot')
+    plt.bar(keys, ut_values, color='orange', bottom=ot_values, label='ut')
     plt.bar(keys, of_values, color='green', bottom=[v1 + v2 for v1, v2 in zip(ot_values, ut_values)], label='of')
-    plt.bar(keys, uf_values, color='yellow', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(ot_values, ut_values, of_values)], label='uf')
+    plt.bar(keys, uf_values, color='blue', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(ot_values, ut_values, of_values)], label='uf')
 
 
     # Labels and title

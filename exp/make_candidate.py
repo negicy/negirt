@@ -20,7 +20,7 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
 
   q_data = np.array(list(qualify_dic.values()))
   # raschモデルでパラメータ推定
-  params = run_girth_rasch(q_data, qualify_task, worker_list)
+  params = run_girth_twopl(q_data, qualify_task, worker_list)
   item_param = params[0]
   user_param = params[1]
 
@@ -38,10 +38,8 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
     category_dic[category]['mb'] = np.mean(category_dic[category]['b'])
   
   margin = calc_parameter_fit(qualify_task, worker_list, item_param, user_param, input_df)
-  print('DI残差:', margin)
+  #print('DI残差:', margin)
   for th in threshold:
-    #margin = 0
-    margin = th/5 
     
     candidate_count = 0
     worker_c = {}
@@ -74,9 +72,6 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
   #margin = calc_parameter_fit(task_list, worker_list, full_item_param, full_user_param, input_df)
   #print('PI残差:', margin)
   for th in threshold:
-   
-    #margin = th/4.2
-    margin = 0
     
     worker_c = {}
     for task in test_task:

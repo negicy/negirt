@@ -51,19 +51,13 @@ with open("delete_item_list.pickle", "rb") as f:
     outfit_dict = list(delete_item_dict['outfit'].keys())
     infit_dict = list(delete_item_dict['infit'].keys())
 
-print(infit_dict)
-
 non_fit_task_list = []
 for task in task_list:
     if task in infit_dict[:20] or task in outfit_dict[:20]:
         non_fit_task_list.append(task)
-
-        task_list.remove(task)
+        # task_list.remove(task)
         # input_df からtaskの行を削除
-        input_df = input_df.drop(task, axis=0)
-
-
-
+        # input_df = input_df.drop(task, axis=0)
 
 # PIの割り当て失敗したタスクidとその回数
 underfit_tasks = {}
@@ -108,6 +102,7 @@ for th in threshold:
 
 ours_output_alliter = {}
 full_output_alliter = {}
+worker_list_alliter = {}
 
 top_assignment_allth = {}
 for th in threshold:
@@ -121,7 +116,7 @@ for qt in qualify_task:
     qualify_dic[qt] = list(input_df.T[qt])
 
 q_data = np.array(list(qualify_dic.values()))
-params = run_girth_rasch(q_data, task_list, worker_list)
+params = run_girth_twopl(q_data, task_list, worker_list)
 
 full_item_param = params[0]
 full_user_param = params[1]
@@ -140,14 +135,14 @@ with open("delete_worker_list.pickle", "rb") as f:
     worker_infit_list = list(delete_worker_dict['infit'].keys())
     print(worker_outfit_list)
 
-
+'''
 for w in worker_list:
     if w in worker_outfit_list[:50] or w in worker_infit_list[:50]:
         #if full_user_param[w] > 2.0:
         worker_list.remove(w)
         # input_df からwの列を削除
         input_df = input_df.drop(w, axis=1)
-
+'''
 
 worker_list_sorted = list(full_user_param_sorted.keys())
 
@@ -162,7 +157,7 @@ print(len(worker_list))
 print(len(task_list))
 # Solve for parameters
 # 割当て結果の比較(random, top, ours)
-iteration_time = 100
+iteration_time = 200
 worker_with_task = {
     "ours": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},
     "AA": {0.5: 0, 0.6: 0, 0.7: 0, 0.8: 0},
@@ -199,11 +194,8 @@ for iteration in range(0, iteration_time):
     qualify_task = sample["qualify_task"]
     test_task = sample["test_task"]
     test_worker = sample["test_worker"]
-    
 
-    # test_taskの平均難易度調べる
-    for tt in test_task:
-        b_tt_list.append(full_item_param[tt])
+    worker_list_alliter[iteration] = test_worker    
 
     # test_taskのパラメータ一致度調べる
     num_fit_param += calc_parameter_fit(
@@ -271,14 +263,19 @@ for iteration in range(0, iteration_time):
                 DI_assign_dic_opt[task] = random.choice(DI_top_workers)
         
         '''
+        DI_top_workers = sort_test_worker(test_worker, DI_user_param, N=5)
+        
         for task in test_task:
             if task not in DI_assign_dic_opt.keys():
                 # 正解確率50%のワーカが一人もいない場合：
                 # if DI_item_param[task] > DI_user_param[best_worker]:
+                #DI_assign_dic_opt[task] = random.choice(DI_top_workers[10:])
+        
                 if len(DI_sub_workers[task]) > 0:
                     DI_assign_dic_opt[task] = random.choice(DI_sub_workers[task][:3])
                 else:
                     DI_assign_dic_opt[task] = random.choice(test_worker)
+        
         
 
         # print(len(assign_dic_opt.keys()))
@@ -309,7 +306,6 @@ for iteration in range(0, iteration_time):
             DI_margin_sum += DI_margin
 
         DI_mse = math.sqrt(DI_margin_sum / len(DI_assign_dic_opt))
-        # print(DI_margin_mean)
         # 割当て結果分散を求める
         var = task_variance(DI_assign_dic_opt, test_worker)
         # 割当て結果のTPを求める
@@ -413,7 +409,7 @@ for iteration in range(0, iteration_time):
         # print(th, len(assign_dic_opt))
 
         # NA タスクをランダム割当て
-        PI_top_workers = sort_test_worker(test_worker, full_user_param, N=5)
+        PI_top_workers = sort_test_worker(test_worker, full_user_param, N=20)
         test_worker_sorted_dict = dict(
             sorted(full_user_param.items(), key=lambda x: x[1], reverse=True)
         )
@@ -422,14 +418,19 @@ for iteration in range(0, iteration_time):
         PI_sub_workers = extract_sub_worker_irt(
             test_worker, test_task, full_item_param, full_user_param
         )
+
+        
         for task in test_task:
             if task not in PI_assign_dic_opt.keys():
                 # もしthreshold = 0.5でも割当て不可なら
                 # if full_item_param[task] > full_user_param[best_worker]:
+                #PI_assign_dic_opt[task] = random.choice(PI_top_workers[10:])
+    
                 if len(PI_sub_workers[task]) > 0:
                     PI_assign_dic_opt[task] = random.choice(PI_sub_workers[task][:3])
                 else:
                     PI_assign_dic_opt[task] = random.choice(test_worker)
+        
 
         # 割当て結果の精度を求める
         acc = accuracy(PI_assign_dic_opt, input_df)
@@ -592,6 +593,77 @@ res = check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_
 PI_res_dic = res[0]
 DI_res_dic = res[1]
 
+res_worker = check_result_worker_parameter(iteration_time, input_df, PI_all_assign_dic_alliter, DI_all_assign_dic_alliter, full_user_param, full_item_param,  worker_list_alliter)
+worker_rank_dict = res_worker[0]
+worker_rank_dict_DI = res_worker[1]
+# worker_rank_dictをヒストグラムで可視化
+# ot, utで色分け
+
+# ヒストグラム描画: 横軸: threshold, 縦軸: θ < bで正答したワーカ数
+
+
+print(f"PI variance:{PI_var}")
+for th in threshold:
+    print(PI_var)
+    ind = np.array(worker_rank_dict[th].keys())
+
+    assigned_ot_ut = worker_rank_dict[th]
+    # Extracting 'ot' and 'ut' values
+    ot_values = [assigned_ot_ut[key]['ot'] for key in assigned_ot_ut]
+    ut_values = [assigned_ot_ut[key]['ut'] for key in assigned_ot_ut]
+    of_values = [assigned_ot_ut[key]['of'] for key in assigned_ot_ut]
+    uf_values = [assigned_ot_ut[key]['uf'] for key in assigned_ot_ut]
+
+    # Keys for the x-axis
+    keys = list(assigned_ot_ut.keys())
+
+    # Plotting
+    plt.bar(keys, ot_values, color='blue', label='ot')
+    plt.bar(keys, ut_values, color='red', bottom=ot_values, label='ut')
+    plt.bar(keys, of_values, color='green', bottom=[v1 + v2 for v1, v2 in zip(ot_values, ut_values)], label='of')
+    plt.bar(keys, uf_values, color='yellow', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(ot_values, ut_values, of_values)], label='uf')
+
+    # Labels and title
+    plt.xlabel('Key')
+    plt.ylabel('Values')
+    plt.title('Stacked Histogram of OT and UT values')
+    plt.legend()
+
+    # Show the plot
+    plt.show()
+
+print(f"DI variance:{ours_var}")
+for th in threshold:
+
+    ind = np.array(worker_rank_dict_DI[th].keys())
+
+    assigned_ot_ut = worker_rank_dict_DI[th]
+    # Extracting 'ot' and 'ut' values
+    ot_values = [assigned_ot_ut[key]['ot'] for key in assigned_ot_ut]
+    ut_values = [assigned_ot_ut[key]['ut'] for key in assigned_ot_ut]
+    of_values = [assigned_ot_ut[key]['of'] for key in assigned_ot_ut]
+    uf_values = [assigned_ot_ut[key]['uf'] for key in assigned_ot_ut]
+
+    # Keys for the x-axis
+    keys = list(assigned_ot_ut.keys())
+
+    # Plotting
+    # 積み上げグラフとして表示：4段
+    plt.bar(keys, ot_values, color='blue', label='ot')
+    plt.bar(keys, ut_values, color='red', bottom=ot_values, label='ut')
+    plt.bar(keys, of_values, color='green', bottom=[v1 + v2 for v1, v2 in zip(ot_values, ut_values)], label='of')
+    plt.bar(keys, uf_values, color='yellow', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(ot_values, ut_values, of_values)], label='uf')
+
+
+    # Labels and title
+    plt.xlabel('Key')
+    plt.ylabel('Values')
+    plt.title('Stacked Histogram of OT and UT values')
+    plt.legend()
+
+    # Show the plot
+    plt.show()
+
 # ヒストグラム描画: 横軸: threshold, 縦軸: θ < bで正答したタスク数
 DI_ut_task = []
 PI_ut_task = []
@@ -601,8 +673,8 @@ PI_of_task = []
 DI_of_task = []
 PI_uf_task = []
 DI_uf_task = []
-ind = np.array([0.5, 0.6, 0.7, 0.8])
-for th in ind:
+
+for th in threshold:
     DI_ut_task.append(DI_res_dic[th][1])
     PI_ut_task.append(PI_res_dic[th][1])
 
@@ -615,26 +687,20 @@ for th in ind:
     PI_uf_task.append(DI_res_dic[th][3])
     DI_uf_task.append(DI_res_dic[th][3])
 
-width = 0.0275       # the width of the bars: can also be len(x) sequence
+ind = np.arange(len(threshold))  # the x locations for the groups
+width = 0.0275 * 12      # the width of the bars: can also be len(x) sequence
 fig, ax = plt.subplots()
-
-
 p1 = ax.bar(ind - width/2, DI_ot_task, width, color='red')
 p2 = ax.bar(ind - width/2, DI_ut_task, width, bottom=DI_ot_task, color='orange')
-
 p3 = ax.bar(ind + width/2, PI_ot_task, width,  color='purple')
 p4 = ax.bar(ind + width/2, PI_ut_task, width, bottom=PI_ot_task, color='violet')
-
-
 #p1 = ax.bar(ind - width/2, PI_ot_task, width, color='red')
 #p3 = ax.bar(ind + width/2, PI_of_task, width,  color='purple')
-
 plt.ylabel('Number of tasks')
 plt.title('Number of correctly answered task by DI,PI')
 plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
 plt.yticks(np.arange(0, 51, 5))
-#ßplt.legend((p1[0], p2[0]), ('Men', 'Women'))
-
+# plt.legend((p1[0], p2[0]), ('Men', 'Women'))
 plt.show()
 
 # 標準偏差を計算
@@ -693,6 +759,12 @@ result = {
     "AA_var_std": AA_var_std,
     "random_var_std": random_var_std,
     "PI_var_std": PI_var_std,
+    "worker_rank_dict_PI": worker_rank_dict,
+    "worker_rank_dict_DI": worker_rank_dict_DI,
+    "PI_res_dic": PI_res_dic,
+    "DI_res_dic": DI_res_dic,
+    "PI_all_assign_dic_alliter": PI_all_assign_dic_alliter,
+    "DI_all_assign_dic_alliter": DI_all_assign_dic_alliter,
 }
 
 # 結果データの保存
@@ -728,4 +800,3 @@ result_plot_acc_var(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400
 result_plot_acc_var(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
 result_plot_tradeoff(result_tp_dic, result_acc_dic).show()
 result_plot_tradeoff(result_var_dic, result_acc_dic).show()
-

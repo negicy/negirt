@@ -4,7 +4,7 @@ import girth
 import pandas as pd
 import numpy as np
 import statistics
-from girth import twopl_mml, onepl_mml, rasch_mml, ability_mle, rasch_jml
+from girth import twopl_mml, onepl_mml, rasch_mml, ability_mle
 import random
 from scipy.stats import norm
 from irt_method import *
@@ -38,8 +38,10 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
     category_dic[category]['mb'] = np.mean(category_dic[category]['b'])
   
   margin = calc_parameter_fit(qualify_task, worker_list, item_param, user_param, input_df)
-  #print('DI残差:', margin)
+  print('DI残差:', margin)
   for th in threshold:
+    #margin = 0
+    #margin = th/5 
     
     candidate_count = 0
     worker_c = {}
@@ -72,6 +74,10 @@ def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, tes
   #margin = calc_parameter_fit(task_list, worker_list, full_item_param, full_user_param, input_df)
   #print('PI残差:', margin)
   for th in threshold:
+   
+    
+    #margin = th/5
+    margin = 0
     
     worker_c = {}
     for task in test_task:

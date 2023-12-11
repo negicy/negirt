@@ -38,7 +38,6 @@ print(len(worker_list))
 
 
 threshold = list([i / 100 for i in range(50, 81)])
-welldone_dist = dict.fromkeys([0.5, 0.6, 0.7, 0.8], 0)
 
 ours_output_alliter = {}
 full_output_alliter = {}
@@ -94,11 +93,9 @@ for iteration in range(0, iteration_time):
 
   # params = run_girth_rasch(q_data, task_list, worker_list)
   # twoplによる推定
-  params_twopl = run_girth_twopl(q_data, task_list, worker_list)
-  params_onepl = run_girth_onepl(q_data, task_list, worker_list)  
-
-  item_param_twopl = params_twopl[0]
-  item_param_onepl = params_onepl[0]
+  params_rasch = run_girth_twopl(q_data, task_list, worker_list)
+  #params_rasch = run_girth_rasch(q_data, task_list, worker_list)  
+  item_param_onepl = params_rasch[0]
 
   PI_twopl = {}
   PI_onepl = {}
@@ -107,125 +104,133 @@ for iteration in range(0, iteration_time):
   beta_list_onepl = []
 
   for item in item_rate_dic:
-    beta_list_twopl.append(item_param_twopl[item])
     beta_list_onepl.append(item_param_onepl)
     item_rate_list.append(item_rate_dic[item])
-    PI_twopl[item] = item_param_twopl[item]
     PI_onepl[item] = item_param_onepl[item]
 
-  user_param_twopl = params_twopl[1]
-  user_param_onepl = params_onepl[1]
+  user_param_onepl = params_rasch[1]
  
   skill_rate_list = []
-  theta_list_twopl = []
 
   for worker in skill_rate_dic:
     skill_rate_list.append(skill_rate_dic[worker])
-    theta_list_twopl.append(user_param_twopl[worker])
-  
-  plt.rcParams["font.size"] = 22
-  fig = plt.figure() #親グラフと子グラフを同時に定義
-  plt.scatter(beta_list_twopl, item_rate_list, color='blue', label='ours')
-  plt.show()
-
-  fig = plt.figure() #親グラフと子グラフを同時に定義
-  plt.scatter(theta_list_twopl, skill_rate_list, color='blue', label='ours')
-  plt.show()
-  print(skill_rate_dic)
-  print(params_twopl)
-  sorted_skill_rate = dict(sorted(skill_rate_dic.items(), key=lambda x: x[1], reverse=True))
-  sorted_item_param = dict(sorted(params_twopl[0].items(), key=lambda x: x[1], reverse=True))
-  sorted_user_param = dict(sorted(user_param_twopl.items(), key=lambda x: x[1], reverse=True))
-
-  print(sorted_skill_rate)
-  print(sorted_item_param)
-  print(sorted_user_param)
-
-
-bins=np.linspace(-8, 8, 30)
-x = list(sorted_user_param.values())
-y = list(sorted_item_param.values())
-# fig3 = plt.figure()
-plt.hist([x, y], bins, label=['worker', 'task'])
-plt.legend(loc='upper left')
-plt.xlabel("IRT parameter ")
-plt.ylabel("Number of tasks and workers")
-plt.show()
 
 e_dict = {}
 z_dict = {}
+p_dict = {}
 # 残差を計算
 diff_list_onepl = []
 diff_list_twopl = []
-for task in task_list:
+for worker in worker_list:
   diff_onepl_list = []
   diff_twopl_list = []
-  for worker in worker_list:
+  e_dict[worker] = {}
+  z_dict[worker] = {}
+  p_dict[worker] = {}
+  for task in task_list:
+    
     p_onepl = OnePLM(item_param_onepl[task], user_param_onepl[worker])
-    p_twopl = OnePLM(item_param_twopl[task], user_param_twopl[worker])
     diff_onepl = input_df[worker][task] - p_onepl
-    diff_twopl = input_df[worker][task] - p_twopl
     diff_onepl_list.append(diff_onepl)
-    diff_twopl_list.append(diff_twopl)
 
     e_ij = diff_onepl
     z_ij = e_ij / np.sqrt(p_onepl*(1 - p_onepl))
 
+    p_dict[worker][task] = p_onepl
     e_dict[worker][task] = e_ij
     z_dict[worker][task] = z_ij
 
-
   diff_onepl_mean = np.mean(diff_onepl_list)
-  diff_twopl_mean = np.mean(diff_twopl_list)
-
   diff_list_onepl.append(diff_onepl_mean)
-  diff_list_twopl.append(diff_twopl_mean)
 
 outfit_dict = {}
 infit_dict = {}
-
-for task in task_list:
+#print(z_dict)
+for j in task_list:
+  outfit_dict[j] = 0
   outfit_list = []
-  for worker in worker_list:
-    outfit_list.append(z_dict[worker][task]**2)
-  outfit_dict[task] = np.mean(outfit_list)
+  for i in worker_list:
+    outfit_list.append(z_dict[i][j]**2)
+  outfit_dict[j] = np.mean(outfit_list)
 
 eij2_sum = {}
 pij_sum = {}
 infit_dict = {}
-for task in task_list:
-  eij2_sum[task] = 0
-  p_ij_sum[task] = 0
-  for worker in worker_list:
-    eij2_sum[task] += e_dict[worker][task]**2
-    pij_sum[task] += p_dict[worker][task]*(1 - p_dict[worker][task])
 
-  infit_dict[task] = eij2_sum[task] / pij_sum[task]
+for j in task_list:
+  eij2_sum[j] = 0
+  pij_sum[j] = 0
+  infit_dict[j] = 0
+  for i in worker_list:
+    eij2_sum[j] += e_dict[i][j]**2
+    pij_sum[j] += p_dict[i][j]*(1 - p_dict[i][j])
 
-for task in task_list:
-  if infit_dict[task] > 1.3 or outfit[task] > 1.3:
-    print(f'under fit:{task}')
-    print(f'infit:{infit_dict[task]}')
-    print(f'outfit:{outfit_dict[task]}')
+  infit_dict[j] = eij2_sum[j] / pij_sum[j]
+
+under_fit_count = 0
+under_fit_dict = {}
+
+for j in task_list:
+  if infit_dict[j] > 1.3 and outfit_dict[j] > 1.3:
+    under_fit_count += 1
+    # infit_d
+    #under_fit_dict[j] = 
+    print("=================")
+    print(f'under fit:{j}')
+    print(f'infit:{infit_dict[j]}')
+    print(f'outfit:{outfit_dict[j]}')
 
 
-x = diff_list_onepl
-y = diff_list_twopl
-# fig3 = plt.figure()
-bins=np.linspace(-1, 1, 30)
-plt.hist([x, y], bins, label=['onePLM', 'twoPLM'])
-plt.legend(loc='upper left')
-plt.xlabel("difference between true and estimated parameter")
-plt.ylabel("Number of assignments")
-#plt.show()
+print(under_fit_count)
+# outfit_dictを降順にソート
+outfit_dict = dict(sorted(outfit_dict.items(), key=lambda x:x[1], reverse=True))
+infit_dict = dict(sorted(infit_dict.items(), key=lambda x:x[1], reverse=True))
 
-print(np.mean(diff_list_onepl))
-print(np.mean(diff_list_twopl))
+infit_task_list_sorted = list(infit_dict.keys())
+outfit_task_list_sorted = list(outfit_dict.keys())
+# outfit_dictの上位10件を取得
+print(outfit_task_list_sorted[:10])
+print(infit_task_list_sorted[:10])
 
-# 残差を箱ひげ図で表示
-fig = plt.figure()
-plt.boxplot([diff_list_onepl, diff_list_twopl])
-plt.xlabel("IRT model")
-plt.ylabel("residual")
-plt.xticks([1, 2], ['onePLM', 'twoPLM'])
-#plt.show()
+# 削除対象項目リスト
+delete_item_list = []
+for task in infit_task_list_sorted[:20]:
+  delete_item_list.append(task)
+
+for task in outfit_task_list_sorted[:20]:
+  delete_item_list.append(task)
+
+# 重複する要素を削除: delete_item_list
+delete_item_list = list(set(delete_item_list))
+
+fit_dict = {"outfit": outfit_dict, "infit": infit_dict}
+# pickleに保存
+with open('delete_item_list.pickle', 'wb') as f:
+  #pickle.dump(delete_item_list, f)
+  pickle.dump(fit_dict, f)
+
+
+#infit_dictの値と，item_param_oneplの相関関係をplot
+infit_list = []
+item_param_list = []
+for task in infit_dict:
+  infit_list.append(infit_dict[task])
+  item_param_list.append(item_param_onepl[task])
+
+print(infit_dict)
+plt.scatter(infit_list, item_param_list)
+plt.xlabel('infit')
+plt.ylabel('item_param')
+plt.show()
+
+outfit_list = []
+item_param_list = []
+for task in outfit_dict:
+  outfit_list.append(outfit_dict[task])
+  item_param_list.append(item_param_onepl[task])
+
+print(outfit_dict)
+plt.scatter(outfit_list, item_param_list)
+plt.xlabel('outfit')
+plt.ylabel('item_param')
+plt.show()

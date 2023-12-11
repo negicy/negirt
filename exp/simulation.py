@@ -228,7 +228,7 @@ def result_plot_tradeoff(result_tp_dic, result_acc_dic):
   ax = fig.add_subplot()
   ax.set_xlabel('Working Opportunity')
   ax.set_ylabel('accuracy')
-  ax.set_xlim(0, 15)
+  ax.set_xlim(0, 12)
 
   bbox=(0.2750, 0.400)
   ax.plot(DI_trade[0], DI_trade[1], color='red', marker='s', label='IRT(DI)')
@@ -317,6 +317,8 @@ def has_duplicates(seq):
 def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_alliter, DI_all_assign_dic_alliter, full_user_param, full_item_param):
   # threshold
   # worker, task, 正誤(PI, DI)
+  # PIの割り当て失敗したタスクidとその回数
+  underfit_tasks = {}
   PI_res_dic = {}
   DI_res_dic = {}
   thres = 0.5
@@ -326,6 +328,7 @@ def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_al
   for th in [0.5, 0.6, 0.7, 0.8]:
       PI_res_dic[th] = {}
       DI_res_dic[th] = {}
+
       count_pi_over_true = 0
       count_pi_under_true = 0
       count_pi_over_false = 0
@@ -338,36 +341,44 @@ def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_al
 
       pi_margin = 0
       di_margin = 0
+
       print('=================')
       for iter in range(0, iteration_time):
-          #print('===============')
           PI_assign_dic = PI_all_assign_dic_alliter[th][iter][0]
           DI_assign_dic = DI_all_assign_dic_alliter[th][iter][0]
+          
+          
           for task in PI_assign_dic:
-              PI_res_dic[task] = {}
               pi_worker = PI_assign_dic[task]
-              pi_worker_rank = worker_list_sorted.index(pi_worker)
               pi_res = input_df[pi_worker][task]
-              # pi_skill = full_user_param[pi_worker]
-              PI_res_dic[task][pi_worker_rank] = pi_res
 
-              if full_user_param[pi_worker] < full_item_param[task] and pi_res == 1:
+              # if full_user_param[pi_worker] < full_item_param[task] and pi_res == 1:
+              if OnePLM(full_item_param[task], full_user_param[pi_worker]) <= th and pi_res == 1:
                   count_pi_under_true += 1
                   pi_margin  += full_item_param[task]
-              if full_user_param[pi_worker] < full_item_param[task] and pi_res == 0:
+              if OnePLM(full_item_param[task], full_user_param[pi_worker]) <= th and pi_res == 0:
                   count_pi_under_false += 1
                   pi_margin  += full_item_param[task]
-                  
-              if full_user_param[pi_worker] > full_item_param[task] and pi_res == 1:
+              if OnePLM(full_item_param[task], full_user_param[pi_worker]) >= th and pi_res == 1:
                   count_pi_over_true += 1 
-              if full_user_param[pi_worker] > full_item_param[task] and pi_res == 0:
+              if OnePLM(full_item_param[task], full_user_param[pi_worker]) >= th and pi_res == 0:
                   count_pi_over_false += 1
 
-              DI_res_dic[task] = {}
+          for task in DI_assign_dic:
               di_worker = DI_assign_dic[task]
-              di_worker_rank = worker_list_sorted.index(di_worker)
               di_res = input_df[di_worker][task]
-              DI_res_dic[task][di_worker_rank] = di_res
+          
+
+              if OnePLM(full_item_param[task], full_user_param[di_worker]) <= th and di_res == 1:
+                  count_di_under_true += 1
+              if OnePLM(full_item_param[task], full_user_param[di_worker]) <= th and di_res == 0:
+                  count_di_under_false += 1
+              if OnePLM(full_item_param[task], full_user_param[di_worker]) >= th and di_res == 1:
+                  count_di_over_true += 1 
+              if OnePLM(full_item_param[task], full_user_param[di_worker]) >= th and di_res == 0:
+                  count_di_over_false += 1
+
+              '''
               if full_user_param[di_worker] < full_item_param[task] and di_res == 1:
                   count_di_under_true += 1
                   di_margin += full_item_param[task]
@@ -378,10 +389,8 @@ def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_al
                   count_di_over_true += 1 
               if full_user_param[di_worker] > full_item_param[task] and di_res == 0:
                   count_di_over_false += 1
+              '''
           
-          pi_margin_mean = pi_margin / (count_pi_under_false + count_pi_under_true)
-          di_margin_mean = di_margin / (count_di_under_false + count_di_under_true)
-
       print('PI', th)
       PI_ot_mean = count_pi_over_true/iteration_time
       PI_ut_mean = count_pi_under_true/iteration_time
@@ -401,6 +410,104 @@ def check_result_parameter_matrix(iteration_time, input_df, PI_all_assign_dic_al
       print(DI_ut_mean, DI_uf_mean)
 
   return PI_res_dic, DI_res_dic
+
+def check_result_worker_parameter(iteration_time, input_df, PI_all_assign_dic_alliter, DI_all_assign_dic_alliter, full_user_param, full_item_param, worker_list_alliter):
+  PI_res_dic = {}
+  DI_res_dic = {}
+  worker_rank_dict = {}
+  worker_rank_dict_DI = {}
+
+  full_user_param_sorted = dict(sorted(full_user_param.items(), key=lambda x: x[1], reverse=True))
+  worker_list_sorted = list(full_user_param_sorted.keys())
+
+  for th in [0.5, 0.6, 0.7, 0.8]:
+
+      worker_rank_dict[th] = {}
+      worker_rank_dict_DI[th] = {}
+
+      for r in range(0, 20):
+          worker_rank_dict[th][r] = {}
+          worker_rank_dict[th][r]['ot'] = 0
+          worker_rank_dict[th][r]['ut'] = 0
+          worker_rank_dict[th][r]['of'] = 0
+          worker_rank_dict[th][r]['uf'] = 0
+
+          worker_rank_dict_DI[th][r] = {}
+          worker_rank_dict_DI[th][r]['ot'] = 0
+          worker_rank_dict_DI[th][r]['ut'] = 0
+          worker_rank_dict_DI[th][r]['of'] = 0
+          worker_rank_dict_DI[th][r]['uf'] = 0
+
+
+      print('=================')
+      # 各ワーカについて，ot, ut, of, ufの平均を計算
+      for iter in range(0, iteration_time):
+          PI_assign_dic = PI_all_assign_dic_alliter[th][iter][0]
+          DI_assign_dic = DI_all_assign_dic_alliter[th][iter][0]
+          DI_assigned_list = list(DI_assign_dic.values())
+          # uniqueなリストを取り出す
+          DI_assigned_list_unique = list(set(DI_assigned_list))
+          #print(DI_assigned_list_unique)
+          
+
+          test_worker = worker_list_alliter[iter]
+          test_worker_list_sorted = []
+
+          for worker in worker_list_sorted:
+              if worker in test_worker:
+                  test_worker_list_sorted.append(worker)
+          
+  
+          for task in PI_assign_dic:
+              pi_worker = PI_assign_dic[task]
+              pi_worker_rank = test_worker_list_sorted.index(pi_worker)
+              pi_res = input_df[pi_worker][task]
+
+              if full_user_param[pi_worker] < full_item_param[task] and pi_res == 1:
+                  worker_rank_dict[th][pi_worker_rank]['ut'] += 1
+          
+              if full_user_param[pi_worker] > full_item_param[task] and pi_res == 1:
+                  worker_rank_dict[th][pi_worker_rank]['ot'] += 1
+              
+              if full_user_param[pi_worker] < full_item_param[task] and pi_res == 0:
+                  worker_rank_dict[th][pi_worker_rank]['uf'] += 1
+              
+              if full_user_param[pi_worker] > full_item_param[task] and pi_res == 0:
+                  worker_rank_dict[th][pi_worker_rank]['of'] += 1
+
+          for task in DI_assign_dic:
+              di_worker = DI_assign_dic[task]
+              di_worker_rank = test_worker_list_sorted.index(di_worker)
+              di_res = input_df[di_worker][task]
+
+              if full_user_param[di_worker] < full_item_param[task] and di_res == 1:
+                  worker_rank_dict_DI[th][di_worker_rank]['ut'] += 1
+   
+              if full_user_param[di_worker] > full_item_param[task] and di_res == 1:
+                  worker_rank_dict_DI[th][di_worker_rank]['ot'] += 1
+              
+              if full_user_param[di_worker] < full_item_param[task] and di_res == 0:
+                  worker_rank_dict_DI[th][di_worker_rank]['uf'] += 1
+              
+              if full_user_param[di_worker] > full_item_param[task] and di_res == 0:
+                  worker_rank_dict_DI[th][di_worker_rank]['of'] += 1
+
+    
+      for r in range(0, 20):
+          worker_rank_dict[th][r]['ot'] = worker_rank_dict[th][r]['ot'] / iteration_time
+          worker_rank_dict[th][r]['ut'] = worker_rank_dict[th][r]['ut'] / iteration_time
+          worker_rank_dict[th][r]['of'] = worker_rank_dict[th][r]['of'] / iteration_time
+          worker_rank_dict[th][r]['uf'] = worker_rank_dict[th][r]['uf'] / iteration_time
+
+          worker_rank_dict_DI[th][r]['ot'] = worker_rank_dict_DI[th][r]['ot'] / iteration_time
+          worker_rank_dict_DI[th][r]['ut'] = worker_rank_dict_DI[th][r]['ut'] / iteration_time
+          worker_rank_dict_DI[th][r]['of'] = worker_rank_dict_DI[th][r]['of'] / iteration_time
+          worker_rank_dict_DI[th][r]['uf'] = worker_rank_dict_DI[th][r]['uf'] / iteration_time
+      
+      # print(worker_rank_dict)
+
+  return worker_rank_dict,worker_rank_dict_DI
+
 
 #誰も解けないタスクの数を数える: カテゴリごとに
 def count_nc_task(label_df, worker_list, task_list, full_item_param, full_user_param):

@@ -152,6 +152,7 @@ plt.xlabel("IRT parameter ")
 plt.ylabel("Number of tasks and workers")
 plt.show()
 
+'''
 e_dict = {}
 z_dict = {}
 # 残差を計算
@@ -229,3 +230,4 @@ plt.xlabel("IRT model")
 plt.ylabel("residual")
 plt.xticks([1, 2], ['onePLM', 'twoPLM'])
 #plt.show()
+'''f

@@ -237,7 +237,7 @@ def result_plot_tradeoff(result_tp_dic, result_acc_dic):
   ax.plot(random_trade[0], random_trade[1], color='green', marker='s', label='RANDOM')
   ax.plot(PI_trade[0], PI_trade[1], color='purple', marker='s', label='IRT(PI)')
   fig.legend(bbox_to_anchor=bbox, loc='upper left')
-  plt.ylim(0.5, 0.75)
+  plt.ylim(0.55, 0.75)
   #plt.show()
   return plt
    
@@ -449,7 +449,6 @@ def check_result_worker_parameter(iteration_time, input_df, PI_all_assign_dic_al
           # uniqueなリストを取り出す
           DI_assigned_list_unique = list(set(DI_assigned_list))
           #print(DI_assigned_list_unique)
-          
 
           test_worker = worker_list_alliter[iter]
           test_worker_list_sorted = []

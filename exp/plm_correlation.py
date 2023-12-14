@@ -142,7 +142,7 @@ for iteration in range(0, iteration_time):
   print(sorted_user_param)
 
 
-bins=np.linspace(-8, 8, 30)
+bins=np.linspace(-7, 7, 30)
 x = list(sorted_user_param.values())
 y = list(sorted_item_param.values())
 # fig3 = plt.figure()
@@ -230,4 +230,4 @@ plt.xlabel("IRT model")
 plt.ylabel("residual")
 plt.xticks([1, 2], ['onePLM', 'twoPLM'])
 #plt.show()
-'''f
+'''

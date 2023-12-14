@@ -11,11 +11,10 @@ from irt_method import *
 from simulation import *
 from make_candidate import *
 
-filename = 'results/result_20231211_170100.pickle'
+filename = 'results/result_20231212_121000.pickle'
 
 with open(filename, 'rb') as p:
     results = pickle.load(p)
-
 
 welldone_dist = results['welldone_dist']
 iteration_time = 200
@@ -25,6 +24,21 @@ ours_var = results['ours_var']
 ours_tp = results['ours_tp']
 ours_acc_std = results['ours_acc_std']
 ours_var_std = results['ours_var_std']
+
+DI_onepl_acc = results['DI_onepl_acc']
+DI_onepl_var = results['DI_onepl_var']
+DI_onepl_tp = results['DI_onepl_tp']
+DI_onepl_acc_std = results['DI_onepl_acc_std']
+
+PI_onepl_acc = results['PI_onepl_acc']
+PI_onepl_var = results['PI_onepl_var']
+PI_onepl_tp = results['PI_onepl_tp']
+
+PI_onepl_margin_acc = results['PI_onepl_margin_acc']
+PI_onepl_margin_var = results['PI_onepl_margin_var']
+PI_onepl_margin_tp = results['PI_onepl_margin_tp']
+PI_onepl_margin_acc_std = results['PI_onepl_margin_acc_std']
+PI_onepl_margin_var_std = results['PI_onepl_margin_var_std']
 
 top_acc = results['top_acc']
 top_var = results['top_var']
@@ -44,7 +58,6 @@ random_tp = results['random_tp']
 random_acc_std = results['random_acc_std']
 random_var_std = results['random_var_std']
 
-
 PI_acc = results['PI_acc']
 PI_var = results['PI_var']
 PI_tp = results['PI_tp']
@@ -63,7 +76,7 @@ ax = fig.add_subplot(1, 1, 1)
 
 ax.set_xlabel('threshold')
 ax.set_ylabel('rate of successful assignments')
-ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.4)
+ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.4, color='red')
 plt.show()
 
 # タスクのあるワーカのヒストグラム
@@ -76,7 +89,6 @@ for th in [0.5, 0.6, 0.7, 0.8]:
 w = 0.4
 y_ours = num_worker[0]
 y_AA = num_worker[1]
-
 
 x1 = [1, 2, 3, 4]
 x2 = [1.3, 2.3, 3.3, 4.3]
@@ -101,11 +113,9 @@ plt.show()
 
 
 # 推移をプロット
-
 result_acc_dic = {
   'DI': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': PI_acc,
   'DI_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': PI_acc_std
-
   }
 
 result_var_dic = {
@@ -113,59 +123,336 @@ result_var_dic = {
   'DI_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': PI_var_std
 }
 
+result_tp_dic = {
+  'DI': ours_tp, 'top': top_tp, 'AA': AA_tp, 'random': random_tp, 'PI': PI_tp
+}
+
 result_plot_acc_var(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400)).show()
 result_plot_acc_var(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
+result_plot_tradeoff(result_tp_dic, result_acc_dic).show()
+result_plot_tradeoff(result_var_dic, result_acc_dic).show()
 
-# トレードオフのグラフ
-ours_trade = tp_acc_plot(ours_tp, ours_acc)
-AA_trade = tp_acc_plot(AA_tp, AA_acc)
-top_trade = tp_acc_plot(top_tp, top_acc)
-random_trade = tp_acc_plot(random_tp, random_acc)
-PI_trade = tp_acc_plot(PI_tp, PI_acc)
 
-# top_trade = var_acc_plot(top_var, top_acc)
-# random_trade = var_acc_plot(random_var, random_acc)
+# 推移をプロット: PI: OnePLM+margin
+result_acc_dic = {
+  'DI': ours_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': PI_onepl_margin_acc,
+  'DI_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': PI_onepl_margin_acc_std
+  }
 
-plt.rcParams["font.size"] = 22
-fig = plt.figure() #親グラフと子グラフを同時に定義
-ax = fig.add_subplot()
-ax.set_xlabel('Working Opportunity')
-ax.set_ylabel('accuracy')
-ax.set_xlim(0, 30)
+result_var_dic = {
+  'DI': ours_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'PI': PI_onepl_margin_var,
+  'DI_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': PI_onepl_margin_var_std
+}
 
-bbox=(0.4750, 0.400)
-ax.plot(ours_trade[0], ours_trade[1], color='red', label='IRT')
-ax.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
-ax.plot(top_trade[0], top_trade[1], color='blue', label='TOP')
-ax.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
-ax.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
-fig.legend(bbox_to_anchor=bbox, loc='upper left')
+result_tp_dic = {
+  'DI': ours_tp, 'top': top_tp, 'AA': AA_tp, 'random': random_tp, 'PI': PI_onepl_margin_tp
+}
+
+result_plot_acc_var(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.400)).show()
+result_plot_acc_var(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
+result_plot_tradeoff(result_tp_dic, result_acc_dic).show()
+result_plot_tradeoff(result_var_dic, result_acc_dic).show()
+
+PI_twopl_res_dic = results['PI_twopl_res_dic']
+DI_twopl_res_dic = results['DI_twopl_res_dic']
+
+PI_onepl_res_dic = results['PI_onepl_res_dic']
+DI_onepl_res_dic = results['DI_onepl_res_dic']
+
+worker_rank_dict_PI = results['worker_rank_dict_PI']
+worker_rank_dict_DI = results['worker_rank_dict_DI'] 
+
+worker_rank_dict_PI_onepl = results['worker_rank_dict_PI_onepl']
+worker_rank_dict_DI_onepl = results['worker_rank_dict_DI_onepl'] 
+
+
+print(f"PI variance:{PI_onepl_var}")
+for th in threshold:
+    ind = np.array(worker_rank_dict_PI_onepl[th].keys())
+
+    assigned_ot_ut = worker_rank_dict_PI_onepl[th]
+    # Extracting 'ot' and 'ut' values
+    ot_values = [assigned_ot_ut[key]['ot'] for key in assigned_ot_ut]
+    ut_values = [assigned_ot_ut[key]['ut'] for key in assigned_ot_ut]
+    of_values = [assigned_ot_ut[key]['of'] for key in assigned_ot_ut]
+    uf_values = [assigned_ot_ut[key]['uf'] for key in assigned_ot_ut]
+
+    # Keys for the x-axis
+    keys = list(assigned_ot_ut.keys())
+
+    # Plotting
+    plt.bar(keys, ot_values, color='purple', label='ot')
+    plt.bar(keys, ut_values, color='violet', bottom=ot_values, label='ut')
+    plt.bar(keys, of_values, color='green', bottom=[v1 + v2 for v1, v2 in zip(ot_values, ut_values)], label='of')
+    plt.bar(keys, uf_values, color='blue', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(ot_values, ut_values, of_values)], label='uf')
+
+    # Labels and title
+    plt.xticks([])
+    plt.xlabel('Workers sorted by skill')
+    plt.ylabel('Assigned tasks')
+    plt.ylim(0,10)
+    plt.legend()
+
+    # Show the plot
+    plt.show()
+
+print(f"DI variance:{DI_onepl_var}")
+for th in threshold:
+
+    ind = np.array(worker_rank_dict_DI_onepl[th].keys())
+
+    assigned_ot_ut = worker_rank_dict_DI_onepl[th]
+    # Extracting 'ot' and 'ut' values
+    ot_values = [assigned_ot_ut[key]['ot'] for key in assigned_ot_ut]
+    ut_values = [assigned_ot_ut[key]['ut'] for key in assigned_ot_ut]
+    of_values = [assigned_ot_ut[key]['of'] for key in assigned_ot_ut]
+    uf_values = [assigned_ot_ut[key]['uf'] for key in assigned_ot_ut]
+
+    # Keys for the x-axis
+    keys = list(assigned_ot_ut.keys())
+
+    # Plotting
+    # 積み上げグラフとして表示：4段
+    plt.bar(keys, ot_values, color='red', label='ot')
+    plt.bar(keys, ut_values, color='orange', bottom=ot_values, label='ut')
+    plt.bar(keys, of_values, color='green', bottom=[v1 + v2 for v1, v2 in zip(ot_values, ut_values)], label='of')
+    plt.bar(keys, uf_values, color='blue', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(ot_values, ut_values, of_values)], label='uf')
+
+
+    # Labels and title
+    plt.xticks([])
+    plt.xlabel('Workers sorted by skill')
+    plt.ylabel('Assigned tasks')
+    plt.ylim(0,10)
+    plt.legend()
+
+    # Show the plot
+    plt.show()
+
+
+print(f"PI variance:{PI_var}")
+for th in threshold:
+    print(PI_var)
+    ind = np.array(worker_rank_dict_PI[th].keys())
+
+    assigned_ot_ut = worker_rank_dict_PI[th]
+    # Extracting 'ot' and 'ut' values
+    ot_values = [assigned_ot_ut[key]['ot'] for key in assigned_ot_ut]
+    ut_values = [assigned_ot_ut[key]['ut'] for key in assigned_ot_ut]
+    of_values = [assigned_ot_ut[key]['of'] for key in assigned_ot_ut]
+    uf_values = [assigned_ot_ut[key]['uf'] for key in assigned_ot_ut]
+
+    # Keys for the x-axis
+    keys = list(assigned_ot_ut.keys())
+
+    # Plotting
+    plt.bar(keys, ot_values, color='purple', label='ot')
+    plt.bar(keys, ut_values, color='violet', bottom=ot_values, label='ut')
+    plt.bar(keys, of_values, color='green', bottom=[v1 + v2 for v1, v2 in zip(ot_values, ut_values)], label='of')
+    plt.bar(keys, uf_values, color='blue', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(ot_values, ut_values, of_values)], label='uf')
+
+    # Labels and title
+    plt.xticks([])
+    plt.xlabel('Workers sorted by skill')
+    plt.ylabel('Assigned tasks')
+    plt.title(f'Stacked Histogram of OT and UT values(PI-2PLM@{th})')
+    plt.ylim(0,10)
+    plt.legend()
+
+    # Show the plot
+    plt.show()
+
+print(f"DI variance:{ours_var}")
+for th in threshold:
+
+    ind = np.array(worker_rank_dict_DI[th].keys())
+
+    assigned_ot_ut = worker_rank_dict_DI[th]
+    # Extracting 'ot' and 'ut' values
+    ot_values = [assigned_ot_ut[key]['ot'] for key in assigned_ot_ut]
+    ut_values = [assigned_ot_ut[key]['ut'] for key in assigned_ot_ut]
+    of_values = [assigned_ot_ut[key]['of'] for key in assigned_ot_ut]
+    uf_values = [assigned_ot_ut[key]['uf'] for key in assigned_ot_ut]
+
+    # Keys for the x-axis
+    keys = list(assigned_ot_ut.keys())
+
+    # Plotting
+    # 積み上げグラフとして表示：4段
+    plt.bar(keys, ot_values, color='red', label='ot')
+    plt.bar(keys, ut_values, color='orange', bottom=ot_values, label='ut')
+    plt.bar(keys, of_values, color='green', bottom=[v1 + v2 for v1, v2 in zip(ot_values, ut_values)], label='of')
+    plt.bar(keys, uf_values, color='blue', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(ot_values, ut_values, of_values)], label='uf')
+
+    # Labels and title
+    plt.xticks([])
+    plt.xlabel('Workers sorted by skill')
+    plt.ylabel('Assigned tasks')
+    plt.title(f'Stacked Histogram of OT and UT values(DI-2PLM@{th})')
+    plt.ylim(0,14)
+    plt.legend()
+    # Show the plot
+    plt.show()
+
+# ヒストグラム描画: 横軸: threshold, 縦軸: θ < bで正答したタスク数
+# パラメータの関係と正誤の関係 1PLM
+DI_ut_task = []
+PI_ut_task = []
+DI_ot_task = []
+PI_ot_task = []
+PI_of_task = []
+DI_of_task = []
+PI_uf_task = []
+DI_uf_task = []
+
+for th in threshold:
+    DI_ot_task.append(DI_onepl_res_dic[th][0])
+    PI_ot_task.append(PI_onepl_res_dic[th][0])
+
+    DI_ut_task.append(DI_onepl_res_dic[th][1])
+    PI_ut_task.append(PI_onepl_res_dic[th][1])
+
+    PI_of_task.append(PI_onepl_res_dic[th][2])
+    DI_of_task.append(DI_onepl_res_dic[th][2])
+
+    PI_uf_task.append(DI_onepl_res_dic[th][3])
+    DI_uf_task.append(DI_onepl_res_dic[th][3])
+
+ind = np.arange(len(threshold))  # the x locations for the groups
+width = 0.0275 * 12      # the width of the bars: can also be len(x) sequence
+fig, ax = plt.subplots()
+
+plt.bar(ind - width/2, PI_ot_task, color='red', label='ot')
+plt.bar(ind - width/2, PI_ut_task, color='orange', bottom=PI_ot_task, label='ut')
+plt.bar(ind + width/2, PI_of_task, color='green', bottom=[v1 + v2 for v1, v2 in zip(PI_ot_task, PI_ut_task)], label='of')
+plt.bar(ind + width/2, PI_uf_task, color='blue', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(PI_ot_task, PI_ut_task, PI_of_task)], label='uf')
+
+plt.ylabel('Number of tasks')
+plt.title('Number of correctly answered task by DI,PI(1PLM)')
+plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
+plt.yticks(np.arange(0, 51, 5))
+# plt.legend((p1[0], p2[0]), ('Men', 'Women'))
 plt.show()
 
 
-# トレードオフのグラフ
-ours_trade = var_acc_plot(ours_var, ours_acc)
-AA_trade = var_acc_plot(AA_var, AA_acc)
-top_trade = var_acc_plot(top_var, top_acc)
-random_trade = var_acc_plot(random_var, random_acc)
-PI_trade = var_acc_plot(PI_var, PI_acc)
+# パラメータの関係と正誤の関係 2PLM
+DI_ut_task = []
+PI_ut_task = []
+DI_ot_task = []
+PI_ot_task = []
+PI_of_task = []
+DI_of_task = []
+PI_uf_task = []
+DI_uf_task = []
 
+for th in threshold:
+    DI_ot_task.append(DI_twopl_res_dic[th][0])
+    PI_ot_task.append(PI_twopl_res_dic[th][0])
 
-plt.rcParams["font.size"] = 22
-fig = plt.figure() #親グラフと子グラフを同時に定義
-ax1 = fig.add_subplot()
-ax1.set_xlabel('Working Opportunity')
-ax1.set_ylabel('accuracy')
-ax1.set_xlim(0, 30)
+    DI_ut_task.append(DI_twopl_res_dic[th][1])
+    PI_ut_task.append(PI_twopl_res_dic[th][1])
 
-bbox=(0.2750, 0.400)
-ax1.plot(ours_trade[0], ours_trade[1], color='red', label='IRT')
-ax1.plot(AA_trade[0], AA_trade[1], color='cyan', label='AA')
-ax1.plot(top_trade[0], top_trade[1], color='blue', label='TOP')
-ax1.plot(random_trade[0], random_trade[1], color='green', label='RANDOM')
-ax1.plot(PI_trade[0], PI_trade[1], color='purple', label='IRT(PI)')
-# ax1.plot(PI_noise1_trade[0], PI_noise1_trade[1], color='orange', label='IRT(PI0.5)')
-fig.legend(bbox_to_anchor=bbox, loc='upper left')
+    PI_of_task.append(PI_twopl_res_dic[th][2])
+    DI_of_task.append(DI_twopl_res_dic[th][2])
+
+    PI_uf_task.append(DI_twopl_res_dic[th][3])
+    DI_uf_task.append(DI_twopl_res_dic[th][3])
+
+ind = np.arange(len(threshold))  # the x locations for the groups
+width = 0.0275 * 12      # the width of the bars: can also be len(x) sequence
+fig, ax = plt.subplots()
+'''
+p1 = ax.bar(ind - width/2, DI_ot_task, width, color='red')
+p2 = ax.bar(ind - width/2, DI_ut_task, width, bottom=DI_ot_task, color='orange')
+p3 = ax.bar(ind + width/2, PI_ot_task, width,  color='purple')
+p4 = ax.bar(ind + width/2, PI_ut_task, width, bottom=PI_ot_task, color='violet')
+'''
+
+plt.bar(ind - width/2, PI_ot_task, color='red', label='ot')
+plt.bar(ind - width/2, PI_ut_task, color='orange', bottom=ot_values, label='ut')
+plt.bar(ind + width/2, PI_of_task, color='green', bottom=[v1 + v2 for v1, v2 in zip(ot_values, ut_values)], label='of')
+plt.bar(ind + width/2, PI_uf_task, color='blue', bottom=[v1 + v2 +v3 for v1, v2, v3 in zip(ot_values, ut_values, of_values)], label='uf')
+
+plt.ylabel('Number of tasks')
+plt.title('Number of correctly answered task by DI,PI(2PLM)')
+plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
+plt.yticks(np.arange(0, 51, 5))
+# plt.legend((p1[0], p2[0]), ('Men', 'Women'))
 plt.show()
 
 
+# パラメータの関係と正誤の関係 1PLM
+DI_ut_task = []
+PI_ut_task = []
+DI_ot_task = []
+PI_ot_task = []
+PI_of_task = []
+DI_of_task = []
+PI_uf_task = []
+DI_uf_task = []
+
+for th in threshold:
+    DI_ut_task.append(DI_onepl_res_dic[th][1])
+    PI_ut_task.append(PI_onepl_res_dic[th][1])
+
+    DI_ot_task.append(DI_onepl_res_dic[th][0])
+    PI_ot_task.append(PI_onepl_res_dic[th][0])
+
+    PI_of_task.append(PI_onepl_res_dic[th][2])
+    DI_of_task.append(DI_onepl_res_dic[th][2])
+
+    PI_uf_task.append(DI_onepl_res_dic[th][3])
+    DI_uf_task.append(DI_onepl_res_dic[th][3])
+
+ind = np.arange(len(threshold))  # the x locations for the groups
+width = 0.0275 * 12      # the width of the bars: can also be len(x) sequence
+fig, ax = plt.subplots()
+p1 = ax.bar(ind - width/2, DI_ot_task, width, color='red')
+p2 = ax.bar(ind - width/2, DI_ut_task, width, bottom=DI_ot_task, color='orange')
+p3 = ax.bar(ind + width/2, PI_ot_task, width,  color='purple')
+p4 = ax.bar(ind + width/2, PI_ut_task, width, bottom=PI_ot_task, color='violet')
+
+plt.ylabel('Number of tasks')
+plt.title('Number of correctly answered task by DI,PI(1PLM)')
+plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
+plt.yticks(np.arange(0, 51, 5))
+# plt.legend((p1[0], p2[0]), ('Men', 'Women'))
+plt.show()
+
+# パラメータの関係と正誤の関係 2PLM
+DI_ut_task = []
+PI_ut_task = []
+DI_ot_task = []
+PI_ot_task = []
+PI_of_task = []
+DI_of_task = []
+PI_uf_task = []
+DI_uf_task = []
+
+for th in threshold:
+    DI_ot_task.append(DI_twopl_res_dic[th][0])
+    PI_ot_task.append(PI_twopl_res_dic[th][0])
+
+    DI_ut_task.append(DI_twopl_res_dic[th][1])
+    PI_ut_task.append(PI_twopl_res_dic[th][1])
+
+    PI_of_task.append(PI_twopl_res_dic[th][2])
+    DI_of_task.append(DI_twopl_res_dic[th][2])
+
+    PI_uf_task.append(DI_twopl_res_dic[th][3])
+    DI_uf_task.append(DI_twopl_res_dic[th][3])
+
+ind = np.arange(len(threshold))  # the x locations for the groups
+width = 0.0275 * 12      # the width of the bars: can also be len(x) sequence
+fig, ax = plt.subplots()
+p1 = ax.bar(ind - width/2, DI_ot_task, width, color='red')
+p2 = ax.bar(ind - width/2, DI_ut_task, width, bottom=DI_ot_task, color='orange')
+p3 = ax.bar(ind + width/2, PI_ot_task, width,  color='purple')
+p4 = ax.bar(ind + width/2, PI_ut_task, width, bottom=PI_ot_task, color='violet')
+
+plt.ylabel('Number of tasks')
+plt.title('Number of correctly answered task by DI,PI(2PLM)')
+plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
+plt.yticks(np.arange(0, 51, 5))
+# plt.legend((p1[0], p2[0]), ('Men', 'Women'))
+plt.show()

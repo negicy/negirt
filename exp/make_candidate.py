@@ -10,7 +10,7 @@ from scipy.stats import norm
 from irt_method import *
 from simulation import * 
 
-def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):
+def DI_make_candidate_twopl(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):
   # ワーカ候補の辞書
   worker_c_th = {}
   qualify_dic = {}
@@ -64,33 +64,165 @@ def DI_make_candidate(threshold, input_df, label_df, worker_list, test_worker, q
 
   return worker_c_th, test_worker, qualify_task, test_task, DI_item_param, user_param
 
-def PI_make_candidate(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
+
+def DI_make_candidate_onepl(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):
+  # ワーカ候補の辞書
   worker_c_th = {}
-  #params = run_girth_rasch(q_data, task_list, tetst_worker)
-  task_list = list(full_item_param.keys())
-  worker_list = list(full_user_param.keys())
-  #margin = calc_parameter_fit(task_list, worker_list, full_item_param, full_user_param, input_df)
-  #print('PI残差:', margin)
+  qualify_dic = {}
+  
+  for qt in qualify_task:
+    qualify_dic[qt] = list(input_df.T[qt])
+
+  q_data = np.array(list(qualify_dic.values()))
+  # raschモデルでパラメータ推定
+  params = run_girth_onepl(q_data, qualify_task, worker_list)
+  item_param = params[0]
+  user_param = params[1]
+
+  DI_item_param = {}
+  # カテゴリごとの推定難易度の辞書
+  category_dic = {'Businness':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Economy':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 
+                    'Technology&Science':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Health':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}}
+
+  for i in qualify_task:
+    # qualification taskの真のラベル
+    category = label_df['true_label'][i]
+    category_dic[category]['b'].append(item_param[i])
+
+  for category in category_dic:
+    category_dic[category]['mb'] = np.mean(category_dic[category]['b'])
+  
+  margin = calc_parameter_fit(qualify_task, worker_list, item_param, user_param, input_df)
+  #print('DI残差:', margin)
   for th in threshold:
     
+    candidate_count = 0
     worker_c = {}
     for task in test_task:
-      if task_assignable_check(th, full_item_param, full_user_param, test_worker, task) == True:
-        # Aタスク
-        worker_c[task] = []
-        beta = full_item_param[task]
-        for worker in test_worker:
-          # workerの正答確率prob
-          theta = full_user_param[worker]
-          prob = OnePLM(beta, theta)
+      worker_c[task] = []
+      # test_taskの推定カテゴリ
+      est_label = label_df['estimate_label'][task]
+      beta = category_dic[est_label]['mb']
+      DI_item_param[task] = beta
 
-          # workerの正解率がthresholdより大きければ
-          if prob >= th:
-            # ワーカーを候補リストに代入
-            worker_c[task].append(worker)
+      for worker in test_worker:
+        # workerの正答確率prob
+        theta = user_param[worker]
+        prob = OnePLM(beta, theta)
+
+        # workerの正解率がthresholdより大きければ
+        if prob >= th:
+          # ワーカーを候補リストに代入
+          worker_c[task].append(worker)
+
+    worker_c_th[th] = worker_c
+
+  return worker_c_th, test_worker, qualify_task, test_task, DI_item_param, user_param
+
+def DI_make_candidate_onepl_margin(threshold, input_df, label_df, worker_list, test_worker, qualify_task, test_task):
+  # ワーカ候補の辞書
+  worker_c_th = {}
+  qualify_dic = {}
+  
+  for qt in qualify_task:
+    qualify_dic[qt] = list(input_df.T[qt])
+
+  q_data = np.array(list(qualify_dic.values()))
+  # raschモデルでパラメータ推定
+  params = run_girth_onepl(q_data, qualify_task, worker_list)
+  item_param = params[0]
+  user_param = params[1]
+
+  DI_item_param = {}
+  # カテゴリごとの推定難易度の辞書
+  category_dic = {'Businness':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Economy':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 
+                    'Technology&Science':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}, 'Health':{'a': [], 'b': [], 'num':0, 'ma': 0, 'mb': 0}}
+
+  for i in qualify_task:
+    # qualification taskの真のラベル
+    category = label_df['true_label'][i]
+    category_dic[category]['b'].append(item_param[i])
+
+  for category in category_dic:
+    category_dic[category]['mb'] = np.mean(category_dic[category]['b'])
+  
+  margin = calc_parameter_fit(qualify_task, worker_list, item_param, user_param, input_df)
+  #print('DI残差:', margin)
+  for th in threshold:
+    margin = th/8
+    
+    candidate_count = 0
+    worker_c = {}
+    for task in test_task:
+      worker_c[task] = []
+      # test_taskの推定カテゴリ
+      est_label = label_df['estimate_label'][task]
+      beta = category_dic[est_label]['mb']
+      DI_item_param[task] = beta
+
+      for worker in test_worker:
+        # workerの正答確率prob
+        theta = user_param[worker]
+        prob = OnePLM(beta, theta)
+
+        # workerの正解率がthresholdより大きければ
+        if prob >= th+margin:
+          # ワーカーを候補リストに代入
+          worker_c[task].append(worker)
+
+    worker_c_th[th] = worker_c
+
+  return worker_c_th, test_worker, qualify_task, test_task, DI_item_param, user_param
+
+def PI_make_candidate(threshold, full_item_param, full_user_param, test_worker, test_task):
+  worker_c_th = {}
+
+  for th in threshold:
+  
+    worker_c = {}
+    for task in test_task:
+      #if task_assignable_check(th, full_item_param, full_user_param, test_worker, task) == True:
+      # Aタスク
+      worker_c[task] = []
+      beta = full_item_param[task]
+      for worker in test_worker:
+        # workerの正答確率prob
+        theta = full_user_param[worker]
+        prob = OnePLM(beta, theta)
+
+        # workerの正解率がthresholdより大きければ
+        if prob >= th:
+          # ワーカーを候補リストに代入
+          worker_c[task].append(worker)
     worker_c_th[th] = worker_c
 
   return worker_c_th, full_item_param, full_user_param
+
+def PI_make_candidate_margin(threshold, full_item_param, full_user_param, test_worker, test_task):
+  worker_c_th = {}
+
+  for th in threshold:
+    margin = th/5
+    
+    worker_c = {}
+    for task in test_task:
+      #if task_assignable_check(th, full_item_param, full_user_param, test_worker, task) == True:
+      # Aタスク
+      worker_c[task] = []
+      beta = full_item_param[task]
+      for worker in test_worker:
+        # workerの正答確率prob
+        theta = full_user_param[worker]
+        prob = OnePLM(beta, theta)
+
+        # workerの正解率がthresholdより大きければ
+        if prob >= th+margin:
+          # ワーカーを候補リストに代入
+          worker_c[task].append(worker)
+
+    worker_c_th[th] = worker_c
+
+  return worker_c_th
 
 def make_candidate_PI_noise(threshold, input_df, full_item_param, full_user_param, test_worker, test_task):
   worker_c_th = {}

@@ -183,13 +183,15 @@ def result_plot_acc_var(threshold, result_dic, ay, bbox):
     random_std = np.array(result_dic['random_std'])
     PI_std = np.array(result_dic['PI_std'])
     AA_std = np.array(result_dic['AA_std'])
-    ax.plot(x, DI, color='red', marker='s', label='IRT(DI)')
-    ax.plot(x, top, color='blue', marker='s', label='TOP')
-    ax.plot(x, AA, color='cyan',  marker='s', label='AA')
-    ax.plot(x, random, color='green', marker='s', label='RANDOM')
-    ax.plot(x, PI, color='purple', marker='s', label='IRT(PI)')
+
+    lw=2
+    ax.plot(x, top, color='blue', marker='s', label='TOP', linewidth=lw)
+    ax.plot(x, AA, color='cyan',  marker='s', label='AA', linewidth=lw)
+    ax.plot(x, random, color='green', marker='s', label='RANDOM', linewidth=lw)
+    ax.plot(x, PI, color='purple', marker='s', label='IRT(PI)', linewidth=lw)
+    ax.plot(x, DI, color='red', marker='s', label='IRT(DI)', linewidth=lw)
     if ay == 'accuracy':
-        ax.plot(x, x, color='orange', linestyle="dashed")
+        ax.plot(x, x, color='goldenrod', linestyle="dashed")
 
     a = 0.05
     plt.fill_between(x, DI - DI_std, DI + DI_std, facecolor='r', alpha=a)
@@ -197,7 +199,53 @@ def result_plot_acc_var(threshold, result_dic, ay, bbox):
     plt.fill_between(x, AA - AA_std, AA + AA_std, facecolor='cyan', alpha=a)
     plt.fill_between(x, random - random_std, random + random_std, facecolor='g', alpha=a)
     plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
+    # 判例を左上に表示
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
+    plt.xticks([0.5, 0.6, 0.7, 0.8])
+    return plt
+
+def result_plot_acc_var_onepl(threshold, result_dic, ay, bbox):
+    
+    # 推移をプロット
+    plt.rcParams["font.size"] = 24
+    fig = plt.figure() #親グラフと子グラフを同時に定義
+    ax = fig.add_subplot()
+    ax.set_xlabel('threshold')
+    ax.set_ylabel(ay)
+    x = np.array(threshold)
+    
+    DI = np.array(result_dic['DI'])
+    top = np.array(result_dic['top'])
+    AA = np.array(result_dic['AA'])
+    random = np.array(result_dic['random'])
+    PI = np.array(result_dic['PI'])
+
+    DI_std = np.array(result_dic['DI_std'])
+    top_std = np.array(result_dic['top_std'])
+    random_std = np.array(result_dic['random_std'])
+    PI_std = np.array(result_dic['PI_std'])
+    AA_std = np.array(result_dic['AA_std'])
+    lw=2
+
+    ax.plot(x, top, color='blue', marker='s', label='TOP', linewidth=lw)
+    ax.plot(x, AA, color='cyan',  marker='s', label='AA', linewidth=lw)
+    ax.plot(x, random, color='green', marker='s', label='RANDOM', linewidth=lw)
+    ax.plot(x, PI, color='violet', marker='s', label='IRT(PI)', linewidth=lw)
+    ax.plot(x, DI, color='orange', marker='s', label='IRT(DI)', linewidth=lw)
+
+    if ay == 'accuracy':
+        ax.plot(x, x, color='goldenrod', linestyle="dashed")
+
+    a = 0.05
+    plt.fill_between(x, DI - DI_std, DI + DI_std, facecolor='r', alpha=a)
+    plt.fill_between(x, top - top_std, top + top_std, facecolor='b', alpha=a)
+    plt.fill_between(x, AA - AA_std, AA + AA_std, facecolor='cyan', alpha=a)
+    plt.fill_between(x, random - random_std, random + random_std, facecolor='g', alpha=a)
+    plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
+    # 判例を左上に表示
+    fig.legend(bbox_to_anchor=bbox, loc='upper left')
+    plt.xticks([0.5, 0.6, 0.7, 0.8])
+
     return plt
 
 def result_plot_tradeoff(result_tp_dic, result_acc_dic):
@@ -230,12 +278,52 @@ def result_plot_tradeoff(result_tp_dic, result_acc_dic):
   ax.set_ylabel('accuracy')
   ax.set_xlim(0, 15)
 
-  bbox=(0.2750, 0.400)
-  ax.plot(DI_trade[0], DI_trade[1], color='red', marker='s', label='IRT(DI)')
-  ax.plot(AA_trade[0], AA_trade[1], color='cyan', marker='s', label='AA')
-  ax.plot(top_trade[0], top_trade[1], color='blue', marker='s', label='TOP')
-  ax.plot(random_trade[0], random_trade[1], color='green', marker='s', label='RANDOM')
-  ax.plot(PI_trade[0], PI_trade[1], color='purple', marker='s', label='IRT(PI)')
+  bbox=(0.5750, 0.400)
+  lw=2
+  ax.plot(AA_trade[0], AA_trade[1], color='cyan', marker='s', label='AA',linewidth=lw)
+  ax.plot(top_trade[0], top_trade[1], color='blue', marker='s', label='TOP',linewidth=lw)
+  ax.plot(random_trade[0], random_trade[1], color='green', marker='s', label='RANDOM',linewidth=lw)
+  ax.plot(PI_trade[0], PI_trade[1], color='purple', marker='s', label='IRT(PI)',linewidth=lw)
+  ax.plot(DI_trade[0], DI_trade[1], color='red', marker='s', label='IRT(DI)',linewidth=lw)
+  fig.legend(bbox_to_anchor=bbox, loc='upper left')
+  plt.ylim(0.55, 0.75)
+  #plt.show()
+  return plt
+
+def result_plot_tradeoff_onepl(result_tp_dic, result_acc_dic):
+  # トレードオフのグラフ
+  DI_tp = np.array(result_tp_dic['DI'])
+  top_tp = np.array(result_tp_dic['top'])
+  AA_tp = np.array(result_tp_dic['AA'])
+  random_tp = np.array(result_tp_dic['random'])
+  PI_tp = np.array(result_tp_dic['PI'])
+
+  DI_acc = np.array(result_acc_dic['DI'])
+  top_acc = np.array(result_acc_dic['top'])
+  AA_acc = np.array(result_acc_dic['AA'])
+  random_acc = np.array(result_acc_dic['random'])
+  PI_acc = np.array(result_acc_dic['PI'])
+
+  DI_trade = tp_acc_plot(DI_tp, DI_acc)
+  AA_trade = tp_acc_plot(AA_tp, AA_acc)
+  top_trade = tp_acc_plot(top_tp, top_acc)
+  random_trade = tp_acc_plot(random_tp, random_acc)
+  PI_trade = tp_acc_plot(PI_tp, PI_acc)
+
+  plt.rcParams["font.size"] = 22
+  fig = plt.figure() #親グラフと子グラフを同時に定義
+  ax = fig.add_subplot()
+  ax.set_xlabel('Working Opportunity')
+  ax.set_ylabel('accuracy')
+  ax.set_xlim(0, 15)
+
+  bbox=(0.5750, 0.400)
+  lw=2
+  ax.plot(AA_trade[0], AA_trade[1], color='cyan', marker='s', label='AA', linewidth=lw)
+  ax.plot(top_trade[0], top_trade[1], color='blue', marker='s', label='TOP', linewidth=lw)
+  ax.plot(random_trade[0], random_trade[1], color='green', marker='s', label='RANDOM', linewidth=lw)
+  ax.plot(PI_trade[0], PI_trade[1], color='violet', marker='s', label='IRT(PI)', linewidth=lw)
+  ax.plot(DI_trade[0], DI_trade[1], color='orange', marker='s', label='IRT(DI)', linewidth=lw)
   fig.legend(bbox_to_anchor=bbox, loc='upper left')
   plt.ylim(0.55, 0.75)
   #plt.show()

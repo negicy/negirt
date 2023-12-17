@@ -95,6 +95,7 @@ def DI_make_candidate_onepl(threshold, input_df, label_df, worker_list, test_wor
   margin = calc_parameter_fit(qualify_task, worker_list, item_param, user_param, input_df)
   #print('DI残差:', margin)
   for th in threshold:
+    margin = th/4
     
     candidate_count = 0
     worker_c = {}
@@ -149,7 +150,7 @@ def DI_make_candidate_onepl_margin(threshold, input_df, label_df, worker_list, t
   margin = calc_parameter_fit(qualify_task, worker_list, item_param, user_param, input_df)
   #print('DI残差:', margin)
   for th in threshold:
-    margin = th/8
+    margin = th/4
     
     candidate_count = 0
     worker_c = {}
@@ -178,6 +179,7 @@ def PI_make_candidate(threshold, full_item_param, full_user_param, test_worker, 
   worker_c_th = {}
 
   for th in threshold:
+    margin = 0
   
     worker_c = {}
     for task in test_task:
@@ -191,7 +193,7 @@ def PI_make_candidate(threshold, full_item_param, full_user_param, test_worker, 
         prob = OnePLM(beta, theta)
 
         # workerの正解率がthresholdより大きければ
-        if prob >= th:
+        if prob >= th+margin:
           # ワーカーを候補リストに代入
           worker_c[task].append(worker)
     worker_c_th[th] = worker_c
@@ -202,7 +204,7 @@ def PI_make_candidate_margin(threshold, full_item_param, full_user_param, test_w
   worker_c_th = {}
 
   for th in threshold:
-    margin = th/5
+    margin = th/4
     
     worker_c = {}
     for task in test_task:

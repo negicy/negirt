@@ -83,14 +83,14 @@ threshold=[0.5, 0.6, 0.7, 0.8]
 for th in welldone_dist:
   welldone_dist[th] = welldone_dist[th] / iteration_time
 
-plt.rcParams["font.size"] = 22
+plt.rcParams["font.size"] = 36
 fig =  plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 
 ax.set_xlabel('threshold')
-ax.set_ylabel('rate of successful assignments')
+ax.set_ylabel('good ratio')
 ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.4, color='red')
-# plt.show()
+plt.show()
 
 # タスクのあるワーカのヒストグラム
 # PIの，worker_with_tasksを取り出す: PI_all_assign_dic_alliterから

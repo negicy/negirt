@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from operator import itemgetter
 from irt_method import *
+
+
 '''
 Businness 31
 Economy 36
@@ -165,11 +167,11 @@ def histgram_welldone(welldone_dist, iteration_time):
 def result_plot_acc_var(threshold, result_dic, ay, bbox):
     
     # 推移をプロット
-    plt.rcParams["font.size"] = 24
+    plt.rcParams["font.size"] = 36
     fig = plt.figure() #親グラフと子グラフを同時に定義
     ax = fig.add_subplot()
     ax.set_xlabel('threshold')
-    ax.set_ylabel(ay)
+    #ax.set_ylabel(ay)
     x = np.array(threshold)
     
     DI = np.array(result_dic['DI'])
@@ -188,10 +190,15 @@ def result_plot_acc_var(threshold, result_dic, ay, bbox):
     ax.plot(x, top, color='blue', marker='s', label='TOP', linewidth=lw)
     ax.plot(x, AA, color='cyan',  marker='s', label='AA', linewidth=lw)
     ax.plot(x, random, color='green', marker='s', label='RANDOM', linewidth=lw)
-    ax.plot(x, PI, color='purple', marker='s', label='IRT(PI)', linewidth=lw)
-    ax.plot(x, DI, color='red', marker='s', label='IRT(DI)', linewidth=lw)
+    ax.plot(x, PI, color='purple', marker='s', label='IRT(PI by 2PLM)', linewidth=lw)
+    ax.plot(x, DI, color='red', marker='s', label='IRT(DI by 2PLM)', linewidth=lw)
     if ay == 'accuracy':
         ax.plot(x, x, color='goldenrod', linestyle="dashed")
+        ax.set_ylabel('accuracy')
+        #plt.ylim(0.50, 0.8)
+    else:
+        ax.set_ylabel('variance')
+        plt.ylim(0, 15)
 
     a = 0.05
     plt.fill_between(x, DI - DI_std, DI + DI_std, facecolor='r', alpha=a)
@@ -201,17 +208,21 @@ def result_plot_acc_var(threshold, result_dic, ay, bbox):
     plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
     # 判例を左上に表示
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
+    plt.subplots_adjust(left=0.10, right=0.95, bottom=0.10, top=0.995)
+
     plt.xticks([0.5, 0.6, 0.7, 0.8])
+    # plt.ylim(0, 15)
     return plt
 
 def result_plot_acc_var_onepl(threshold, result_dic, ay, bbox):
     
     # 推移をプロット
-    plt.rcParams["font.size"] = 24
+    plt.rcParams["font.size"] = 36
     fig = plt.figure() #親グラフと子グラフを同時に定義
     ax = fig.add_subplot()
     ax.set_xlabel('threshold')
-    ax.set_ylabel(ay)
+    #ax.set_ylabel(ay) 
+    #ax.set_ylabel('accuracy',rotation=0,labelpad=15,va='center')
     x = np.array(threshold)
     
     DI = np.array(result_dic['DI'])
@@ -230,11 +241,16 @@ def result_plot_acc_var_onepl(threshold, result_dic, ay, bbox):
     ax.plot(x, top, color='blue', marker='s', label='TOP', linewidth=lw)
     ax.plot(x, AA, color='cyan',  marker='s', label='AA', linewidth=lw)
     ax.plot(x, random, color='green', marker='s', label='RANDOM', linewidth=lw)
-    ax.plot(x, PI, color='violet', marker='s', label='IRT(PI)', linewidth=lw)
-    ax.plot(x, DI, color='orange', marker='s', label='IRT(DI)', linewidth=lw)
+    ax.plot(x, PI, color='violet', marker='s', label='IRT(PI by 1PLM)', linewidth=lw)
+    ax.plot(x, DI, color='orange', marker='s', label='IRT(DI by 1PLM)', linewidth=lw)
 
     if ay == 'accuracy':
         ax.plot(x, x, color='goldenrod', linestyle="dashed")
+        ax.set_ylabel('accuracy')
+        #plt.ylim(0.50, 0.8)
+    else:
+        ax.set_ylabel('variance')
+        plt.ylim(0, 15)
 
     a = 0.05
     plt.fill_between(x, DI - DI_std, DI + DI_std, facecolor='r', alpha=a)
@@ -244,7 +260,9 @@ def result_plot_acc_var_onepl(threshold, result_dic, ay, bbox):
     plt.fill_between(x, PI - PI_std, PI + PI_std, facecolor='purple', alpha=a)
     # 判例を左上に表示
     fig.legend(bbox_to_anchor=bbox, loc='upper left')
+    plt.subplots_adjust(left=0.10, right=0.95, bottom=0.10, top=0.995)
     plt.xticks([0.5, 0.6, 0.7, 0.8])
+    
 
     return plt
 
@@ -271,10 +289,10 @@ def result_plot_tradeoff(result_tp_dic, result_acc_dic):
   # top_trade = var_acc_plot(top_var, top_acc)
   # random_trade = var_acc_plot(random_var, random_acc)
 
-  plt.rcParams["font.size"] = 22
+  plt.rcParams["font.size"] = 36
   fig = plt.figure() #親グラフと子グラフを同時に定義
   ax = fig.add_subplot()
-  ax.set_xlabel('Working Opportunity')
+  ax.set_xlabel('variance')
   ax.set_ylabel('accuracy')
   ax.set_xlim(0, 15)
 
@@ -283,9 +301,10 @@ def result_plot_tradeoff(result_tp_dic, result_acc_dic):
   ax.plot(AA_trade[0], AA_trade[1], color='cyan', marker='s', label='AA',linewidth=lw)
   ax.plot(top_trade[0], top_trade[1], color='blue', marker='s', label='TOP',linewidth=lw)
   ax.plot(random_trade[0], random_trade[1], color='green', marker='s', label='RANDOM',linewidth=lw)
-  ax.plot(PI_trade[0], PI_trade[1], color='purple', marker='s', label='IRT(PI)',linewidth=lw)
-  ax.plot(DI_trade[0], DI_trade[1], color='red', marker='s', label='IRT(DI)',linewidth=lw)
+  ax.plot(PI_trade[0], PI_trade[1], color='purple', marker='s', label='IRT(PI by 2PLM)',linewidth=lw)
+  ax.plot(DI_trade[0], DI_trade[1], color='red', marker='s', label='IRT(DI by 2PLM)',linewidth=lw)
   fig.legend(bbox_to_anchor=bbox, loc='upper left')
+  plt.subplots_adjust(left=0.10, right=0.95, bottom=0.10, top=0.950)
   plt.ylim(0.55, 0.75)
   #plt.show()
   return plt
@@ -310,11 +329,12 @@ def result_plot_tradeoff_onepl(result_tp_dic, result_acc_dic):
   random_trade = tp_acc_plot(random_tp, random_acc)
   PI_trade = tp_acc_plot(PI_tp, PI_acc)
 
-  plt.rcParams["font.size"] = 22
+  plt.rcParams["font.size"] = 36
   fig = plt.figure() #親グラフと子グラフを同時に定義
   ax = fig.add_subplot()
-  ax.set_xlabel('Working Opportunity')
+  ax.set_xlabel('variance')
   ax.set_ylabel('accuracy')
+  # ax.set_ylabel('正解率')
   ax.set_xlim(0, 15)
 
   bbox=(0.5750, 0.400)
@@ -322,10 +342,57 @@ def result_plot_tradeoff_onepl(result_tp_dic, result_acc_dic):
   ax.plot(AA_trade[0], AA_trade[1], color='cyan', marker='s', label='AA', linewidth=lw)
   ax.plot(top_trade[0], top_trade[1], color='blue', marker='s', label='TOP', linewidth=lw)
   ax.plot(random_trade[0], random_trade[1], color='green', marker='s', label='RANDOM', linewidth=lw)
-  ax.plot(PI_trade[0], PI_trade[1], color='violet', marker='s', label='IRT(PI)', linewidth=lw)
-  ax.plot(DI_trade[0], DI_trade[1], color='orange', marker='s', label='IRT(DI)', linewidth=lw)
+  ax.plot(PI_trade[0], PI_trade[1], color='violet', marker='s', label='IRT(PI by 1PLM)', linewidth=lw)
+  ax.plot(DI_trade[0], DI_trade[1], color='orange', marker='s', label='IRT(DI by 1PLM)', linewidth=lw)
   fig.legend(bbox_to_anchor=bbox, loc='upper left')
   plt.ylim(0.55, 0.75)
+  plt.subplots_adjust(left=0.10, right=0.95, bottom=0.10, top=0.950)
+  #plt.show()
+  return plt
+
+def result_plot_tradeoff_one_twopl(result_tp_dic, result_acc_dic, result_tp_dic_onepl, result_acc_dic_onepl):
+  # トレードオフのグラフ
+  DI_tp = np.array(result_tp_dic['DI'])
+  top_tp = np.array(result_tp_dic['top'])
+  AA_tp = np.array(result_tp_dic['AA'])
+  random_tp = np.array(result_tp_dic['random'])
+  PI_tp = np.array(result_tp_dic['PI'])
+
+  DI_acc = np.array(result_acc_dic['DI'])
+  top_acc = np.array(result_acc_dic['top'])
+  AA_acc = np.array(result_acc_dic['AA'])
+  random_acc = np.array(result_acc_dic['random'])
+  PI_acc = np.array(result_acc_dic['PI'])
+
+  DI_trade = tp_acc_plot(DI_tp, DI_acc)
+  AA_trade = tp_acc_plot(AA_tp, AA_acc)
+  top_trade = tp_acc_plot(top_tp, top_acc)
+  random_trade = tp_acc_plot(random_tp, random_acc)
+  PI_trade = tp_acc_plot(PI_tp, PI_acc)
+
+  PI_onepl_tp = np.array(result_tp_dic_onepl['PI'])
+  PI_onepl_acc = np.array(result_acc_dic_onepl['PI'])
+
+  plt.rcParams["font.size"] = 36
+  fig = plt.figure() #親グラフと子グラフを同時に定義
+  ax = fig.add_subplot()
+  ax.set_xlabel('variance')
+  ax.set_ylabel('accuracy')
+  # ax.set_ylabel('正解率')
+  ax.set_xlim(0, 15)
+
+  bbox=(0.5750, 0.400)
+  lw=2
+  ax.plot(AA_trade[0], AA_trade[1], color='cyan', marker='s', label='AA', linewidth=lw)
+  ax.plot(top_trade[0], top_trade[1], color='blue', marker='s', label='TOP', linewidth=lw)
+  ax.plot(random_trade[0], random_trade[1], color='green', marker='s', label='RANDOM', linewidth=lw)
+  ax.plot(PI_onepl_tp, PI_onepl_acc, color='violet', marker='s', label='IRT(PI by 1PLM)', linewidth=lw)
+  ax.plot(PI_trade[0], PI_trade[1], color='purple', marker='s', label='IRT(PI by 2PLM)', linewidth=lw)
+  # ax.plot(DI_trade[0], DI_trade[1], color='orange', marker='s', label='IRT(DI by 1PLM)', linewidth=lw)
+  
+  fig.legend(bbox_to_anchor=bbox, loc='upper left')
+  plt.ylim(0.55, 0.75)
+  plt.subplots_adjust(left=0.10, right=0.95, bottom=0.10, top=0.950)
   #plt.show()
   return plt
    

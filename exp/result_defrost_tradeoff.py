@@ -10,8 +10,9 @@ from assignment_method import *
 from irt_method import *
 from simulation import *
 from make_candidate import *
+import japanize_matplotlib
 
-filename = 'results/result_20231214_210938.pickle'
+filename = 'results/result_20231220_124432.pickle'
 
 with open(filename, 'rb') as p:
     results = pickle.load(p)
@@ -86,6 +87,12 @@ print(f'PI acc: {PI_acc}')
 print(f'PI_onepl_acc: {PI_onepl_acc}')
 print(f'DI_onepl_acc: {DI_onepl_acc}')
 
+print(f'ours var: {ours_var}')
+print(f'PI var: {PI_var}')
+print(f'top var: {top_var}')
+print(f'AA var: {AA_var}')
+print(f'random var: {random_var}')
+
 PI_all_assign_dic_alliter = results['PI_all_assign_dic_alliter']
 
 threshold = list([i / 10 for i in range(50, 81)])
@@ -94,12 +101,12 @@ threshold=[0.5, 0.6, 0.7, 0.8]
 for th in welldone_dist:
   welldone_dist[th] = welldone_dist[th] / iteration_time
 
-plt.rcParams["font.size"] = 22
+plt.rcParams["font.size"] = 28
 fig =  plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 
 ax.set_xlabel('threshold')
-ax.set_ylabel('rate of successful assignments')
+# ax.set_ylabel('rate of successful assignments')
 ax.bar(['0.5', '0.6', '0.7', '0.8'], welldone_dist.values(), width=0.4, color='red')
 # plt.show()
 
@@ -140,7 +147,7 @@ x3 = [1.6, 2.6, 3.6, 4.6]
 
 # 少なくとも1つ以上のタスクを与えられたワーカのヒストグラム
 label_x = ['0.5', '0.6', '0.7', '0.8']
-plt.rcParams["font.size"] = 22
+plt.rcParams["font.size"] = 28
 fig = plt.figure() #親グラフと子グラフを同時に定義
 # 1つ目の棒グラフ
 plt.bar(x1, y_PI, color='purple', width=0.3, label='PI', align="center")
@@ -151,20 +158,22 @@ plt.bar(x3, y_AA, color='cyan', width=0.3, label='AA', align="center")
 
 # 凡例
 plt.xlabel('threshold')
-plt.ylabel('Number of workers with tasks')
+plt.ylabel('少\nな\nく\nと\nも\n1\nつ\n以\n上\nの\nタ\nス\nク\nを\n与\nえ\nら\nれ\nた\nワ\n｜\nカ\nの\n人\n数',rotation=0,labelpad=15,va='center')
+# plt.ylabel('少なくとも1つ以上のタスクを与えられたワーカの人数')
 # X軸の目盛りを置換
 plt.xticks([1.15, 2.15, 3.15, 4.15], label_x)
 fig.legend(bbox_to_anchor=(0.15, 0.250), loc='upper left')
 #plt.show()
 
 
+
 # 推移をプロット: PI/DI: OnePLM
-result_acc_dic = {
+result_acc_dic_onepl = {
   'DI': DI_onepl_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': PI_onepl_acc,
   'DI_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': PI_onepl_acc_std
   }
 
-result_var_dic = {
+result_var_dic_onepl = {
   'DI': DI_onepl_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'PI': PI_onepl_var,
   'DI_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': PI_onepl_var_std
 }
@@ -173,18 +182,18 @@ result_tp_dic = {
   'DI': DI_onepl_tp, 'top': top_tp, 'AA': AA_tp, 'random': random_tp, 'PI': PI_onepl_tp
 }
 
-result_plot_acc_var_onepl(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.850)).show()
-result_plot_acc_var_onepl(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
+#result_plot_acc_var_onepl(threshold, result_acc_dic_onepl, ay='accuracy', bbox=(0.150, 0.980)).show()
+#result_plot_acc_var_onepl(threshold, result_var_dic_onepl, ay='variance', bbox=(0.150, 0.800)).show()
 # result_plot_tradeoff(result_tp_dic, result_acc_dic).show()
-result_plot_tradeoff_onepl(result_var_dic, result_acc_dic).show()
+# result_plot_tradeoff_onepl(result_var_dic_onepl, result_acc_dic_onepl).show()
 
 # 推移をプロット: PI/DI: OnePLM+margin
-result_acc_dic = {
+result_acc_dic_onepl_margin = {
   'DI': DI_onepl_margin_acc, 'top': top_acc, 'AA': AA_acc, 'random': random_acc, 'PI': PI_onepl_margin_acc,
   'DI_std': ours_acc_std, 'top_std': top_acc_std, 'AA_std': AA_acc_std, 'random_std': random_acc_std, 'PI_std': PI_onepl_margin_acc_std
   }
 
-result_var_dic = {
+result_var_dic_onepl_margin = {
   'DI': DI_onepl_margin_var, 'top': top_var, 'AA': AA_var, 'random': random_var, 'PI': PI_onepl_margin_var,
   'DI_std': ours_var_std, 'top_std': top_var_std, 'AA_std': AA_var_std, 'random_std': random_var_std, 'PI_std': PI_onepl_margin_var_std
 }
@@ -193,10 +202,10 @@ result_tp_dic = {
   'DI': DI_onepl_margin_tp, 'top': top_tp, 'AA': AA_tp, 'random': random_tp, 'PI': PI_onepl_margin_tp
 }
 
-result_plot_acc_var_onepl(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.850)).show()
-result_plot_acc_var_onepl(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
+#result_plot_acc_var_onepl(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.980)).show()
+#result_plot_acc_var_onepl(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
 # result_plot_tradeoff(result_tp_dic, result_acc_dic).show()
-result_plot_tradeoff_onepl(result_var_dic, result_acc_dic).show()
+#result_plot_tradeoff_onepl(result_var_dic, result_acc_dic).show()
 
 
 # 推移をプロット PI/DI: 2PLM
@@ -214,8 +223,11 @@ result_tp_dic = {
   'DI': ours_tp, 'top': top_tp, 'AA': AA_tp, 'random': random_tp, 'PI': PI_tp
 }
 
-result_plot_acc_var(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.850)).show()
-result_plot_acc_var(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
+
+#result_plot_acc_var(threshold, result_acc_dic, ay='accuracy', bbox=(0.150, 0.980)).show()
+#result_plot_acc_var(threshold, result_var_dic, ay='variance', bbox=(0.150, 0.800)).show()
 # result_plot_tradeoff(result_tp_dic, result_acc_dic).show()
 result_plot_tradeoff(result_var_dic, result_acc_dic).show()
+
+result_plot_tradeoff_one_twopl(result_var_dic, result_acc_dic, result_var_dic_onepl, result_acc_dic_onepl).show()
 

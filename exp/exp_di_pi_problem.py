@@ -148,7 +148,7 @@ b_tt_list = []
 num_fit_param = 0
 NA_count_list = []
 
-NA_num = 5
+NA_num = 3
 """
 イテレーション
 """
@@ -866,6 +866,9 @@ PI_tp = PI_result[2]
 # 標準偏差を計算
 PI_acc_std = PI_result[3]
 PI_var_std = top_result[4]
+PI_acc_head = PI_result[5]
+PI_acc_tail = PI_result[6]
+
 for th in range(0, len(threshold)):
     PI_margin_sum_th = 0
     for i in range(0, iteration_time):
@@ -1290,7 +1293,7 @@ result = {
     "DI_onepl_acc_tail": DI_onepl_acc_tail,
     "AA_acc_tail": AA_acc_tail,
     "top_acc_tail": top_acc_tail,
-    "PI_onepl_acc_tail": PI_onepl_acc_tail,
+    "PI_acc_tail": PI_acc_tail,
     "PI_onepl_acc_tail": PI_onepl_acc_tail,
 
     "ours_acc_std": ours_acc_std,
@@ -1341,6 +1344,17 @@ result = {
 
     "worker_list_alliter": worker_list_alliter,
     "task_list_alliter": task_list_alliter,
+
+    "PI_acc_allth": PI_acc_allth,
+    "DI_acc_allth": ours_acc_allth,
+    "PI_onepl_acc_allth": PI_onepl_acc_allth,
+    "DI_onepl_acc_allth": DI_onepl_acc_allth,
+    "PI_onepl_margin_acc_allth": PI_onepl_margin_acc_allth,
+    "DI_onepl_margin_acc_allth": DI_onepl_margin_acc_allth,
+    "top_acc_allth": top_acc_allth,
+    "random_acc_allth": random_acc_allth,
+    "AA_acc_allth": AA_acc_allth,
+
 }
 
 # 結果データの保存

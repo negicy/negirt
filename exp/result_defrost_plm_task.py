@@ -12,7 +12,7 @@ from simulation import *
 from make_candidate import *
 import japanize_matplotlib
 
-filename = 'results/result_20231214_210938.pickle'
+filename = 'results/result_20231220_124432.pickle'
 
 with open(filename, 'rb') as p:
     results = pickle.load(p)
@@ -138,7 +138,6 @@ print(f'PI_onepl_acc: {PI_onepl_acc}')
 print(f'DI_onepl_acc: {DI_onepl_acc}')
 
 
-
 PI_twopl_res_dic = results['PI_twopl_res_dic']
 DI_twopl_res_dic = results['DI_twopl_res_dic']
 
@@ -157,6 +156,54 @@ worker_rank_dict_DI_onepl = results['worker_rank_dict_DI_onepl']
 worker_rank_dict_PI_onepl_margin = results['worker_rank_dict_PI_onepl_margin']
 worker_rank_dict_DI_onepl_margin = results['worker_rank_dict_DI_onepl_margin']
 
+plt.rcParams["font.size"] = 36
+
+# パラメータの関係と正誤の関係 1PLM+Margin
+DI_ut_task = []
+PI_ut_task = []
+DI_ot_task = []
+PI_ot_task = []
+PI_of_task = []
+DI_of_task = []
+PI_uf_task = []
+DI_uf_task = []
+
+for th in threshold:
+    DI_ot_task.append(DI_twopl_res_dic[th][0])
+    PI_ot_task.append(PI_onepl_res_dic[th][0])
+
+    DI_ut_task.append(DI_twopl_res_dic[th][1])
+    PI_ut_task.append(PI_onepl_res_dic[th][1])
+
+    PI_of_task.append(PI_twopl_res_dic[th][2])
+    DI_of_task.append(DI_onepl_res_dic[th][2])
+
+    PI_uf_task.append(DI_twopl_res_dic[th][3])
+    DI_uf_task.append(DI_twopl_res_dic[th][3])
+    print(DI_ot_task)
+test_task_size = 60
+DI_o_rate_task = []
+for i in range(len(DI_ot_task)):
+    DI_o_rate_task.append((DI_ot_task[i] + DI_of_task[i])/test_task_size)
+
+
+ind = np.arange(len(threshold))  # the x locations for the groups
+width = 0.0275 * 12      # the width of the bars: can also be len(x) sequence
+fig, ax = plt.subplots()
+# DI_ot_taskとPI_ot_taskの和をヒストグラムにする
+
+p1 = ax.bar(ind, DI_o_rate_task, width, color='red')
+#p2 = ax.bar(ind, DI_of_task, width, bottom=DI_ot_task, color='orange')
+#p3 = ax.bar(ind + width/2, PI_ot_task, width,  color='purple')
+#p4 = ax.bar(ind + width/2, PI_ut_task, width, bottom=PI_ot_task, color='violet')
+#p1 = ax.bar(ind - width/2, PI_ot_task, width, color='red')
+#p3 = ax.bar(ind + width/2, PI_of_task, width,  color='purple')
+plt.ylabel('good ratio')
+plt.xlabel
+# plt.title('Number of correctly answered task by DI,PI(1PLM)')
+plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
+# plt.yticks(np.arange(0, 1, 5))
+# plt.legend((p1[0], p2[0]), ('Men',
 
 test_task_size = 60
 # ヒストグラム描画: 横軸: threshold, 縦軸: θ < bで正答したタスク数
@@ -179,28 +226,28 @@ for th in threshold:
     o_size_twopl = PI_twopl_res_dic[th][0] + PI_twopl_res_dic[th][2]
     PI_ot_task_onepl.append(PI_onepl_res_dic[th][0]/o_size_onepl)
     PI_ot_task_twopl.append(PI_twopl_res_dic[th][0]/o_size_twopl)
+    print(PI_onepl_res_dic[th][0]/o_size_onepl)
     print(PI_twopl_res_dic[th][0]/o_size_twopl)
 
 
 ind = np.arange(len(threshold))  # the x locations for the groups
 width = 0.0275 * 12      # the width of the bars: can also be len(x) sequence
 fig, ax = plt.subplots()
-p1 = ax.bar(ind - width/2, PI_ot_task_onepl, width, color='violet', label='PI(1PLM)')
+p1 = ax.bar(ind - width/2, PI_ot_task_onepl, width, color='violet', label='PI by 1PLM')
 #p2 = ax.bar(ind - width/2, DI_ut_task, width, bottom=DI_ot_task, color='orange')
-p2 = ax.bar(ind + width/2, PI_ot_task_twopl, width,  color='purple', label='PI(2PLM)')
+p2 = ax.bar(ind + width/2, PI_ot_task_twopl, width,  color='purple', label='PI by 2PLM')
 #p4 = ax.bar(ind + width/2, PI_ut_task, width, bottom=PI_ot_task, color='violet')
 
-plt.ylabel('正解率')
+plt.ylabel('accuracy')
 #plt.title('PIによる正解タスク数')
 plt.xticks(ind, ('0.5', '0.6', '0.7', '0.8'))
 # plt.yticks(np.arange(0, 1))
 # plt.legend((p1[0], p2[0]), ('Men', 'Women'))
 # 右下に凡例を表示
-plt.legend(bbox_to_anchor=(1, 0), loc='lower right', borderaxespad=1, fontsize=18)
+plt.legend(bbox_to_anchor=(1, 0), loc='lower right', borderaxespad=1, fontsize=36)
 #plt.legend()
 plt.show()
 
-'''
 
 # パラメータの関係と正誤の関係 1PLM+Margin
 DI_ut_task = []
@@ -229,7 +276,7 @@ ind = np.arange(len(threshold))  # the x locations for the groups
 width = 0.0275 * 12      # the width of the bars: can also be len(x) sequence
 fig, ax = plt.subplots()
 p1 = ax.bar(ind - width/2, DI_ot_task, width, color='red')
-p2 = ax.bar(ind - width/2, DI_ut_task, width, bottom=DI_ot_task, color='orange')
+p2 = ax.bar(ind - width/2, DI__task, width, bottom=DI_ot_task, color='orange')
 p3 = ax.bar(ind + width/2, PI_ot_task, width,  color='purple')
 p4 = ax.bar(ind + width/2, PI_ut_task, width, bottom=PI_ot_task, color='violet')
 #p1 = ax.bar(ind - width/2, PI_ot_task, width, color='red')
@@ -279,4 +326,3 @@ plt.yticks(np.arange(0, 51, 5))
 # plt.legend((p1[0], p2[0]), ('Men', 'Women'))
 plt.show()
 
-'''
